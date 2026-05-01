@@ -6,9 +6,6 @@
 __pycache__/
 *.py[cod]
 
-# Testing
-test_*.py
-
 # IDEs / Editors
 .vscode/
 .idea/
