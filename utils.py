@@ -26,6 +26,12 @@ def transpose(A: list[list[float]]) -> list[list[float]]:
     """
     return [list(col) for col in zip(*A)]
 
+def add_bias(X: list[list[float]]) -> list[list[float]]:
+    """
+    Thêm cột 1 (bias/intercept) vào đầu ma trận X.
+    """
+    return [[1.0] + list(row) for row in X]
+
 def matmul(A: list[list[float]], B: list[list[float]]) -> list[list[float]]:
     """
     Nhân hai ma trận A và B.
@@ -293,3 +299,62 @@ def find_new_unit_vector(basis: list[list[float]], dim: int) -> list[float]:
     if is_zero(nw):
         raise ValueError("Không thể xây dựng cơ sở trực giao")
     return [zero_rectify(x / nw) for x in w]
+
+def solve_system(A: list[list[float]], b: list[float]) -> list[float]:
+    """Giải hệ phương trình tuyến tính Ax = b bằng phép khử Gauss với partial pivoting."""
+    n = len(b)
+    # Create augmented matrix
+    M = [row[:] + [b[i]] for i, row in enumerate(A)]
+    
+    for col in range(n):
+        # Partial pivoting
+        pivot = max(range(col, n), key=lambda r: abs(M[r][col]))
+        M[col], M[pivot] = M[pivot], M[col]
+        
+        if abs(M[col][col]) < 1e-12:
+            raise ValueError("Ma trận suy biến hoặc gần suy biến")
+            
+        # Eliminate below
+        for row in range(col + 1, n):
+            factor = M[row][col] / M[col][col]
+            for j in range(col, n + 1):
+                M[row][j] -= factor * M[col][j]
+                
+    # Back substitution
+    x = [0.0] * n
+    for i in range(n - 1, -1, -1):
+        x[i] = M[i][n]
+        for j in range(i + 1, n):
+            x[i] -= M[i][j] * x[j]
+        x[i] /= M[i][i]
+    return x
+
+def inverse(A: list[list[float]]) -> list[list[float]]:
+    """Tính ma trận nghịch đảo bằng Gauss-Jordan."""
+    n = len(A)
+    # Create augmented matrix [A | I]
+    M = [row[:] + [1.0 if i == j else 0.0 for j in range(n)] for i, row in enumerate(A)]
+    
+    for col in range(n):
+        # Partial pivoting
+        pivot = max(range(col, n), key=lambda r: abs(M[r][col]))
+        M[col], M[pivot] = M[pivot], M[col]
+        
+        if abs(M[col][col]) < 1e-12:
+            raise ValueError("Ma trận suy biến hoặc gần suy biến")
+            
+        # Scale pivot row
+        pivot_val = M[col][col]
+        for j in range(col, 2 * n):
+            M[col][j] /= pivot_val
+            
+        # Eliminate other rows
+        for row in range(n):
+            if row != col:
+                factor = M[row][col]
+                for j in range(col, 2 * n):
+                    M[row][j] -= factor * M[col][j]
+                    
+    # Extract right half
+    return [row[n:] for row in M]
+

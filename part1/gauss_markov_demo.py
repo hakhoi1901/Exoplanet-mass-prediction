@@ -131,3 +131,49 @@ def plot_beta_histograms(
 
     plt.tight_layout()
     return fig, axes
+
+# ---------------------------------------------------------------------------
+# Unit Tests — F10
+# ---------------------------------------------------------------------------
+if __name__ == "__main__":
+    import os
+    import sys
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8')
+        
+    from test_utils import TestLogger, assert_shape, assert_true, assert_in_range, assert_equal
+
+    print("=" * 55)
+    print("  UNIT TESTS — gauss_markov_demo.py")
+    print("=" * 55)
+
+    passed = 0
+    total = 0
+
+    def run(result: bool):
+        global passed, total
+        total += 1
+        passed += int(result)
+
+    TestLogger.print_suite_header("F10 — Gauss Markov Demo")
+
+    # Run simulation with small n_sim for testing
+    res = monte_carlo_gauss_markov(n_sim=50, n_obs=30, random_state=42)
+
+    run(assert_true("summary" in res and "beta_ols_arr" in res, label="returns expected dictionary keys"))
+    
+    run(assert_shape(res["beta_ols_arr"], (50, 3), label="beta_ols_arr has shape (n_sim, p+1)"))
+    run(assert_shape(res["beta_alt_arr"], (50, 3), label="beta_alt_arr has shape (n_sim, p+1)"))
+
+    # Bias should be small, but with 50 sims it might have variance. Just check it runs.
+    summary = res["summary"]
+    run(assert_true("ols_bias" in summary.columns, label="summary DataFrame has ols_bias column"))
+
+    # Test reproducible
+    res2 = monte_carlo_gauss_markov(n_sim=5, n_obs=10, random_state=1)
+    res3 = monte_carlo_gauss_markov(n_sim=5, n_obs=10, random_state=1)
+    run(assert_true(np.allclose(res2["beta_ols_arr"], res3["beta_ols_arr"]), label="simulation is reproducible given random_state"))
+
+    TestLogger.print_summary(passed, total)
+

@@ -1,10 +1,13 @@
 from __future__ import annotations
-import math
 import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import math
 
 import matplotlib.pyplot as plt
-import numpy as np
 import scipy.stats as stats
+
+from utils import matmul, transpose, inverse
 
 
 # ---------------------------------------------------------------------------
@@ -16,7 +19,7 @@ def residual_plots(
     y_hat: list[float],
     X: list[list[float]] | None = None,
     save_dir: str = "output",
-) -> dict:
+) -> tuple[plt.Figure, dict]:
     """
     F8: Vẽ 4 biểu đồ chẩn đoán phần dư chuẩn.
 
@@ -40,35 +43,40 @@ def residual_plots(
     """
     os.makedirs(save_dir, exist_ok=True)
 
-    y_arr     = np.array(y, dtype=float)
-    y_hat_arr = np.array(y_hat, dtype=float)
-    e         = y_arr - y_hat_arr          # phần dư thô
-    n         = len(y_arr)
+    n = len(y)
+    e = [y[i] - y_hat[i] for i in range(n)]
 
-    # --- Standardized residuals ---
-    sigma_hat = math.sqrt(max(float(np.sum(e ** 2)) / max(n - 2, 1), 1e-12))
-    e_std     = e / sigma_hat
+    p1 = 1
+    if X is not None and len(X) > 0:
+        p1 = len(X[0])
+        
+    rss = sum(ei ** 2 for ei in e)
+    sigma2 = rss / max(n - p1, 1)
+    sigma_hat = math.sqrt(max(sigma2, 1e-12))
+    e_std = [ei / sigma_hat for ei in e]
 
-    # --- Hat matrix leverage & Cook's Distance ---
     if X is not None:
-        X_np = np.array(X, dtype=float)           # đã có bias
-        # leverage h_ii = diag(X(XᵀX)⁻¹Xᵀ)
         try:
-            XtX_inv = np.linalg.inv(X_np.T @ X_np)
-            H       = X_np @ XtX_inv @ X_np.T
-            h       = np.diag(H)                  # leverage values
-            p1      = X_np.shape[1]               # p + 1
-            # Cook's D: D_i = e_i² / (p1 * s²) * h_ii / (1 - h_ii)²
-            denom   = p1 * (sigma_hat ** 2) * ((1 - h) ** 2)
-            denom   = np.where(np.abs(denom) < 1e-12, 1e-12, denom)
-            cooks_d = (e ** 2 * h) / denom
-        except np.linalg.LinAlgError:
-            cooks_d = np.abs(e)   # fallback
+            Xt = transpose(X)
+            XtX = matmul(Xt, X)
+            XtX_inv = inverse(XtX)
+            H = matmul(X, matmul(XtX_inv, Xt))
+            h = [H[i][i] for i in range(n)]
+            
+            cooks_d = []
+            for i in range(n):
+                denom = p1 * sigma2 * ((1 - h[i]) ** 2)
+                if abs(denom) < 1e-12:
+                    cooks_d.append(abs(e[i]))
+                else:
+                    cooks_d.append((e[i]**2 * h[i]) / denom)
+        except ValueError:
+            cooks_d = [abs(ei) for ei in e]
     else:
-        cooks_d = np.abs(e)       # placeholder khi không có X
+        cooks_d = [abs(ei) for ei in e]
 
-    sqrt_abs_std = np.sqrt(np.abs(e_std))
-    indices      = np.arange(n)
+    sqrt_abs_std = [math.sqrt(abs(es)) for es in e_std]
+    indices = list(range(n))
 
     # --- Vẽ ---
     fig, axes = plt.subplots(2, 2, figsize=(13, 10))
@@ -76,10 +84,9 @@ def residual_plots(
 
     # 1. Residuals vs Fitted
     ax = axes[0, 0]
-    ax.scatter(y_hat_arr, e, alpha=0.55, edgecolors="steelblue", facecolors="none", linewidths=0.8)
+    ax.scatter(y_hat, e, alpha=0.55, edgecolors="steelblue", facecolors="none", linewidths=0.8)
     ax.axhline(0, color="red", linestyle="--", linewidth=1.2, label="e = 0")
-    # LOWESS smoother (dùng numpy đơn giản — trung bình cục bộ)
-    _smooth_line(ax, y_hat_arr, e, color="orange", label="LOWESS approx.")
+    _smooth_line(ax, y_hat, e, color="orange", label="LOWESS approx.")
     ax.set_title("Residuals vs Fitted", fontsize=12)
     ax.set_xlabel("Fitted values (ŷ)")
     ax.set_ylabel("Residuals (e = y − ŷ)")
@@ -90,19 +97,19 @@ def residual_plots(
     (osm, osr), (slope, intercept_q, _) = stats.probplot(e, dist="norm")
     ax.scatter(osm, osr, alpha=0.55, edgecolors="steelblue", facecolors="none", linewidths=0.8,
                label="Quantile")
-    qqx = np.array([min(osm), max(osm)])
-    ax.plot(qqx, slope * qqx + intercept_q, color="red", linestyle="--", linewidth=1.2,
+    qqx = [min(osm), max(osm)]
+    ax.plot(qqx, [slope * x + intercept_q for x in qqx], color="red", linestyle="--", linewidth=1.2,
             label="Normal line")
     ax.set_title("Normal Q-Q", fontsize=12)
     ax.set_xlabel("Theoretical Quantiles")
     ax.set_ylabel("Sample Quantiles (phần dư chuẩn hoá)")
     ax.legend()
 
-    # 3. Scale-Location (√|e_std| vs Fitted)
+    # 3. Scale-Location
     ax = axes[1, 0]
-    ax.scatter(y_hat_arr, sqrt_abs_std, alpha=0.55, edgecolors="steelblue", facecolors="none",
+    ax.scatter(y_hat, sqrt_abs_std, alpha=0.55, edgecolors="steelblue", facecolors="none",
                linewidths=0.8)
-    _smooth_line(ax, y_hat_arr, sqrt_abs_std, color="orange", label="LOWESS approx.")
+    _smooth_line(ax, y_hat, sqrt_abs_std, color="orange", label="LOWESS approx.")
     ax.set_title("Scale-Location", fontsize=12)
     ax.set_xlabel("Fitted values (ŷ)")
     ax.set_ylabel("√|Standardized Residuals|")
@@ -118,10 +125,11 @@ def residual_plots(
     threshold = 4.0 / n
     ax.axhline(threshold, color="red", linestyle="--", linewidth=1.2,
                label=f"Ngưỡng 4/n = {threshold:.3f}")
-    # Đánh dấu các điểm vượt ngưỡng
-    influential = np.where(cooks_d > threshold)[0]
-    if len(influential) > 0:
-        ax.scatter(influential, cooks_d[influential], color="red", zorder=5,
+    
+    influential = [i for i, d in enumerate(cooks_d) if d > threshold]
+    if influential:
+        inf_d = [cooks_d[i] for i in influential]
+        ax.scatter(influential, inf_d, color="red", zorder=5,
                    label=f"Influential ({len(influential)} pts)")
     ax.set_title("Cook's Distance", fontsize=12)
     ax.set_xlabel("Observation index")
@@ -131,114 +139,103 @@ def residual_plots(
     plt.tight_layout()
     out_path = os.path.join(save_dir, "residual_plots.png")
     plt.savefig(out_path, dpi=150, bbox_inches="tight")
-    plt.show()
-    print(f"[F8] Biểu đồ phần dư đã lưu tại: {out_path}")
+    plt.show(block=False)
+    plt.close()
 
-    return {
-        "residuals":    e.tolist(),
-        "std_residuals": e_std.tolist(),
-        "cooks_d":      cooks_d.tolist(),
+    return fig, {
+        "residuals": e,
+        "std_residuals": e_std,
+        "cooks_d": cooks_d,
     }
 
 
-def _smooth_line(ax, x: np.ndarray, y: np.ndarray, n_bins: int = 20, **kwargs):
+def _smooth_line(ax, x: list[float], y: list[float], n_bins: int = 20, **kwargs):
     """Vẽ đường LOWESS đơn giản bằng moving average theo bin."""
-    order  = np.argsort(x)
-    xs, ys = x[order], y[order]
-    bins   = np.array_split(np.arange(len(xs)), n_bins)
-    bx     = [xs[b].mean() for b in bins if len(b)]
-    by     = [ys[b].mean() for b in bins if len(b)]
+    order = sorted(range(len(x)), key=lambda k: x[k])
+    xs = [x[i] for i in order]
+    ys = [y[i] for i in order]
+    
+    bin_size = max(1, len(xs) // n_bins)
+    bx = []
+    by = []
+    for i in range(0, len(xs), bin_size):
+        chunk_x = xs[i:i+bin_size]
+        chunk_y = ys[i:i+bin_size]
+        if chunk_x:
+            bx.append(sum(chunk_x) / len(chunk_x))
+            by.append(sum(chunk_y) / len(chunk_y))
+            
     ax.plot(bx, by, linewidth=1.5, **kwargs)
 
 
 # ---------------------------------------------------------------------------
 # Unit Tests — F8  (≥ 4 tests)
 # ---------------------------------------------------------------------------
-
-def test_residual_plots_returns_correct_keys():
-    """Hàm phải trả về dict đủ 3 key."""
-    y     = [1.0, 2.0, 3.0, 4.0, 5.0]
-    y_hat = [1.1, 1.9, 3.2, 3.8, 5.1]
-    res = residual_plots(y, y_hat, save_dir="output/test")
-    for key in ("residuals", "std_residuals", "cooks_d"):
-        assert key in res, f"Thiếu key '{key}'"
-    print("test_residual_plots_returns_correct_keys: PASSED")
-
-
-def test_residuals_correct_values():
-    """residuals = y − y_hat."""
-    y     = [3.0, 5.0, 7.0]
-    y_hat = [2.5, 5.5, 6.0]
-    res   = residual_plots(y, y_hat, save_dir="output/test")
-    expected = [0.5, -0.5, 1.0]
-    for a, b in zip(res["residuals"], expected):
-        assert abs(a - b) < 1e-9, f"residual sai: {a} vs {b}"
-    print("test_residuals_correct_values: PASSED")
-
-
-def test_cooks_distance_with_X():
-    """Cook's Distance phải là list độ dài n khi X được cung cấp."""
-    np.random.seed(0)
-    n, p = 30, 2
-    X_np  = np.random.randn(n, p)
-    X_b   = np.column_stack([np.ones(n), X_np])   # design matrix với bias
-    beta  = np.array([1.0, 2.0, -1.0])
-    y     = (X_b @ beta).tolist()
-    y_hat = (X_b @ beta + 0.1 * np.random.randn(n)).tolist()
-    res   = residual_plots(y, y_hat, X=X_b.tolist(), save_dir="output/test")
-    assert len(res["cooks_d"]) == n
-    assert all(d >= 0 for d in res["cooks_d"]), "Cook's D phải >= 0"
-    print("test_cooks_distance_with_X: PASSED")
-
-
-def test_influential_point_detected():
-    """Điểm outlier rõ ràng phải có Cook's D lớn hơn 4/n."""
-    n = 30
-    np.random.seed(1)
-    X_np = np.random.randn(n, 1)
-    X_b  = np.column_stack([np.ones(n), X_np])
-    y    = (X_b @ np.array([0.0, 1.0])).tolist()
-    y_hat = y[:]
-    # Tạo một điểm outlier cực đoan ở cuối
-    y[-1]     = 100.0
-    y_hat[-1] = 0.0
-    res = residual_plots(y, y_hat, X=X_b.tolist(), save_dir="output/test")
-    threshold = 4.0 / n
-    assert res["cooks_d"][-1] > threshold, "Điểm outlier phải vượt ngưỡng Cook's D"
-    print("test_influential_point_detected: PASSED")
-
-
-def test_residual_plots_no_X():
-    """Chạy được khi X=None (Cook's D fallback = |e|)."""
-    y     = [1.0, 2.0, 3.0, 4.0]
-    y_hat = [1.0, 2.0, 3.0, 4.5]
-    res   = residual_plots(y, y_hat, X=None, save_dir="output/test")
-    assert len(res["cooks_d"]) == 4
-    print("test_residual_plots_no_X: PASSED")
-
-
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
-
 if __name__ == "__main__":
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8')
+        
+    from test_utils import TestLogger, assert_true, assert_equal, assert_close
+
     print("=" * 55)
     print("  UNIT TESTS — residual_analysis.py")
     print("=" * 55)
-    test_residual_plots_returns_correct_keys()
-    test_residuals_correct_values()
-    test_cooks_distance_with_X()
-    test_influential_point_detected()
-    test_residual_plots_no_X()
-    print("\nAll tests PASSED.")
 
-    # Demo
-    print("\n--- Demo với synthetic data ---")
-    np.random.seed(42)
-    n, p = 80, 3
-    X_np   = np.random.randn(n, p)
-    X_bias = np.column_stack([np.ones(n), X_np])
-    beta   = np.array([2.0, 1.5, -1.0, 0.5])
-    y_demo = (X_bias @ beta + np.random.randn(n) * 0.8).tolist()
-    y_hat_demo = (X_bias @ beta).tolist()
-    residual_plots(y_demo, y_hat_demo, X=X_bias.tolist())
+    passed = 0
+    total = 0
+
+    def run(result: bool):
+        global passed, total
+        total += 1
+        passed += int(result)
+
+    TestLogger.print_suite_header("F8 — Residual Analysis")
+
+    # test_residual_plots_returns_correct_keys
+    y     = [1.0, 2.0, 3.0, 4.0, 5.0]
+    y_hat = [1.1, 1.9, 3.2, 3.8, 5.1]
+    fig, res = residual_plots(y, y_hat, save_dir="output/test")
+    keys_ok = all(key in res for key in ("residuals", "std_residuals", "cooks_d"))
+    run(assert_true(keys_ok, label="residual_plots returns correct dictionary keys"))
+
+    # test_residuals_correct_values
+    y2     = [3.0, 5.0, 7.0]
+    y_hat2 = [2.5, 5.5, 6.0]
+    fig2, res2 = residual_plots(y2, y_hat2, save_dir="output/test")
+    expected = [0.5, -0.5, 1.0]
+    run(assert_close(res2["residuals"], expected, label="residuals exactly match formula (y - y_hat)"))
+
+    # test_cooks_distance_with_X
+    import random
+    random.seed(0)
+    n, p = 30, 2
+    X_np  = [[random.gauss(0, 1) for _ in range(p)] for _ in range(n)]
+    X_b   = [[1.0] + row for row in X_np]
+    beta  = [1.0, 2.0, -1.0]
+    y3    = [sum(X_b[i][j] * beta[j] for j in range(3)) for i in range(n)]
+    y_hat3 = [y3[i] + 0.1 * random.gauss(0, 1) for i in range(n)]
+    fig3, res3 = residual_plots(y3, y_hat3, X=X_b, save_dir="output/test")
+    run(assert_equal(len(res3["cooks_d"]), n, label="Cook's D list length matches number of observations (n)"))
+    run(assert_true(all(d >= 0 for d in res3["cooks_d"]), label="all calculated Cook's distances are non-negative"))
+
+    # test_influential_point_detected
+    random.seed(1)
+    X_np2 = [[random.gauss(0, 1)] for _ in range(n)]
+    X_b2  = [[1.0] + row for row in X_np2]
+    beta2 = [0.0, 1.0]
+    y4    = [sum(X_b2[i][j] * beta2[j] for j in range(2)) for i in range(n)]
+    y_hat4 = list(y4)
+    y4[-1]     = 100.0
+    y_hat4[-1] = 0.0
+    fig4, res4 = residual_plots(y4, y_hat4, X=X_b2, save_dir="output/test")
+    threshold = 4.0 / n
+    run(assert_true(res4["cooks_d"][-1] > threshold, label="Cook's D detects extreme outlier above 4/n threshold"))
+
+    # test_residual_plots_no_X
+    y5     = [1.0, 2.0, 3.0, 4.0]
+    y_hat5 = [1.0, 2.0, 3.0, 4.5]
+    fig5, res5 = residual_plots(y5, y_hat5, X=None, save_dir="output/test")
+    run(assert_equal(len(res5["cooks_d"]), 4, label="residual_plots correctly falls back to |e| when X is None"))
+
+    TestLogger.print_summary(passed, total)
+

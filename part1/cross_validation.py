@@ -1,11 +1,12 @@
 from __future__ import annotations
-import math
 import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import math
+import random
 from typing import Callable, Any
 
 import matplotlib.pyplot as plt
-import numpy as np
-
 
 # ---------------------------------------------------------------------------
 # F9: k-Fold Cross-Validation
@@ -38,49 +39,56 @@ def kfold_cv(
         mean_cv_r2   : float      — trung bình R² qua k fold.
         cv_r2_list   : list[float]— R² từng fold.
     """
-    X_np = np.array(X, dtype=float)
-    y_np = np.array(y, dtype=float)
-    n    = len(y_np)
+    n = len(y)
+    indices = list(range(n))
+    rng = random.Random(42)
+    rng.shuffle(indices)
 
-    # Shuffle với seed cố định (RANDOM_STATE = 42)
-    rng     = np.random.default_rng(42)
-    indices = rng.permutation(n)
-    folds   = np.array_split(indices, k)
+    fold_sizes = [n // k + (1 if i < n % k else 0) for i in range(k)]
+    folds = []
+    current = 0
+    for size in fold_sizes:
+        folds.append(indices[current:current + size])
+        current += size
 
-    cv_mse = []
-    cv_r2  = []
+    cv_scores = []
+    cv_r2 = []
 
     for i in range(k):
-        val_idx   = folds[i]
-        train_idx = np.concatenate([folds[j] for j in range(k) if j != i])
+        val_idx = folds[i]
+        train_idx = []
+        for j in range(k):
+            if j != i:
+                train_idx.extend(folds[j])
 
-        X_train = X_np[train_idx].tolist()
-        y_train = y_np[train_idx].tolist()
-        X_val   = X_np[val_idx].tolist()
-        y_val   = y_np[val_idx]
+        X_train = [X[idx] for idx in train_idx]
+        y_train = [y[idx] for idx in train_idx]
+        X_val = [X[idx] for idx in val_idx]
+        y_val = [y[idx] for idx in val_idx]
 
-        # Fit model
         model = model_fn(X_train, y_train, **model_kwargs)
+        y_pred = predict_fn(X_val, model)
 
-        # Predict
-        y_pred = np.array(predict_fn(X_val, model), dtype=float)
+        mse = sum((y_val[idx] - y_pred[idx])**2 for idx in range(len(y_val))) / len(y_val)
+        cv_scores.append(mse)
 
-        # MSE
-        mse = float(np.mean((y_val - y_pred) ** 2))
-        cv_mse.append(mse)
-
-        # R²
-        ss_res = float(np.sum((y_val - y_pred) ** 2))
-        ss_tot = float(np.sum((y_val - y_val.mean()) ** 2))
-        r2     = 1.0 - ss_res / ss_tot if ss_tot > 1e-12 else 0.0
+        y_bar = sum(y_val) / len(y_val)
+        ss_res = sum((y_val[idx] - y_pred[idx])**2 for idx in range(len(y_val)))
+        ss_tot = sum((y_val[idx] - y_bar)**2 for idx in range(len(y_val)))
+        r2 = 1.0 - ss_res / ss_tot if ss_tot > 1e-12 else 0.0
         cv_r2.append(r2)
 
+    mean_cv_score = sum(cv_scores) / k
+    std_cv_score = math.sqrt(sum((x - mean_cv_score)**2 for x in cv_scores) / k)
+
+    mean_cv_r2 = sum(cv_r2) / k
+
     return {
-        "mean_cv_mse": float(np.mean(cv_mse)),
-        "std_cv_mse":  float(np.std(cv_mse)),
-        "cv_mse_list": cv_mse,
-        "mean_cv_r2":  float(np.mean(cv_r2)),
-        "cv_r2_list":  cv_r2,
+        "mean_cv_score": mean_cv_score,
+        "std_cv_score":  std_cv_score,
+        "cv_scores":     cv_scores,
+        "mean_cv_r2":    mean_cv_r2,
+        "cv_r2_list":    cv_r2,
     }
 
 
@@ -103,17 +111,21 @@ def cv_lambda_search(
         std_cv_mse    : list[float]
     """
     if lambdas is None:
-        lambdas = [10 ** e for e in [x / 4 for x in range(-12, 17)]]  # 1e-3 … 1e4
+        lambdas = [10 ** e for e in [x / 4 for x in range(-12, 17)]]
 
     mean_mse_list = []
-    std_mse_list  = []
+    std_mse_list = []
 
     for lam in lambdas:
         res = kfold_cv(X, y, k=k, model_fn=model_fn, predict_fn=predict_fn, lam=lam)
-        mean_mse_list.append(res["mean_cv_mse"])
-        std_mse_list.append(res["std_cv_mse"])
+        mean_mse_list.append(res["mean_cv_score"])
+        std_mse_list.append(res["std_cv_score"])
 
-    best_idx = int(np.argmin(mean_mse_list))
+    best_idx = 0
+    for i in range(1, len(mean_mse_list)):
+        if mean_mse_list[i] < mean_mse_list[best_idx]:
+            best_idx = i
+            
     best_lam = lambdas[best_idx]
 
     # --- Vẽ λ vs CV-MSE ---
@@ -135,7 +147,9 @@ def cv_lambda_search(
     plt.tight_layout()
     out_path = os.path.join(save_dir, "lambda_cv_score.png")
     plt.savefig(out_path, dpi=150, bbox_inches="tight")
-    plt.show()
+    plt.show(block=False)
+    plt.close()
+    
     print(f"[F9] λ vs CV score đã lưu tại: {out_path}")
     print(f"[F9] λ tối ưu = {best_lam:.4g}  (CV MSE = {mean_mse_list[best_idx]:.4f})")
 
@@ -150,104 +164,71 @@ def cv_lambda_search(
 # ---------------------------------------------------------------------------
 # Unit Tests — F9  (≥ 4 tests)
 # ---------------------------------------------------------------------------
-
-def _make_linear_data(n=60, seed=42):
-    rng  = np.random.default_rng(seed)
-    X    = rng.standard_normal((n, 3))
-    beta = np.array([1.5, -1.0, 0.5])
-    y    = X @ beta + 0.3 * rng.standard_normal(n)
-    return X.tolist(), y.tolist()
-
-
-# Adapter cho ridge (dùng trong tests)
-def _ridge_predict(X_val: list[list[float]], model: dict) -> list[float]:
-    from ridge_lasso import ridge_predict
-    return ridge_predict(X_val, model["beta_hat"], model["mean_X"], model["std_X"])
-
-
-def test_kfold_cv_returns_correct_keys():
-    """Kết quả phải có đủ 5 key."""
-    from ridge_lasso import ridge_fit
-    X, y = _make_linear_data()
-    res  = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=0.1)
-    for key in ("mean_cv_mse", "std_cv_mse", "cv_mse_list", "mean_cv_r2", "cv_r2_list"):
-        assert key in res, f"Thiếu key '{key}'"
-    print("test_kfold_cv_returns_correct_keys: PASSED")
-
-
-def test_kfold_cv_number_of_folds():
-    """cv_mse_list phải có đúng k phần tử."""
-    from ridge_lasso import ridge_fit
-    X, y = _make_linear_data()
-    for k in (3, 5, 10):
-        res = kfold_cv(X, y, k=k, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=0.1)
-        assert len(res["cv_mse_list"]) == k, f"k={k}: có {len(res['cv_mse_list'])} fold"
-    print("test_kfold_cv_number_of_folds: PASSED")
-
-
-def test_kfold_cv_mse_positive():
-    """MSE từng fold phải >= 0."""
-    from ridge_lasso import ridge_fit
-    X, y = _make_linear_data()
-    res  = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1.0)
-    for i, mse in enumerate(res["cv_mse_list"]):
-        assert mse >= 0, f"Fold {i}: MSE âm ({mse})"
-    print("test_kfold_cv_mse_positive: PASSED")
-
-
-def test_kfold_cv_mean_matches_list():
-    """mean_cv_mse phải bằng trung bình cv_mse_list."""
-    from ridge_lasso import ridge_fit
-    X, y = _make_linear_data()
-    res  = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=0.5)
-    expected_mean = sum(res["cv_mse_list"]) / len(res["cv_mse_list"])
-    assert abs(res["mean_cv_mse"] - expected_mean) < 1e-9, "mean_cv_mse không khớp"
-    print("test_kfold_cv_mean_matches_list: PASSED")
-
-
-def test_kfold_cv_r2_range():
-    """R² của mô hình tốt trên dữ liệu tuyến tính phải > 0.5."""
-    from ridge_lasso import ridge_fit
-    X, y = _make_linear_data(n=100, seed=7)
-    res  = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1e-4)
-    assert res["mean_cv_r2"] > 0.5, f"R² quá thấp: {res['mean_cv_r2']:.3f}"
-    print(f"test_kfold_cv_r2_range: PASSED  (mean R² = {res['mean_cv_r2']:.3f})")
-
-
-def test_kfold_cv_reproducible():
-    """Kết quả phải giống nhau khi gọi hai lần (seed cố định)."""
-    from ridge_lasso import ridge_fit
-    X, y = _make_linear_data()
-    res1 = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1.0)
-    res2 = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1.0)
-    assert res1["mean_cv_mse"] == res2["mean_cv_mse"], "Kết quả không reproducible"
-    print("test_kfold_cv_reproducible: PASSED")
-
-
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
-
 if __name__ == "__main__":
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8')
+        
+    from test_utils import TestLogger, assert_true, assert_equal, assert_close
+    from part1.ridge_lasso import ridge_fit, ridge_predict
+    
     print("=" * 55)
     print("  UNIT TESTS — cross_validation.py")
     print("=" * 55)
-    test_kfold_cv_returns_correct_keys()
-    test_kfold_cv_number_of_folds()
-    test_kfold_cv_mse_positive()
-    test_kfold_cv_mean_matches_list()
-    test_kfold_cv_r2_range()
-    test_kfold_cv_reproducible()
-    print("\nAll tests PASSED.")
 
-    # Demo: tìm λ tối ưu
-    print("\n--- Demo: λ Search với Ridge ---")
-    from ridge_lasso import ridge_fit, ridge_predict
-    X_d, y_d = _make_linear_data(n=120, seed=0)
-    cv_lambda_search(
-        X_d, y_d,
-        model_fn=ridge_fit,
-        predict_fn=lambda X_v, m: ridge_predict(X_v, m["beta_hat"], m["mean_X"], m["std_X"]),
-        lambdas=[10 ** (e / 4) for e in range(-8, 17)],
-        k=5,
-    )
+    passed = 0
+    total = 0
+
+    def run(result: bool):
+        global passed, total
+        total += 1
+        passed += int(result)
+
+    def _make_linear_data(n=60, seed=42):
+        import random
+        rng = random.Random(seed)
+        X = [[rng.gauss(0, 1) for _ in range(3)] for _ in range(n)]
+        beta = [1.5, -1.0, 0.5]
+        y = [sum(X[i][j] * beta[j] for j in range(3)) + 0.3 * rng.gauss(0, 1) for i in range(n)]
+        return X, y
+
+    def _ridge_predict(X_val: list[list[float]], model: dict) -> list[float]:
+        return ridge_predict(X_val, model["beta_hat"], model["mean_X"], model["std_X"])
+
+    TestLogger.print_suite_header("F9 — k-Fold Cross-Validation")
+
+    # test_kfold_cv_returns_correct_keys
+    X, y = _make_linear_data()
+    res  = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=0.1)
+    keys_ok = all(key in res for key in ("mean_cv_score", "std_cv_score", "cv_scores", "mean_cv_r2", "cv_r2_list"))
+    run(assert_true(keys_ok, label="kfold_cv returns correct dictionary keys"))
+
+    # test_kfold_cv_number_of_folds
+    ok_folds = True
+    for k in (3, 5, 10):
+        res2 = kfold_cv(X, y, k=k, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=0.1)
+        if len(res2["cv_scores"]) != k:
+            ok_folds = False
+    run(assert_true(ok_folds, label="cv_scores list length matches number of folds (k)"))
+
+    # test_kfold_cv_mse_positive
+    res3 = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1.0)
+    run(assert_true(all(mse >= 0 for mse in res3["cv_scores"]), label="all cv_scores (MSE) are non-negative"))
+
+    # test_kfold_cv_mean_matches_list
+    res4 = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=0.5)
+    expected_mean = sum(res4["cv_scores"]) / len(res4["cv_scores"])
+    run(assert_close(res4["mean_cv_score"], expected_mean, label="mean_cv_score matches exact average of cv_scores list", rtol=1e-9))
+
+    # test_kfold_cv_r2_range
+    X2, y2 = _make_linear_data(n=100, seed=7)
+    res5 = kfold_cv(X2, y2, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1e-4)
+    run(assert_true(res5["mean_cv_r2"] > 0.5, label="CV R2 score is within expected valid range"))
+
+    # test_kfold_cv_reproducible
+    res6_1 = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1.0)
+    res6_2 = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1.0)
+    run(assert_equal(res6_1["mean_cv_score"], res6_2["mean_cv_score"], label="kfold_cv results are completely reproducible given same seed"))
+
+    TestLogger.print_summary(passed, total)
+
+
