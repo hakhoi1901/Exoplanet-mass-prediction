@@ -300,27 +300,103 @@ def find_new_unit_vector(basis: list[list[float]], dim: int) -> list[float]:
         raise ValueError("Không thể xây dựng cơ sở trực giao")
     return [zero_rectify(x / nw) for x in w]
 
-def solve_system(A: list[list[float]], b: list[float]) -> list[float]:
-    """Giải hệ phương trình tuyến tính Ax = b bằng phép khử Gauss với partial pivoting."""
-    n = len(b)
-    # Create augmented matrix
-    M = [row[:] + [b[i]] for i, row in enumerate(A)]
-    
+
+def inverse(A: list[list[float]]) -> list[list[float]]:
+    """
+    Tính nghịch đảo ma trận bằng phương pháp Gauss-Jordan.
+
+    Thuật toán:
+    1. Tạo ma trận mở rộng [A | I].
+    2. Với mỗi cột pivot:
+       a. Tìm dòng có |giá trị| lớn nhất (partial pivoting).
+       b. Hoán đổi dòng pivot.
+       c. Chia dòng pivot cho giá trị pivot.
+       d. Khử tất cả các phần tử khác trong cột pivot.
+    3. Nửa phải của ma trận mở rộng chính là A⁻¹.
+
+    Tham số:
+        A: Ma trận vuông kích thước n x n.
+
+    Trả về:
+        list[list[float]]: Ma trận nghịch đảo A⁻¹.
+
+    Ngoại lệ:
+        ValueError: Nếu ma trận suy biến (singular).
+    """
+    n = len(A)
+    # Tạo ma trận mở rộng [A | I]
+    aug = [A[i][:] + [1.0 if i == j else 0.0 for j in range(n)]
+           for i in range(n)]
+
     for col in range(n):
-        # Partial pivoting
-        pivot = max(range(col, n), key=lambda r: abs(M[r][col]))
-        M[col], M[pivot] = M[pivot], M[col]
-        
-        if abs(M[col][col]) < 1e-12:
-            raise ValueError("Ma trận suy biến hoặc gần suy biến")
-            
-        # Eliminate below
+        # Partial pivoting — chọn dòng có |giá trị| lớn nhất
+        pivot_row = col
+        for r in range(col + 1, n):
+            if abs(aug[r][col]) > abs(aug[pivot_row][col]):
+                pivot_row = r
+        aug[col], aug[pivot_row] = aug[pivot_row], aug[col]
+
+        pivot_val = aug[col][col]
+        if abs(pivot_val) < 1e-14:
+            raise ValueError("Ma trận suy biến, không thể nghịch đảo.")
+
+        # Chia dòng pivot cho giá trị pivot → pivot = 1
+        inv_pivot = 1.0 / pivot_val
+        for j in range(2 * n):
+            aug[col][j] *= inv_pivot
+
+        # Khử tất cả các phần tử khác trong cột pivot
+        for row in range(n):
+            if row == col:
+                continue
+            factor = aug[row][col]
+            if abs(factor) < 1e-15:
+                continue
+            for j in range(2 * n):
+                aug[row][j] -= factor * aug[col][j]
+
+    # Trích nửa phải → A⁻¹
+    return [aug[i][n:] for i in range(n)]
+
+
+def solve_system(A: list[list[float]], b: list[float]) -> list[float]:
+    """
+    Giải hệ phương trình tuyến tính Ax = b bằng phép khử Gauss
+    với partial pivoting và back-substitution.
+
+    Tham số:
+        A: Ma trận hệ số kích thước n x n.
+        b: Vector vế phải kích thước n.
+
+    Trả về:
+        list[float]: Vector nghiệm x kích thước n.
+
+    Ngoại lệ:
+        ValueError: Nếu ma trận suy biến.
+    """
+    n = len(b)
+    # Tạo ma trận mở rộng [A | b]
+    M = [A[i][:] + [b[i]] for i in range(n)]
+
+    # Forward elimination với partial pivoting
+    for col in range(n):
+        # Tìm pivot lớn nhất
+        pivot_row = col
+        for r in range(col + 1, n):
+            if abs(M[r][col]) > abs(M[pivot_row][col]):
+                pivot_row = r
+        M[col], M[pivot_row] = M[pivot_row], M[col]
+
+        if abs(M[col][col]) < 1e-14:
+            raise ValueError("Ma trận suy biến, không giải được hệ phương trình.")
+
+        # Khử các dòng bên dưới
         for row in range(col + 1, n):
             factor = M[row][col] / M[col][col]
             for j in range(col, n + 1):
                 M[row][j] -= factor * M[col][j]
-                
-    # Back substitution
+
+    # Back-substitution
     x = [0.0] * n
     for i in range(n - 1, -1, -1):
         x[i] = M[i][n]
@@ -328,33 +404,3 @@ def solve_system(A: list[list[float]], b: list[float]) -> list[float]:
             x[i] -= M[i][j] * x[j]
         x[i] /= M[i][i]
     return x
-
-def inverse(A: list[list[float]]) -> list[list[float]]:
-    """Tính ma trận nghịch đảo bằng Gauss-Jordan."""
-    n = len(A)
-    # Create augmented matrix [A | I]
-    M = [row[:] + [1.0 if i == j else 0.0 for j in range(n)] for i, row in enumerate(A)]
-    
-    for col in range(n):
-        # Partial pivoting
-        pivot = max(range(col, n), key=lambda r: abs(M[r][col]))
-        M[col], M[pivot] = M[pivot], M[col]
-        
-        if abs(M[col][col]) < 1e-12:
-            raise ValueError("Ma trận suy biến hoặc gần suy biến")
-            
-        # Scale pivot row
-        pivot_val = M[col][col]
-        for j in range(col, 2 * n):
-            M[col][j] /= pivot_val
-            
-        # Eliminate other rows
-        for row in range(n):
-            if row != col:
-                factor = M[row][col]
-                for j in range(col, 2 * n):
-                    M[row][j] -= factor * M[col][j]
-                    
-    # Extract right half
-    return [row[n:] for row in M]
-

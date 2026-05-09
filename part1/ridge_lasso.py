@@ -1,32 +1,48 @@
 from __future__ import annotations
+import math
 import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-import math
-import numpy as np
 
 import matplotlib.pyplot as plt
 
-from utils import matmul, transpose, solve_system, matvec, add_bias, vector_norm
+# Import utils từ Project 1
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from utils import transpose, matmul, matvec, dot_product, solve_system
+from config import EPSILON, RANDOM_STATE
+
+
+# ---------------------------------------------------------------------------
+# Utilities nội bộ — chuẩn hóa (manual, không dùng numpy)
+# ---------------------------------------------------------------------------
 
 def _col_mean(X: list[list[float]]) -> list[float]:
+    """Tính mean từng cột của X."""
     n, p = len(X), len(X[0])
     return [sum(X[i][j] for i in range(n)) / n for j in range(p)]
 
+
 def _col_std(X: list[list[float]], mean: list[float]) -> list[float]:
+    """Tính population std từng cột của X."""
     n, p = len(X), len(X[0])
     return [
         math.sqrt(max(sum((X[i][j] - mean[j]) ** 2 for i in range(n)) / n, 1e-12))
         for j in range(p)
     ]
 
+
 def _standardize(X: list[list[float]], mean: list[float], std: list[float]) -> list[list[float]]:
+    """Chuẩn hóa X theo mean và std đã cho."""
     return [[(X[i][j] - mean[j]) / std[j] for j in range(len(mean))] for i in range(len(X))]
 
+
+def _add_bias(X: list[list[float]]) -> list[list[float]]:
+    """Thêm cột 1 vào đầu ma trận X (intercept)."""
+    return [[1.0] + row for row in X]
 
 
 # ---------------------------------------------------------------------------
 # F6: Ridge Regression — Closed-form
+# Liên kết: Dùng solve_system, transpose, matmul, matvec từ utils.py
 # ---------------------------------------------------------------------------
 
 def ridge_fit(
@@ -42,6 +58,8 @@ def ridge_fit(
     trong đó X̃ là ma trận design đã chuẩn hóa + bias,
     I* là ma trận đơn vị với I*[0,0] = 0 (không penalize intercept).
 
+    Liên kết: Dùng transpose, matmul, matvec, solve_system từ utils.py.
+
     Tham số:
         X    : Ma trận features (n x p), CHƯA có cột bias.
         y    : Vector target (n,).
@@ -55,32 +73,35 @@ def ridge_fit(
     """
     n, p = len(X), len(X[0])
 
+    # Chuẩn hóa features
     mean_X = _col_mean(X)
     std_X  = _col_std(X, mean_X)
     X_sc   = _standardize(X, mean_X, std_X)
-    X_b    = add_bias(X_sc)          # (n, p+1)
+    X_b    = _add_bias(X_sc)          # (n, p+1)
 
     # I* — không penalize intercept
     I_star = [[1.0 if i == j else 0.0 for j in range(p + 1)] for i in range(p + 1)]
     I_star[0][0] = 0.0
 
     # A = XᵀX + λI*,  rhs = Xᵀy
-    Xt  = transpose(X_b)
-    XtX = matmul(Xt, X_b)
+    Xt  = transpose(X_b)               # utils.py
+    XtX = matmul(Xt, X_b)              # utils.py
     A   = [[XtX[i][j] + lam * I_star[i][j] for j in range(p + 1)] for i in range(p + 1)]
-    rhs = matvec(Xt, y)
 
-    beta_hat = solve_system(A, rhs)
-    y_hat    = matvec(X_b, beta_hat)
-    residuals = [y[i] - y_hat[i] for i in range(n)]
+    # Xᵀy — dùng dot_product cho từng hàng của Xᵀ
+    rhs = [dot_product(Xt[i], y) for i in range(p + 1)]
+
+    # Giải hệ (XᵀX + λI*)β = Xᵀy
+    beta_hat = solve_system(A, rhs)     # utils.py
+    y_hat    = matvec(X_b, beta_hat)    # utils.py
 
     return {
         "beta_hat": beta_hat,
         "y_hat":    y_hat,
-        "residuals": residuals,
         "mean_X":   mean_X,
         "std_X":    std_X,
     }
+
 
 def ridge_predict(
     X: list[list[float]],
@@ -90,8 +111,9 @@ def ridge_predict(
 ) -> list[float]:
     """Dự đoán y cho X mới dùng beta_hat từ ridge_fit."""
     X_sc = _standardize(X, mean_X, std_X)
-    X_b  = add_bias(X_sc)
-    return matvec(X_b, beta_hat)
+    X_b  = _add_bias(X_sc)
+    return matvec(X_b, beta_hat)        # utils.py
+
 
 def ridge_trace(
     X: list[list[float]],
@@ -101,6 +123,8 @@ def ridge_trace(
 ) -> dict:
     """
     Vẽ Ridge Trace: λ vs hệ số hồi quy (không tính intercept).
+
+    Trả về dict: {'lambdas': list, 'coefs': list[list]} để dùng trong CV.
     """
     if lambdas is None:
         lambdas = [10 ** e for e in [x / 10 for x in range(-30, 41)]]  # 1e-3 … 1e4
@@ -132,6 +156,7 @@ def ridge_trace(
 
 # ---------------------------------------------------------------------------
 # F7: Lasso Regression — Coordinate Descent
+# Liên kết: Dùng soft_threshold (manual), _standardize, _add_bias, matvec
 # ---------------------------------------------------------------------------
 
 def soft_threshold(rho: float, lam: float) -> float:
@@ -142,6 +167,7 @@ def soft_threshold(rho: float, lam: float) -> float:
         return rho + lam
     return 0.0
 
+
 def lasso_fit(
     X: list[list[float]],
     y: list[float],
@@ -150,7 +176,7 @@ def lasso_fit(
     tol: float = 1e-6,
 ) -> dict:
     """
-    F7: Lasso Regression — Coordinate Descent.
+    F7: Lasso Regression — Coordinate Descent (manual, không dùng numpy).
 
     Tối thiểu hóa: ‖y − Xβ‖² + λ‖β‖₁
     Nghiệm không có dạng closed-form; dùng coordinate descent.
@@ -169,49 +195,63 @@ def lasso_fit(
         mean_X   : list[float]
         std_X    : list[float]
     """
-    n, p = len(X), len(X[0])
+    n = len(X)
+    p = len(X[0])
 
+    # Chuẩn hóa features (manual)
     mean_X = _col_mean(X)
     std_X  = _col_std(X, mean_X)
     X_sc   = _standardize(X, mean_X, std_X)
 
-    intercept = sum(y) / n
-    beta = [0.0] * p
+    # Intercept = mean(y), center y
+    y_mean = sum(y) / n
+    intercept = y_mean
     y_centered = [y[i] - intercept for i in range(n)]
 
+    # Khởi tạo beta = 0
+    beta = [0.0] * p
+
+    # Pre-compute z_j = ‖x_j‖² cho mỗi cột j
     z = [sum(X_sc[i][j] ** 2 for i in range(n)) for j in range(p)]
 
     n_iter = max_iter
     for it in range(max_iter):
-        beta_old = list(beta)
-        for j in range(p):
-            rho_j = 0.0
-            for i in range(n):
-                pred_i = sum(X_sc[i][k] * beta[k] for k in range(p))
-                r_ij = y_centered[i] - pred_i + X_sc[i][j] * beta[j]
-                rho_j += X_sc[i][j] * r_ij
-                
-            if z[j] > 1e-12:
-                beta[j] = soft_threshold(rho_j, lam) / z[j]
+        beta_old = beta[:]
 
-        max_diff = max(abs(beta[j] - beta_old[j]) for j in range(p))
-        if max_diff < tol:
+        for j in range(p):
+            # Tính partial residual: r_j = y_centered - Σ_{k≠j} X_sc[:,k] * beta[k]
+            # = y_centered - (X_sc @ beta - X_sc[:,j] * beta[j])
+            # Tối ưu: tính X_sc @ beta trước, rồi cộng lại X_sc[:,j] * beta[j]
+            r_j = [0.0] * n
+            for i in range(n):
+                pred_i = sum(X_sc[i][k] * beta[k] for k in range(p)) - X_sc[i][j] * beta[j]
+                r_j[i] = y_centered[i] - pred_i
+
+            # rho_j = X_sc[:,j] · r_j
+            rho_j = sum(X_sc[i][j] * r_j[i] for i in range(n))
+
+            # Update beta[j] với soft-thresholding
+            beta[j] = soft_threshold(rho_j, lam) / z[j] if abs(z[j]) > EPSILON else 0.0
+
+        # Kiểm tra hội tụ: max |Δβ|
+        max_change = max(abs(beta[j] - beta_old[j]) for j in range(p))
+        if max_change < tol:
             n_iter = it + 1
             break
 
+    # Tạo output
     beta_hat = [intercept] + beta
-    X_b      = add_bias(X_sc)
-    y_hat    = matvec(X_b, beta_hat)
-    residuals = [y[i] - y_hat[i] for i in range(n)]
+    X_b = _add_bias(X_sc)
+    y_hat = matvec(X_b, beta_hat)   # utils.py
 
     return {
         "beta_hat": beta_hat,
         "y_hat":    y_hat,
-        "residuals": residuals,
         "n_iter":   n_iter,
         "mean_X":   mean_X,
         "std_X":    std_X,
     }
+
 
 def lasso_predict(
     X: list[list[float]],
@@ -221,10 +261,11 @@ def lasso_predict(
 ) -> list[float]:
     """Dự đoán y cho X mới dùng beta_hat từ lasso_fit."""
     X_sc = _standardize(X, mean_X, std_X)
-    X_b  = add_bias(X_sc)
-    return matvec(X_b, beta_hat)
+    X_b  = _add_bias(X_sc)
+    return matvec(X_b, beta_hat)        # utils.py
 
 
+# ---------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------
 # Unit Tests — F6 & F7  (≥ 4 test mỗi hàm)
@@ -234,6 +275,7 @@ if __name__ == "__main__":
         sys.stdout.reconfigure(encoding='utf-8')
         
     from test_utils import TestLogger, assert_true, assert_equal, assert_close
+    import numpy as np
 
     print("=" * 55)
     print("  UNIT TESTS — ridge_lasso.py")
@@ -271,8 +313,8 @@ if __name__ == "__main__":
     # test_ridge_large_lam_shrinks_coefs
     res_small = ridge_fit(X, y, lam=1e-4)
     res_large = ridge_fit(X, y, lam=1e6)
-    norm_small = vector_norm(res_small["beta_hat"][1:])
-    norm_large = vector_norm(res_large["beta_hat"][1:])
+    norm_small = sum(b ** 2 for b in res_small["beta_hat"][1:]) ** 0.5
+    norm_large = sum(b ** 2 for b in res_large["beta_hat"][1:]) ** 0.5
     run(assert_true(norm_large < norm_small, label="ridge_fit with large λ shrinks coefficients towards 0"))
 
     # test_ridge_predict_consistent
@@ -341,4 +383,3 @@ if __name__ == "__main__":
         TestLogger.print_warn("Bỏ qua test_lasso_vs_sklearn vì không có thư viện sklearn")
 
     TestLogger.print_summary(passed, total)
-
