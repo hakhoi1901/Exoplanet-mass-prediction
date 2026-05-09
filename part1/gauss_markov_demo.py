@@ -38,21 +38,21 @@ def monte_carlo_gauss_markov(
     Tham số:
         n_sim       : Số lần mô phỏng.
         n_obs       : Số quan sát mỗi lần.
-        true_beta   : (intercept, β₁, β₂) — beta thực.
+        true_beta   : (intercept, β₁, β₂) - beta thực.
         true_sigma  : Độ lệch chuẩn nhiễu.
         alt_scale   : Hệ số perturbation cho estimator thay thế.
         random_state: Random seed.
 
     Trả về dict:
         true_beta    : list[float]
-        ols_mean     : list[float] — E[β̂_OLS]
-        ols_var      : list[float] — Var(β̂_OLS)
-        alt_mean     : list[float] — E[β̂_alt]
-        alt_var      : list[float] — Var(β̂_alt)
+        ols_mean     : list[float] - E[β̂_OLS]
+        ols_var      : list[float] - Var(β̂_OLS)
+        alt_mean     : list[float] - E[β̂_alt]
+        alt_var      : list[float] - Var(β̂_alt)
         ols_bias     : list[float]
         alt_bias     : list[float]
-        beta_ols_all : list[list[float]] — tất cả β̂_OLS (n_sim x 3)
-        beta_alt_all : list[list[float]] — tất cả β̂_alt (n_sim x 3)
+        beta_ols_all : list[list[float]] - tất cả β̂_OLS (n_sim x 3)
+        beta_alt_all : list[list[float]] - tất cả β̂_alt (n_sim x 3)
     """
     from ols_implementation import ols_fit
 
@@ -71,8 +71,8 @@ def monte_carlo_gauss_markov(
     X_bias_fixed = [[1.0] + row for row in X_fixed]
     v_null = build_null_vector(X_bias_fixed)
 
-    # e0 = [1, 0, 0] — perturbation chỉ ảnh hưởng intercept
-    e0 = [1.0] + [0.0] * (n_coef - 1)
+    # e0 = [1, 1, 1] - perturbation ảnh hưởng tất cả các hệ số
+    e0 = [1.0] * n_coef
 
     # Storage
     beta_ols_all = []
@@ -159,7 +159,8 @@ class _LCGNormal:
 
 
 def plot_beta_histograms(
-    beta_samples: list[list[float]],
+    beta_ols: list[list[float]],
+    beta_alt: list[list[float]],
     true_beta: list[float],
     bins: int = 30,
     save_dir: str = "output",
@@ -168,14 +169,16 @@ def plot_beta_histograms(
     Vẽ histogram phân bố β̂ cho mỗi hệ số với đường dọc tại true_beta.
 
     Tham số:
-        beta_samples: list[list[float]] — (n_sim, n_coef).
-        true_beta:    list[float] — beta thực.
-        bins:         int — Số bins histogram.
-        save_dir:     str — Thư mục lưu ảnh.
+        beta_ols:  list[list[float]] - (n_sim, n_coef).
+        beta_alt:  list[list[float]] - (n_sim, n_coef).
+        true_beta: list[float] - beta thực.
+        bins:      int - Số bins histogram.
+        save_dir:  str - Thư mục lưu ảnh.
     """
     import numpy as np
 
-    beta_arr = np.array(beta_samples)
+    beta_ols_arr = np.array(beta_ols)
+    beta_alt_arr = np.array(beta_alt)
     true_arr = np.array(true_beta)
     n_coef = len(true_beta)
 
@@ -185,7 +188,8 @@ def plot_beta_histograms(
 
     coef_names = ["intercept"] + [f"x{i}" for i in range(1, n_coef)]
     for j, ax in enumerate(axes):
-        ax.hist(beta_arr[:, j], bins=bins, alpha=0.75, edgecolor="black", label="β̂")
+        ax.hist(beta_alt_arr[:, j], bins=bins, alpha=0.6, color="orange", edgecolor="black", label="Alt")
+        ax.hist(beta_ols_arr[:, j], bins=bins, alpha=0.6, color="blue", edgecolor="black", label="OLS")
         ax.axvline(true_arr[j], color="red", linestyle="--", linewidth=2, label="true β")
         ax.set_title(f"Distribution of {coef_names[j]}")
         ax.set_xlabel("Estimated value")
@@ -196,11 +200,11 @@ def plot_beta_histograms(
     os.makedirs(save_dir, exist_ok=True)
     out_path = os.path.join(save_dir, "gauss_markov_histograms.png")
     plt.savefig(out_path, dpi=150, bbox_inches="tight")
-    plt.show()
+    plt.close()
     return fig, axes
 
 # ---------------------------------------------------------------------------
-# Unit Tests — F10
+# Unit Tests - F10
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     import os
@@ -213,7 +217,7 @@ if __name__ == "__main__":
     import numpy as np
 
     print("=" * 55)
-    print("  UNIT TESTS — gauss_markov_demo.py")
+    print("  UNIT TESTS - gauss_markov_demo.py")
     print("=" * 55)
 
     passed = 0
@@ -224,7 +228,7 @@ if __name__ == "__main__":
         total += 1
         passed += int(result)
 
-    TestLogger.print_suite_header("F10 — Gauss Markov Demo")
+    TestLogger.print_suite_header("F10 - Gauss Markov Demo")
 
     # Run simulation with small n_sim for testing
     res = monte_carlo_gauss_markov(n_sim=200, n_obs=30, random_state=RANDOM_STATE)

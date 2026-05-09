@@ -1,0 +1,308 @@
+% ============================================================
+%   TỔNG QUAN KIẾN TRÚC HỆ THỐNG VÀ CÁC MODULE DÙNG CHUNG
+%   Project 2: Data Fitting và Phương pháp OLS
+% ============================================================
+\section{Tổng quan Kiến trúc Hệ thống và Các Module dùng chung}
+
+Trước khi đi vào chi tiết của từng phần, mục này trình bày kiến trúc tổng thể của toàn bộ dự án --- cách các module Python được tổ chức, các thành phần hạ tầng dùng chung giữa Phần 1 (lý thuyết và minh họa) và Phần 2 (ứng dụng thực tế), và nền tảng thiết kế về quản lý sai số số học mà toàn bộ codebase đều tuân theo. Việc hiểu rõ kiến trúc này giúp tránh trùng lặp mã, đảm bảo tính nhất quán khi kiểm chứng kết quả, và tạo điều kiện để hai phần của dự án chia sẻ cùng một pipeline hạ tầng.
+
+% ------------------------------------------------------------
+\subsection{Tổ chức file theo hướng Module hóa}
+
+Toàn bộ dự án được thiết kế theo nguyên tắc \textbf{module hóa} (modular design): mỗi file Python đảm nhiệm một trách nhiệm duy nhất và rõ ràng, hạn chế phụ thuộc vòng (circular dependency), đồng thời cho phép tái sử dụng các thành phần cốt lõi mà không phải viết lại mã. Cụ thể, dự án được chia thành bốn nhóm chức năng lớn:
+
+\begin{itemize}
+    \item \textbf{Hạ tầng dùng chung (root)}: \texttt{config.py} và \texttt{utils.py} nằm ở thư mục gốc. Đây là các module không phụ thuộc vào bất cứ module nào khác trong dự án; mọi module cấp trên đều có thể import từ đây. Hai module này cung cấp hằng số toàn cục, phép toán đại số tuyến tính từ đầu, và hàm xây dựng null vector phục vụ demo Gauss--Markov.
+    \item \textbf{Tiện ích kiểm thử dùng chung}: \texttt{test\_utils.py} cũng nằm ở thư mục gốc, cung cấp các hàm sinh dữ liệu giả lập (\texttt{make\_linear\_data}, \texttt{make\_collinear\_data}), các hàm assert có log màu (\texttt{assert\_close}, \texttt{assert\_shape}, v.v.) và các hàm kiểm chứng với sklearn (\texttt{verify\_vs\_sklearn\_ols}, \texttt{verify\_vs\_sklearn\_ridge}). Tất cả file unit test trong dự án import từ đây.
+    \item \textbf{Module nghiệp vụ Phần 1} (\texttt{part1/}): Gồm các file cài đặt thuật toán OLS và các phương pháp liên quan --- \texttt{ols\_implementation.py} (F1--F5), \texttt{ridge\_lasso.py} (F6--F7), \texttt{residual\_analysis.py} (F8), \texttt{cross\_validation.py} (F9), \texttt{gauss\_markov\_demo.py} (F10) --- cùng file kiểm thử riêng \texttt{test\_ols\_implementation.py}.
+    \item \textbf{Module nghiệp vụ Phần 2} (\texttt{part2/}): Gồm \texttt{data\_pipeline.py} (pipeline tiền xử lý dữ liệu thực), \texttt{model\_comparison.py} (so sánh \(\ge\) 3 mô hình trên test set), và \texttt{advanced\_methods.py} (Kernel/Bayesian, tùy chọn). Các module này tái sử dụng trực tiếp F1, F6, F7, F8, F9 từ \texttt{part1/} thay vì viết lại.
+\end{itemize}
+
+Cấu trúc thư mục đầy đủ của dự án như sau:
+
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+Project2_DataFitting/
+|-- config.py               # Hang so toan cuc (EPSILON, RANDOM_STATE)
+|-- utils.py                # Phep toan dai so tuyen tinh tu dau
+|-- test_utils.py           # Tien ich kiem thu dung chung
+|-- part1/
+|   |-- ols_implementation.py   # F1-F5: OLS, Hat matrix, VIF, ...
+|   |-- ridge_lasso.py          # F6-F7: Ridge, Lasso, Trace
+|   |-- residual_analysis.py    # F8: 4 bieu do chan doan
+|   |-- cross_validation.py     # F9: k-Fold CV
+|   |-- gauss_markov_demo.py    # F10: Monte Carlo demo
+|   `-- test_ols_implementation.py
+|-- part2/
+|   |-- data/
+|   |   `-- <ten_dataset>.csv
+|   |-- data_pipeline.py        # Tien xu ly, encoding, chuan hoa
+|   |-- model_comparison.py     # So sanh mo hinh tren test set
+|   `-- advanced_methods.py     # Kernel / Bayesian (tuy chon)
+|-- report/
+|   `-- report.pdf
+`-- requirements.txt
+\end{verbatim}
+\end{tcolorbox}
+
+Cấu trúc này đảm bảo: khi một module lõi (ví dụ \texttt{utils.py}) được cập nhật, toàn bộ codebase hưởng ngay lợi ích mà không cần sửa lại ở nhiều nơi. Đồng thời, Phần 2 không cần cài đặt lại OLS hay Ridge --- các hàm từ Phần 1 được import trực tiếp, đảm bảo kết quả nhất quán giữa hai phần.
+
+% ------------------------------------------------------------
+\subsection{Module cấu hình toàn cục: \texttt{config.py}}
+
+Module \texttt{config.py} là file cấu hình dùng chung đầu tiên cần được hiểu. Nó định nghĩa các hằng số và hàm tiện ích được sử dụng xuyên suốt toàn bộ dự án, từ các phép tính đại số trong \texttt{utils.py} đến quá trình shuffle trong \texttt{cross\_validation.py}.
+
+\begin{itemize}
+    \item \texttt{EPSILON = 1e-12}: Ngưỡng epsilon toàn cục. Mọi số có giá trị tuyệt đối nhỏ hơn ngưỡng này đều được coi là bằng 0 về mặt số học. Ngưỡng này được dùng nhất quán trong tất cả phép chia, kiểm tra pivot, và tính VIF để tránh chia cho 0.
+    \item \texttt{RANDOM\_STATE = 42}: Seed toàn cục đảm bảo tính tái lập (\emph{reproducibility}) của toàn bộ dự án --- từ sinh dữ liệu giả lập trong \texttt{test\_utils.py}, Fisher-Yates shuffle trong \texttt{cross\_validation.py}, đến LCG random generator trong \texttt{gauss\_markov\_demo.py}.
+    \item \texttt{is\_zero(x)}: Kiểm tra xem một số $x$ có xấp xỉ bằng~0 hay không theo ngưỡng \texttt{EPSILON}.
+    \item \texttt{zero\_rectify(value)}: Nếu \texttt{value} đủ nhỏ thì trả về \texttt{0.0} thay vì giữ nguyên giá trị nhiễu số học (ví dụ: \texttt{-2.77e-16}), tránh hiện tượng ``ô nhiễm'' kết quả qua nhiều bước tính toán.
+    \item \texttt{calculate\_relative\_error(A, x\_hat, b)}: Tính sai số tương đối $\|\mathbf{A}\hat{\mathbf{x}} - \mathbf{b}\|_2 / \|\mathbf{b}\|_2$ --- dùng trong unit test để kiểm tra chất lượng nghiệm OLS và Ridge.
+\end{itemize}
+
+\begin{lstlisting}[language=Python, caption={Module \texttt{config.py} --- hằng số và hàm xử lý sai số dùng chung}]
+import math
+
+EPSILON:      float = 1e-12
+RANDOM_STATE: int   = 42
+
+def is_zero(x: float) -> bool:
+    """Kiem tra mot so co xap xi bang 0 hay khong."""
+    return abs(x) < EPSILON
+
+def zero_rectify(value: float) -> float:
+    """Khu gia tri ve 0 neu no du nho."""
+    return 0.0 if is_zero(value) else value
+
+def calculate_relative_error(A, x_hat, b) -> float:
+    """Tinh sai so tuong doi ||A*x_hat - b||_2 / ||b||_2."""
+    n = len(b)
+    residual = [sum(A[i][j]*x_hat[j] for j in range(len(x_hat)))-b[i]
+                for i in range(n)]
+    norm_r = math.sqrt(sum(r*r for r in residual))
+    norm_b = math.sqrt(sum(bi*bi for bi in b))
+    if is_zero(norm_b):
+        return 0.0 if is_zero(norm_r) else float('inf')
+    return norm_r / norm_b
+\end{lstlisting}
+
+Việc tách riêng hằng số và hàm xử lý sai số vào \texttt{config.py} giúp đảm bảo tính nhất quán: giá trị ngưỡng \texttt{EPSILON} chỉ cần khai báo một lần duy nhất. Đặc biệt với dự án này, \texttt{RANDOM\_STATE} đóng vai trò quan trọng hơn so với các dự án tính toán số thuần túy, vì kết quả cross-validation và demo Gauss--Markov phụ thuộc trực tiếp vào thứ tự ngẫu nhiên của dữ liệu.
+
+% ------------------------------------------------------------
+\subsection{Các hàm tiện ích nội bộ dùng chung: \texttt{utils.py}}
+
+Module \texttt{utils.py} cung cấp một thư viện các phép toán đại số tuyến tính cơ bản được tái sử dụng xuyên suốt dự án. Toàn bộ được cài đặt \textbf{từ đầu bằng Python thuần}, không phụ thuộc vào \texttt{numpy} hay bất kỳ thư viện số học nào. Đây là yêu cầu bắt buộc của đề bài --- các hàm này là ``động cơ'' của toàn bộ cài đặt OLS, Ridge, Lasso, và Hat Matrix.
+
+\paragraph{Nhóm phép toán ma trận cơ bản}
+
+\begin{itemize}
+    \item \texttt{identity\_matrix(n)}: Tạo ma trận đơn vị $\mathbf{I}_n$ dưới dạng list 2 chiều.
+    \item \texttt{transpose(A)}: Chuyển vị ma trận bằng \texttt{zip(*A)}, trả về $\mathbf{A}^T$. Được dùng trong mọi lần tính $\mathbf{X}^T\mathbf{X}$ và $\mathbf{X}^T\mathbf{y}$.
+    \item \texttt{matmul(A, B)}: Nhân hai ma trận theo thuật toán $\mathcal{O}(mnp)$. Có tối ưu nhỏ: bỏ qua vòng lặp trong nếu $a_{ik} \approx 0$ (kiểm tra qua \texttt{is\_zero}), giảm phép tính không cần thiết trên ma trận thưa.
+    \item \texttt{matvec(A, v)}: Tích ma trận--vector $\mathbf{A}\mathbf{v}$, trả về list 1 chiều. Được dùng để tính $\hat{\mathbf{y}} = \mathbf{X}\hat{\boldsymbol{\beta}}$ trong mọi hàm fit.
+    \item \texttt{dot\_product(u, v)}: Tích vô hướng $\mathbf{u}^T\mathbf{v}$. Được dùng trong Gram--Schmidt và coordinate descent của Lasso.
+    \item \texttt{vector\_norm(v)}: Chuẩn Euclidean $\|\mathbf{v}\|_2$; dùng \texttt{max(0.0, ...)} đề phòng kết quả âm nhỏ do sai số số học trước khi lấy căn.
+    \item \texttt{normalize(v)}: Chuẩn hóa vector về đơn vị ($\|\mathbf{v}\|_2 = 1$); trả về vector $\mathbf{0}$ nếu chuẩn ban đầu xấp xỉ 0.
+    \item \texttt{add\_bias(X)}: Thêm cột hằng số 1 vào đầu ma trận $\mathbf{X}$ tạo ra ma trận design $[\mathbf{1} \mid \mathbf{X}]$. Được gọi đầu tiên trong \texttt{ols\_fit}, \texttt{hat\_matrix}, \texttt{coef\_inference} và các hàm inference khác.
+\end{itemize}
+
+\paragraph{Nhóm giải hệ tuyến tính}
+
+\begin{itemize}
+    \item \texttt{solve\_system(A, b)}: Giải hệ $\mathbf{A}\mathbf{x} = \mathbf{b}$ bằng phép khử Gauss với \emph{partial pivoting} và back-substitution. Ném \texttt{ValueError} khi ma trận suy biến (pivot $< 10^{-14}$). Đây là hàm cốt lõi nhất --- được gọi bởi \texttt{ols\_fit} (giải Normal Equations) và \texttt{ridge\_fit} (giải hệ Ridge đã điều chỉnh).
+    \item \texttt{inverse(A)}: Tính $\mathbf{A}^{-1}$ bằng phương pháp Gauss--Jordan trên ma trận mở rộng $[\mathbf{A} \mid \mathbf{I}]$. Được dùng trong \texttt{hat\_matrix} (tính $(\mathbf{X}^T\mathbf{X})^{-1}$) và \texttt{coef\_inference} (tính ma trận hiệp phương sai $\hat{\sigma}^2(\mathbf{X}^T\mathbf{X})^{-1}$).
+\end{itemize}
+
+\paragraph{Nhóm kiểm tra và chuẩn hóa}
+
+\begin{itemize}
+    \item \texttt{is\_upper\_triangular(U, tol)}: Kiểm tra ma trận $\mathbf{U}$ có phải tam giác trên không.
+    \item \texttt{check\_identity(M, tol)}: Kiểm tra ma trận $\mathbf{M}$ có xấp xỉ ma trận đơn vị không. Dùng trong unit test để kiểm chứng $(\mathbf{X}^T\mathbf{X})(\mathbf{X}^T\mathbf{X})^{-1} \approx \mathbf{I}$.
+    \item \texttt{rectify\_matrix(M)}, \texttt{rectify\_vector(v)}: Áp dụng \texttt{zero\_rectify} lên từng phần tử. Dùng sau các phép nhân ma trận lớn để làm sạch nhiễu số học tích lũy.
+    \item \texttt{max\_abs\_diff(A, B)}: Tính $\max_{ij}|A_{ij} - B_{ij}|$ --- thước đo độ chính xác trong unit test, ví dụ kiểm tra $\mathbf{H}^2 \approx \mathbf{H}$ (tính idempotent của Hat Matrix).
+\end{itemize}
+
+\paragraph{Nhóm trực giao hóa và null space}
+
+\begin{itemize}
+    \item \texttt{orthogonalize(v, basis)}: Chiếu vector $\mathbf{v}$ ra khỏi tất cả các vector trong \texttt{basis} theo công thức Gram--Schmidt cổ điển:
+    \begin{equation}
+        \mathbf{w} = \mathbf{v} - \sum_{\mathbf{b} \in \text{basis}}
+        \langle \mathbf{v}, \mathbf{b} \rangle \cdot \mathbf{b}.
+    \end{equation}
+    Mỗi lần trừ xong một thành phần, kết quả được làm sạch qua \texttt{zero\_rectify} để triệt tiêu nhiễu dấu phẩy động.
+    \item \texttt{find\_new\_unit\_vector(basis, dim)}: Khi cần bổ sung vector mới vào cơ sở trực giao, hàm lần lượt thử các vector đơn vị $\mathbf{e}_1, \mathbf{e}_2, \ldots$. Mỗi ứng viên được trực giao hóa với \texttt{basis} rồi chuẩn hóa. Ném \texttt{ValueError} nếu thất bại.
+    \item \texttt{build\_null\_vector(X\_bias)}: Xây dựng vector $\mathbf{v} \in \mathrm{Null}(\mathbf{X}^T)$, tức $\mathbf{X}^T\mathbf{v} \approx \mathbf{0}$, bằng cách tạo vector ngẫu nhiên (LCG reproducible) rồi chiếu ra khỏi không gian cột của $\mathbf{X}$. Được dùng duy nhất bởi \texttt{gauss\_markov\_demo.py} để xây dựng estimator thay thế chứng minh OLS là BLUE.
+\end{itemize}
+
+\begin{lstlisting}[language=Python, caption={Trích đoạn \texttt{utils.py}: các hàm cốt lõi cho OLS}]
+from config import is_zero, zero_rectify, EPSILON
+import math
+
+def add_bias(X: list[list[float]]) -> list[list[float]]:
+    """Them cot 1 (bias/intercept) vao dau ma tran X."""
+    return [[1.0] + list(row) for row in X]
+
+def solve_system(A, b) -> list[float]:
+    """Giai Ax = b bang khu Gauss voi partial pivoting."""
+    n = len(b)
+    M = [A[i][:] + [b[i]] for i in range(n)]
+    for col in range(n):
+        # Partial pivoting
+        pivot_row = max(range(col, n), key=lambda r: abs(M[r][col]))
+        M[col], M[pivot_row] = M[pivot_row], M[col]
+        if abs(M[col][col]) < 1e-14:
+            raise ValueError("Ma tran suy bien.")
+        for row in range(col + 1, n):
+            factor = M[row][col] / M[col][col]
+            for j in range(col, n + 1):
+                M[row][j] -= factor * M[col][j]
+    # Back-substitution
+    x = [0.0] * n
+    for i in range(n - 1, -1, -1):
+        x[i] = M[i][n]
+        for j in range(i + 1, n):
+            x[i] -= M[i][j] * x[j]
+        x[i] /= M[i][i]
+    return x
+
+def build_null_vector(X_bias: list[list[float]]) -> list[float]:
+    """Xay dung v thuoc Null(X^T): X^T v ~= 0 (dung cho GM demo)."""
+    n, p1 = len(X_bias), len(X_bias[0])
+    cols = [[X_bias[i][j] for i in range(n)] for j in range(p1)]
+    state = 12345
+    v = []
+    for _ in range(n):
+        state = (state * 1103515245 + 12345) & 0x7FFFFFFF
+        v.append((state / 0x7FFFFFFF) * 2.0 - 1.0)
+    for col in cols:           # Gram-Schmidt ra khoi span(X)
+        c = dot_product(v, col) / max(dot_product(col, col), EPSILON)
+        v = [v[i] - c * col[i] for i in range(n)]
+    norm_v = math.sqrt(sum(vi*vi for vi in v))
+    return [vi / norm_v for vi in v]
+\end{lstlisting}
+
+% ------------------------------------------------------------
+\subsection{Module tiện ích kiểm thử dùng chung: \texttt{test\_utils.py}}
+
+Một điểm khác biệt đáng chú ý của dự án này so với dự án trước là sự xuất hiện của \texttt{test\_utils.py} --- một module kiểm thử dùng chung hoàn chỉnh. Module này phục vụ ba mục đích:
+
+\paragraph{Sinh dữ liệu giả lập nhất quán}
+
+\begin{itemize}
+    \item \texttt{make\_linear\_data(n, beta, sigma, seed)}: Sinh dataset tuyến tính $\mathbf{y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\varepsilon}$ với $\boldsymbol{\varepsilon} \sim \mathcal{N}(0, \sigma^2)$, dùng \texttt{numpy.default\_rng(seed)} để tái lập. Trả về $(X, y)$ với $X$ chưa có cột bias.
+    \item \texttt{make\_multifeature\_data(n, p, sigma, seed)}: Sinh dataset nhiều biến với $\boldsymbol{\beta}$ ngẫu nhiên --- dùng để kiểm tra tổng quát hơn.
+    \item \texttt{make\_collinear\_data(n, seed)}: Sinh dataset có đa cộng tuyến: $x_3 \approx x_1 + x_2 + \varepsilon_{\mathrm{small}}$. Dùng đặc biệt cho unit test F5 (\texttt{vif}) để xác nhận VIF $> 10$ được phát hiện đúng.
+\end{itemize}
+
+Toàn bộ file unit test của dự án đều dùng các factory này thay vì tự sinh data riêng. Điều này đảm bảo cùng một seed cho ra cùng một dữ liệu, giúp debug và so sánh kết quả giữa các thành viên nhóm.
+
+\paragraph{Hàm assert có log màu}
+
+Các hàm \texttt{assert\_*} trong \texttt{test\_utils.py} không ném exception mà trả về \texttt{bool} và in log màu qua \texttt{TestLogger}. Điều này cho phép chạy toàn bộ suite mà không dừng ở test đầu tiên thất bại:
+
+\begin{itemize}
+    \item \texttt{assert\_close(actual, expected, label, rtol, atol)}: So sánh hai giá trị/array với dung sai tương đối và tuyệt đối, dùng \texttt{numpy.testing.assert\_allclose} nội bộ.
+    \item \texttt{assert\_equal(actual, expected, label)}: So sánh bằng tuyệt đối (\texttt{==}).
+    \item \texttt{assert\_true(condition, label, details)}: Kiểm tra điều kiện Boolean.
+    \item \texttt{assert\_shape(arr, expected\_shape, label)}: Kiểm tra shape của array/list qua \texttt{numpy.asarray().shape}.
+    \item \texttt{assert\_in\_range(val, lo, hi, label)}: Kiểm tra $\texttt{lo} \leq \texttt{val} \leq \texttt{hi}$.
+    \item \texttt{assert\_raises(exc\_type, fn, *args, label)}: Kiểm tra hàm \texttt{fn} ném đúng loại exception. Phân biệt giữa ``không ném exception'' và ``ném sai loại exception'' --- cả hai đều được log riêng.
+\end{itemize}
+
+\paragraph{Hàm kiểm chứng với sklearn}
+
+\begin{itemize}
+    \item \texttt{verify\_vs\_sklearn\_ols(X, y, beta\_hat, rtol)}: So sánh \texttt{beta\_hat} từ F1 với \texttt{sklearn.LinearRegression} --- kiểm tra cả intercept lẫn coefficients.
+    \item \texttt{verify\_vs\_sklearn\_ridge(X, y, beta\_hat, lam, rtol)}: So sánh với \texttt{sklearn.Ridge(alpha=lam)}. Dùng ngưỡng \texttt{rtol=1e-3} (lỏng hơn OLS) vì Ridge có chuẩn hóa có thể khác convention.
+\end{itemize}
+
+Cả hai hàm đều bỏ qua kiểm tra (trả về \texttt{True} với cảnh báo) nếu sklearn không được cài đặt, đảm bảo unit test vẫn chạy được trên môi trường không có sklearn.
+
+% ------------------------------------------------------------
+\subsection{Quy ước Import và Chạy Test}
+
+Để tránh lỗi import path giữa các môi trường khác nhau, dự án áp dụng quy ước thống nhất:
+
+\begin{tcolorbox}[mycodebox, colback=gray!5!white, colframe=gray!50!black,
+    title={\textbf{Quy tắc import path toàn dự án}}]
+\begin{itemize}
+    \item Tất cả file trong \texttt{part1/} import lẫn nhau \textbf{không có prefix} \texttt{part1.}:
+    \begin{verbatim}
+# Dung - chay tu thu muc part1/
+from ols_implementation import ols_fit, hat_matrix
+    \end{verbatim}
+    \item Mỗi file đặt \texttt{sys.path.insert(0, os.path.dirname(\_\_file\_\_))} ở đầu để đảm bảo import đúng dù được gọi từ thư mục nào.
+    \item Phần 2 import từ Phần 1 qua \texttt{sys.path.insert} trỏ đến thư mục \texttt{part1/}:
+    \begin{verbatim}
+# Trong part2/model_comparison.py
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../part1'))
+from ols_implementation import ols_fit
+    \end{verbatim}
+\end{itemize}
+\end{tcolorbox}
+
+\textbf{Chạy unit test:} Tất cả file có thể chạy trực tiếp như script độc lập. Cách chạy toàn bộ từ thư mục gốc:
+
+\begin{lstlisting}[language=bash, caption={Lệnh chạy toàn bộ unit test từ thư mục gốc}]
+# Chay tung file tu part1/
+cd part1
+python ols_implementation.py
+python ridge_lasso.py
+python residual_analysis.py
+python cross_validation.py
+python gauss_markov_demo.py
+
+# Chay file test rieng biet
+python test_ols_implementation.py
+\end{lstlisting}
+
+Kết quả đầu ra được in theo định dạng nhất quán của \texttt{TestLogger}: mỗi test một dòng với trạng thái \textcolor{green!60!black}{\texttt{[OK] PASSED}} hoặc \textcolor{red!70!black}{\texttt{[FAIL] FAILED}}, kèm chi tiết sai số; cuối suite in thanh tiến trình và tổng kết \texttt{X/Y PASSED}.
+
+% ------------------------------------------------------------
+\subsection{Quản lý Sai số Dấu phẩy động: IEEE 754 và Machine Epsilon}
+\label{sec:floating_point_p2}
+
+Toàn bộ dự án làm việc với số thực dưới dạng số dấu phẩy động 64-bit (double precision) theo chuẩn \textbf{IEEE 754}. Việc hiểu và kiểm soát sai số từ biểu diễn này là nền tảng bắt buộc --- đặc biệt với dự án Data Fitting, nơi sai số số học trong quá trình giải Normal Equations có thể ảnh hưởng trực tiếp đến chất lượng ước lượng $\hat{\boldsymbol{\beta}}$.
+
+\subsubsection{Giới hạn biểu diễn: Machine Epsilon}
+
+Chuẩn IEEE 754 double precision biểu diễn số thực dưới dạng:
+\begin{equation}
+    x = (-1)^s \cdot m \cdot 2^e,
+\end{equation}
+trong đó $s \in \{0,1\}$ là bit dấu, $m$ là phần định trị (mantissa) 52 bit, và $e$ là số mũ 11 bit. Hệ quả trực tiếp là không phải mọi số thực đều có thể được biểu diễn chính xác. Giữa hai số thực liền kề bất kỳ luôn tồn tại một khoảng cách nhỏ nhất, gọi là \textbf{machine epsilon} $\varepsilon_\text{mach}$:
+\begin{equation}
+    \varepsilon_\text{mach} = 2^{-52} \approx 2.22 \times 10^{-16}.
+\end{equation}
+Đây là sai số tương đối nhỏ nhất mà phép tính dấu phẩy động có thể gây ra trong \emph{một phép toán đơn lẻ}. Trong OLS, khi tính $(\mathbf{X}^T\mathbf{X})^{-1}$ qua nhiều bước khử Gauss, sai số tích lũy và có thể khuếch đại nếu ma trận gần suy biến (số điều kiện lớn).
+
+\subsubsection{Chiến lược quản lý sai số trong dự án}
+
+Dự án áp dụng ba lớp kiểm soát sai số chồng lên nhau:
+
+\paragraph{Lớp 1 --- Ngưỡng epsilon toàn cục (\texttt{EPSILON = 1e-12})}
+Thay vì so sánh bằng tuyệt đối (\texttt{x == 0.0}), mọi phép so sánh với 0 đều đi qua \texttt{is\_zero(x)} với ngưỡng $\varepsilon = 10^{-12}$. Ngưỡng này được chọn cẩn thận:
+\begin{itemize}
+    \item Lớn hơn $\varepsilon_\text{mach} \approx 2.2 \times 10^{-16}$ đủ nhiều để hấp thu nhiễu số học tích lũy qua nhiều bước.
+    \item Nhỏ hơn $10^{-6}$ đủ để không nhầm các giá trị nhỏ nhưng thực sự khác không (ví dụ: hệ số Lasso sau shrinkage) với số 0.
+\end{itemize}
+Ứng dụng cụ thể: trong \texttt{lasso\_fit}, điều kiện $|z_j| > \varepsilon$ trước phép chia $\beta_j = S(\rho_j, \lambda) / z_j$ tránh chia cho 0 khi cột $j$ là vector không.
+
+\paragraph{Lớp 2 --- Làm sạch kết quả trung gian (\texttt{zero\_rectify})}
+Sau mỗi phép toán lớn (một bước khử Gauss, một vòng lặp coordinate descent, một lần Gram--Schmidt), kết quả được lọc qua \texttt{zero\_rectify}. Điều này ngăn các số dư như \texttt{-2.77e-16} làm ``ô nhiễm'' các bước tính toán tiếp theo --- đặc biệt quan trọng trong \texttt{build\_null\_vector} khi chiếu vector ra khỏi không gian cột của $\mathbf{X}$.
+
+\paragraph{Lớp 3 --- Chọn chốt từng phần (Partial Pivoting)}
+Trong \texttt{solve\_system} và \texttt{inverse}, tại mỗi bước khử, hàng có $|a_{ij}|$ lớn nhất được chọn làm pivot. Điều này đảm bảo hệ số nhân $l_{ik} = a_{ik}/a_{kk}$ luôn $\leq 1$ về trị tuyệt đối, hạn chế tối đa sự khuếch đại sai số qua từng bước khử. Đây là biện pháp phòng ngừa ở cấp độ thuật toán, bổ sung cho hai lớp làm sạch số học ở trên.
+
+\subsubsection{Ảnh hưởng của điều kiện số lên OLS}
+
+Một vấn đề đặc thù của Data Fitting là \textbf{số điều kiện} (condition number) của ma trận $\mathbf{X}^T\mathbf{X}$. Khi các cột của $\mathbf{X}$ có tương quan cao (đa cộng tuyến), $\kappa(\mathbf{X}^T\mathbf{X})$ trở nên rất lớn và sai số trong $\hat{\boldsymbol{\beta}}$ khuếch đại tương ứng:
+\begin{equation}
+    \frac{\|\delta\hat{\boldsymbol{\beta}}\|}{\|\hat{\boldsymbol{\beta}}\|}
+    \leq \kappa(\mathbf{X}^T\mathbf{X}) \cdot
+    \frac{\|\delta\mathbf{y}\|}{\|\mathbf{y}\|}.
+\end{equation}
+Đây chính là lý do Ridge Regression thêm $\lambda\mathbf{I}$ vào $\mathbf{X}^T\mathbf{X}$ --- không chỉ để regularize mà còn để cải thiện số điều kiện: $\kappa(\mathbf{X}^T\mathbf{X} + \lambda\mathbf{I}) < \kappa(\mathbf{X}^T\mathbf{X})$ với mọi $\lambda > 0$.
+
+Trong thực nghiệm, sai số tương đối $\|\hat{\boldsymbol{\beta}}_{\mathrm{OLS}} - \boldsymbol{\beta}_{\mathrm{true}}\|/\|\boldsymbol{\beta}_{\mathrm{true}}\|$ trên dữ liệu giả lập với $\sigma = 0$ thường nằm trong khoảng $10^{-9}$ đến $10^{-7}$ --- tức nhỏ hơn nhiều so với $\sqrt{\varepsilon_\text{mach}} \approx 10^{-8}$, xác nhận rằng cài đặt Normal Equations qua \texttt{solve\_system} là đủ chính xác cho mục đích của dự án.

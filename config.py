@@ -29,7 +29,7 @@ def calculate_relative_error(A: list, x_hat: list, b: list) -> float:
         b:     Vector vế phải list[float]         (n,)
 
     Returns:
-        float — sai số tương đối; 0.0 nếu b = 0 và r = 0.
+        float - sai số tương đối; 0.0 nếu b = 0 và r = 0.
     """
     n        = len(b)
     residual = [sum(A[i][j] * x_hat[j] for j in range(len(x_hat))) - b[i]

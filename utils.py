@@ -329,7 +329,7 @@ def inverse(A: list[list[float]]) -> list[list[float]]:
            for i in range(n)]
 
     for col in range(n):
-        # Partial pivoting — chọn dòng có |giá trị| lớn nhất
+        # Partial pivoting - chọn dòng có |giá trị| lớn nhất
         pivot_row = col
         for r in range(col + 1, n):
             if abs(aug[r][col]) > abs(aug[pivot_row][col]):

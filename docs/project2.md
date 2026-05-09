@@ -1,5 +1,5 @@
 # ĐẠI HỌC QUỐC GIA TP. HỒ CHÍ MINH
-## TRƯỜNG ĐẠI HỌC KHOA HỌC TỰ NHIÊN — KHOA CÔNG NGHỆ THÔNG TIN
+## TRƯỜNG ĐẠI HỌC KHOA HỌC TỰ NHIÊN - KHOA CÔNG NGHỆ THÔNG TIN
 
 ---
 
@@ -24,15 +24,15 @@
   - [1.2 Phương Pháp Ordinary Least Squares (OLS)](#12-phương-pháp-ordinary-least-squares-ols)
   - [1.3 Đánh Giá Mô Hình](#13-đánh-giá-mô-hình)
   - [1.4 Các Vấn Đề Nâng Cao trong Data Fitting](#14-các-vấn-đề-nâng-cao-trong-data-fitting)
-  - [1.5 Yêu Cầu Cài Đặt Python — Phần 1](#15-yêu-cầu-cài-đặt-python--phần-1)
-  - [1.6 Tiêu Chí Đánh Giá — Phần 1](#16-tiêu-chí-đánh-giá--phần-1)
+  - [1.5 Yêu Cầu Cài Đặt Python - Phần 1](#15-yêu-cầu-cài-đặt-python--phần-1)
+  - [1.6 Tiêu Chí Đánh Giá - Phần 1](#16-tiêu-chí-đánh-giá--phần-1)
 - [Phần 2: Ứng Dụng Data Fitting vào Dữ Liệu Thực Tế](#phần-2-ứng-dụng-data-fitting-vào-dữ-liệu-thực-tế)
   - [2.1 Tiêu Chí Chọn Bộ Dữ Liệu](#21-tiêu-chí-chọn-bộ-dữ-liệu)
   - [2.2 Tiền Xử Lý Dữ Liệu](#22-tiền-xử-lý-dữ-liệu)
   - [2.3 Xây Dựng và Đánh Giá Mô Hình](#23-xây-dựng-và-đánh-giá-mô-hình)
   - [2.4 Kỹ Thuật Nâng Cao (Tùy Chọn)](#24-kỹ-thuật-nâng-cao-tùy-chọn)
-  - [2.5 Yêu Cầu Cài Đặt Python — Phần 2](#25-yêu-cầu-cài-đặt-python--phần-2)
-  - [2.6 Tiêu Chí Đánh Giá — Phần 2](#26-tiêu-chí-đánh-giá--phần-2)
+  - [2.5 Yêu Cầu Cài Đặt Python - Phần 2](#25-yêu-cầu-cài-đặt-python--phần-2)
+  - [2.6 Tiêu Chí Đánh Giá - Phần 2](#26-tiêu-chí-đánh-giá--phần-2)
 - [Phần 3: Yêu Cầu Chung và Hướng Dẫn Nộp Bài](#phần-3-yêu-cầu-chung-và-hướng-dẫn-nộp-bài)
 - [Tài Liệu Tham Khảo](#tài-liệu-tham-khảo)
 
@@ -44,8 +44,8 @@
 
 Đồ án này tập trung vào hai nhóm nhiệm vụ bổ sung cho nhau:
 
-1. **Lý thuyết và minh họa** — Nắm vững nền tảng toán học của data fitting và phương pháp Ordinary Least Squares (OLS), sau đó minh họa các kết quả lý thuyết bằng code Python tự cài đặt.
-2. **Ứng dụng thực tế** — Vận dụng data fitting để phân tích một bộ dữ liệu thực, bao gồm tiền xử lý, xây dựng mô hình hồi quy và đánh giá kết quả một cách có hệ thống.
+1. **Lý thuyết và minh họa** - Nắm vững nền tảng toán học của data fitting và phương pháp Ordinary Least Squares (OLS), sau đó minh họa các kết quả lý thuyết bằng code Python tự cài đặt.
+2. **Ứng dụng thực tế** - Vận dụng data fitting để phân tích một bộ dữ liệu thực, bao gồm tiền xử lý, xây dựng mô hình hồi quy và đánh giá kết quả một cách có hệ thống.
 
 Sau khi hoàn thành đồ án, sinh viên có khả năng:
 
@@ -105,7 +105,7 @@ OLS tìm $\hat{\beta}$ tối thiểu hóa tổng bình phương phần dư (Resi
 
 $$\text{RSS}(\beta) = \|\mathbf{y} - X\beta\|_2^2 = \sum_{i=1}^n (y_i - \mathbf{x}_i^T \beta)^2 \tag{3}$$
 
-**Định lý 1.1** *(Nghiệm OLS — Normal Equations).* Nếu $X^T X$ khả nghịch, nghiệm OLS duy nhất là:
+**Định lý 1.1** *(Nghiệm OLS - Normal Equations).* Nếu $X^T X$ khả nghịch, nghiệm OLS duy nhất là:
 
 $$\hat{\beta}_{\text{OLS}} = (X^T X)^{-1} X^T \mathbf{y} \tag{4}$$
 
@@ -131,7 +131,7 @@ $$H = X(X^T X)^{-1} X^T \in \mathbb{R}^{n \times n} \tag{5}$$
 
 #### 1.2.3 Định Lý Gauss–Markov
 
-**Định lý 1.2** *(Gauss–Markov).* Dưới các giả thiết GM1–GM4, ước lượng OLS $\hat{\beta}_{\text{OLS}}$ là ước lượng tuyến tính không chệch tốt nhất (**Best Linear Unbiased Estimator — BLUE**):
+**Định lý 1.2** *(Gauss–Markov).* Dưới các giả thiết GM1–GM4, ước lượng OLS $\hat{\beta}_{\text{OLS}}$ là ước lượng tuyến tính không chệch tốt nhất (**Best Linear Unbiased Estimator - BLUE**):
 
 (i) **Không chệch:** $E[\hat{\beta}_{\text{OLS}}] = \beta$  
 (ii) **Tốt nhất (phương sai nhỏ nhất):** Với mọi ước lượng tuyến tính không chệch $\tilde{\beta}$ khác, ta có $\text{Var}(\tilde{\beta}_j) \geq \text{Var}(\hat{\beta}_j^{\text{OLS}})$ với mọi $j$.
@@ -164,11 +164,11 @@ $$\bar{R}^2 = 1 - \frac{n-1}{n-p-1}(1 - R^2) \tag{9}$$
 
 Dưới giả thiết chuẩn GM5, $\hat{\beta} \sim \mathcal{N}(\beta, \sigma^2(X^T X)^{-1})$.
 
-**Kiểm định Student (t-test)** — Kiểm định ý nghĩa của từng đặc trưng đối với mô hình:
+**Kiểm định Student (t-test)** - Kiểm định ý nghĩa của từng đặc trưng đối với mô hình:
 
 $$t_j = \frac{\hat{\beta}_j}{\hat{\sigma}\sqrt{[(X^T X)^{-1}]_{jj}}} \sim t_{n-p-1} \quad (\text{với } H_0 : \beta_j = 0) \tag{10}$$
 
-**Kiểm định F cho mô hình tổng thể** — Kiểm định ý nghĩa của mô hình:
+**Kiểm định F cho mô hình tổng thể** - Kiểm định ý nghĩa của mô hình:
 
 $$F = \frac{(\text{TSS} - \text{RSS})/p}{\text{RSS}/(n - p - 1)} \sim F_{p,\, n-p-1} \quad (\text{với } H_0 : \beta_1 = \cdots = \beta_p = 0) \tag{11}$$
 
@@ -213,29 +213,29 @@ Sử dụng các công cụ thống kê mô tả để kiểm tra sai số của
 
 $$CV_{(k)} = \frac{1}{k} \sum_{i=1}^k \text{MSE}_i \tag{15}$$
 
-**Tiêu chí lựa chọn mô hình** — AIC (Akaike Information Criterion) và BIC (Bayesian Information Criterion):
+**Tiêu chí lựa chọn mô hình** - AIC (Akaike Information Criterion) và BIC (Bayesian Information Criterion):
 
 $$\text{AIC} = n\ln\!\left(\frac{\text{RSS}}{n}\right) + 2(p+2), \qquad \text{BIC} = n\ln\!\left(\frac{\text{RSS}}{n}\right) + (p+2)\ln n \tag{16}$$
 
 ---
 
-### 1.5 Yêu Cầu Cài Đặt Python — Phần 1
+### 1.5 Yêu Cầu Cài Đặt Python - Phần 1
 
 Với mỗi mục dưới đây, sinh viên phải: **(a)** trình bày công thức toán học, **(b)** cài đặt Python từ đầu, **(c)** minh họa bằng dữ liệu giả lập, **(d)** kiểm chứng với NumPy/sklearn.
 
-1. `ols_fit(X, y)` — Tính $\hat{\beta} = (X^T X)^{-1} X^T \mathbf{y}$ và $\hat{\sigma}^2$.
-2. `hat_matrix(X)` — Tính $H = X(X^T X)^{-1} X^T$, kiểm tra idempotent.
-3. `model_metrics(y, y_hat, p)` — Tính RSS, TSS, R², $\bar{R}^2$, kiểm định F.
-4. `coef_inference(X, y, beta_hat, sigma2)` — Tính standard errors, t-statistics, p-values và khoảng tin cậy 95%.
-5. `vif(X)` — Tính VIF cho từng biến.
-6. `ridge_fit(X, y, lam)` — Cài đặt Ridge Regression, vẽ ridge trace.
-7. `residual_plots(X, y, beta_hat)` — Vẽ 4 biểu đồ phân tích phần dư.
-8. `kfold_cv(X, y, k)` — Cài đặt k-fold cross-validation, tính CV score.
+1. `ols_fit(X, y)` - Tính $\hat{\beta} = (X^T X)^{-1} X^T \mathbf{y}$ và $\hat{\sigma}^2$.
+2. `hat_matrix(X)` - Tính $H = X(X^T X)^{-1} X^T$, kiểm tra idempotent.
+3. `model_metrics(y, y_hat, p)` - Tính RSS, TSS, R², $\bar{R}^2$, kiểm định F.
+4. `coef_inference(X, y, beta_hat, sigma2)` - Tính standard errors, t-statistics, p-values và khoảng tin cậy 95%.
+5. `vif(X)` - Tính VIF cho từng biến.
+6. `ridge_fit(X, y, lam)` - Cài đặt Ridge Regression, vẽ ridge trace.
+7. `residual_plots(X, y, beta_hat)` - Vẽ 4 biểu đồ phân tích phần dư.
+8. `kfold_cv(X, y, k)` - Cài đặt k-fold cross-validation, tính CV score.
 9. **Minh họa định lý Gauss–Markov**: Mô phỏng Monte Carlo để kiểm chứng $E[\hat{\beta}] = \beta$ và OLS có phương sai nhỏ nhất.
 
 ---
 
-### 1.6 Tiêu Chí Đánh Giá — Phần 1
+### 1.6 Tiêu Chí Đánh Giá - Phần 1
 
 | Tiêu chí | Mô tả | Điểm |
 |----------|-------|------|
@@ -268,9 +268,9 @@ Bộ dữ liệu phải thỏa mãn đồng thời các điều kiện:
 
 **Gợi ý bộ dữ liệu tham khảo:**
 
-- **Kaggle — House Prices** (kaggle.com/c/house-prices-advanced-regression-techniques): Dự đoán giá nhà với 79 biến, nhiều missing values.
-- **UCI — Auto MPG**: Dự đoán mức tiêu hao nhiên liệu của xe hơi.
-- **UCI — Bike Sharing Dataset**: Dự đoán số lượng xe đạp cho thuê.
+- **Kaggle - House Prices** (kaggle.com/c/house-prices-advanced-regression-techniques): Dự đoán giá nhà với 79 biến, nhiều missing values.
+- **UCI - Auto MPG**: Dự đoán mức tiêu hao nhiên liệu của xe hơi.
+- **UCI - Bike Sharing Dataset**: Dự đoán số lượng xe đạp cho thuê.
 - **World Bank Open Data**: Dữ liệu kinh tế vĩ mô theo quốc gia và năm.
 - **WHO Global Health Observatory**: Dữ liệu sức khỏe toàn cầu.
 - **OECD Data**: Dữ liệu giáo dục, lao động, kinh tế.
@@ -281,7 +281,7 @@ Sinh viên được khuyến khích tự chọn bộ dữ liệu phù hợp vớ
 
 ### 2.2 Tiền Xử Lý Dữ Liệu
 
-#### 2.2.1 Khảo Sát Dữ Liệu (Exploratory Data Analysis — EDA)
+#### 2.2.1 Khảo Sát Dữ Liệu (Exploratory Data Analysis - EDA)
 
 Trước khi xử lý, sinh viên phải thực hiện EDA bao gồm:
 
@@ -374,11 +374,11 @@ $$\beta \mid X, \mathbf{y} \sim \mathcal{N}(m_n, S_n) \tag{22}$$
 
 $$S_n = \left(S_0^{-1} + \frac{1}{\sigma^2} X^T X\right)^{-1}, \qquad m_n = S_n\!\left(S_0^{-1} m_0 + \frac{1}{\sigma^2} X^T \mathbf{y}\right) \tag{23}$$
 
-**Ưu điểm:** Cho thông tin về *uncertainty quantification* — khoảng tin cậy Bayesian (credible intervals) cho dự đoán. Sinh viên cài đặt và so sánh với OLS frequentist.
+**Ưu điểm:** Cho thông tin về *uncertainty quantification* - khoảng tin cậy Bayesian (credible intervals) cho dự đoán. Sinh viên cài đặt và so sánh với OLS frequentist.
 
 ---
 
-### 2.5 Yêu Cầu Cài Đặt Python — Phần 2
+### 2.5 Yêu Cầu Cài Đặt Python - Phần 2
 
 1. **Pipeline tiền xử lý:** Viết class `DataPipeline` xử lý missing values, encoding, chuẩn hóa theo thứ tự. Phải có thể `fit` trên train, `transform` trên test.
 2. **So sánh 3+ mô hình:** Bảng tổng hợp MAE, RMSE, R² trên test set.
@@ -389,7 +389,7 @@ $$S_n = \left(S_0^{-1} + \frac{1}{\sigma^2} X^T X\right)^{-1}, \qquad m_n = S_n\
 
 ---
 
-### 2.6 Tiêu Chí Đánh Giá — Phần 2
+### 2.6 Tiêu Chí Đánh Giá - Phần 2
 
 | Tiêu chí | Mô tả | Điểm |
 |----------|-------|------|
@@ -468,7 +468,7 @@ Group_<ID>/
 |------|----------|-------------|----------|
 | 1 | Lý thuyết, minh họa, cài đặt OLS | 6.0 | 52% |
 | 2 | Ứng dụng dữ liệu thực | 5.5 | 48% |
-| Bonus | Kỹ thuật nâng cao (Kernel/Bayesian) | +0.5 | — |
+| Bonus | Kỹ thuật nâng cao (Kernel/Bayesian) | +0.5 | - |
 | **Tổng cộng** | | **11.5 (+0.5)** | **100%** |
 
 $$\text{Điểm cuối cùng} = \min\!\left(\frac{\text{Tổng}}{1.15},\ 10\right), \quad \text{quy về thang điểm 10}$$

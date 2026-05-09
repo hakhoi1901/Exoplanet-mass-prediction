@@ -12,7 +12,7 @@ from config import EPSILON, RANDOM_STATE
 
 
 # ---------------------------------------------------------------------------
-# Utilities nội bộ — chuẩn hóa (manual, không dùng numpy)
+# Utilities nội bộ - chuẩn hóa (manual, không dùng numpy)
 # ---------------------------------------------------------------------------
 
 def _col_mean(X: list[list[float]]) -> list[float]:
@@ -41,7 +41,7 @@ def _add_bias(X: list[list[float]]) -> list[list[float]]:
 
 
 # ---------------------------------------------------------------------------
-# F6: Ridge Regression — Closed-form
+# F6: Ridge Regression - Closed-form
 # Liên kết: Dùng solve_system, transpose, matmul, matvec từ utils.py
 # ---------------------------------------------------------------------------
 
@@ -51,7 +51,7 @@ def ridge_fit(
     lam: float = 1.0,
 ) -> dict:
     """
-    F6: Ridge Regression — nghiệm closed-form.
+    F6: Ridge Regression - nghiệm closed-form.
 
     Công thức:
         β̂_ridge = (X̃ᵀX̃ + λI*)⁻¹ X̃ᵀy
@@ -66,10 +66,10 @@ def ridge_fit(
         lam  : Hệ số regularization λ ≥ 0.
 
     Trả về dict gồm:
-        beta_hat : list[float] — hệ số [intercept, β₁, …, βₚ] trên thang chuẩn hóa.
-        y_hat    : list[float] — giá trị dự đoán trên thang gốc.
-        mean_X   : list[float] — mean từng cột X (dùng để transform test set).
-        std_X    : list[float] — std  từng cột X.
+        beta_hat : list[float] - hệ số [intercept, β₁, …, βₚ] trên thang chuẩn hóa.
+        y_hat    : list[float] - giá trị dự đoán trên thang gốc.
+        mean_X   : list[float] - mean từng cột X (dùng để transform test set).
+        std_X    : list[float] - std  từng cột X.
     """
     n, p = len(X), len(X[0])
 
@@ -79,7 +79,7 @@ def ridge_fit(
     X_sc   = _standardize(X, mean_X, std_X)
     X_b    = _add_bias(X_sc)          # (n, p+1)
 
-    # I* — không penalize intercept
+    # I* - không penalize intercept
     I_star = [[1.0 if i == j else 0.0 for j in range(p + 1)] for i in range(p + 1)]
     I_star[0][0] = 0.0
 
@@ -88,7 +88,7 @@ def ridge_fit(
     XtX = matmul(Xt, X_b)              # utils.py
     A   = [[XtX[i][j] + lam * I_star[i][j] for j in range(p + 1)] for i in range(p + 1)]
 
-    # Xᵀy — dùng dot_product cho từng hàng của Xᵀ
+    # Xᵀy - dùng dot_product cho từng hàng của Xᵀ
     rhs = [dot_product(Xt[i], y) for i in range(p + 1)]
 
     # Giải hệ (XᵀX + λI*)β = Xᵀy
@@ -164,7 +164,7 @@ def ridge_trace(
 
 
 # ---------------------------------------------------------------------------
-# F7: Lasso Regression — Coordinate Descent
+# F7: Lasso Regression - Coordinate Descent
 # Liên kết: Dùng soft_threshold (manual), _standardize, _add_bias, matvec
 # ---------------------------------------------------------------------------
 
@@ -185,7 +185,7 @@ def lasso_fit(
     tol: float = 1e-6,
 ) -> dict:
     """
-    F7: Lasso Regression — Coordinate Descent (manual, không dùng numpy).
+    F7: Lasso Regression - Coordinate Descent (manual, không dùng numpy).
 
     Tối thiểu hóa: ‖y − Xβ‖² + λ‖β‖₁
     Nghiệm không có dạng closed-form; dùng coordinate descent.
@@ -198,9 +198,9 @@ def lasso_fit(
         tol      : Ngưỡng hội tụ (max |Δβ|).
 
     Trả về dict gồm:
-        beta_hat : list[float] — [intercept, β₁, …, βₚ].
-        y_hat    : list[float] — giá trị dự đoán.
-        n_iter   : int         — số vòng lặp thực tế.
+        beta_hat : list[float] - [intercept, β₁, …, βₚ].
+        y_hat    : list[float] - giá trị dự đoán.
+        n_iter   : int         - số vòng lặp thực tế.
         mean_X   : list[float]
         std_X    : list[float]
     """
@@ -324,7 +324,7 @@ def lasso_trace(
 
 
 # ---------------------------------------------------------------------------
-# Unit Tests — F6 & F7  (≥ 4 test mỗi hàm)
+# Unit Tests - F6 & F7  (≥ 4 test mỗi hàm)
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     if hasattr(sys.stdout, 'reconfigure'):
@@ -334,7 +334,7 @@ if __name__ == "__main__":
     import numpy as np
 
     print("=" * 55)
-    print("  UNIT TESTS — ridge_lasso.py")
+    print("  UNIT TESTS - ridge_lasso.py")
     print("=" * 55)
 
     passed = 0
@@ -348,7 +348,7 @@ if __name__ == "__main__":
     def _mse(y_true: list[float], y_pred: list[float]) -> float:
         return sum((a - b) ** 2 for a, b in zip(y_true, y_pred)) / len(y_true)
 
-    TestLogger.print_suite_header("F6 — Ridge Regression")
+    TestLogger.print_suite_header("F6 - Ridge Regression")
 
     # test_ridge_output_shape
     X = [[1.0, 2.0], [2.0, 1.0], [3.0, 5.0], [4.0, 3.0]]
@@ -399,7 +399,7 @@ if __name__ == "__main__":
         TestLogger.print_warn("Bỏ qua test_ridge_vs_sklearn vì không có thư viện sklearn")
 
 
-    TestLogger.print_suite_header("F7 — Lasso Regression")
+    TestLogger.print_suite_header("F7 - Lasso Regression")
 
     # test_lasso_output_shape
     res5 = lasso_fit(X, y, lam=0.1)

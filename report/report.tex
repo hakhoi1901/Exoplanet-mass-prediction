@@ -1,0 +1,153 @@
+\documentclass[12pt,a4paper]{article}
+
+% ----- CÁC GÓI HỖ TRỢ TIẾNG VIỆT VÀ ĐỊNH DẠNG -----
+\usepackage[utf8]{inputenc} % Bảng mã UTF-8
+\usepackage[T5]{fontenc}    % Font tiếng Việt
+\usepackage[vietnamese]{babel} % Ngôn ngữ tiếng Việt
+\usepackage{mathptmx} % Font Times New Roman tương đương
+\usepackage{indentfirst} % Thụt đầu dòng đoạn đầu tiên
+\usepackage[margin=2.5cm]{geometry} % Căn lề giấy
+\usepackage{graphicx}       % Hỗ trợ chèn ảnh
+\usepackage{hyperref}       % Tạo link click được cho Mục lục
+\usepackage{titlesec}       % Tùy chỉnh tiêu đề
+\usepackage{listings}       % Hỗ trợ chèn code
+\usepackage{xcolor}         % Hỗ trợ màu sắc cho code và text
+\usepackage{array}          % Hỗ trợ định dạng bảng
+\usepackage{enumitem}       % Hỗ trợ định dạng danh sách
+\usepackage{multirow}       % Hỗ trợ định dạng bảng
+\usepackage{longtable}      % Hỗ trợ định dạng bảng
+\usepackage{amsmath, amssymb, amsfonts} % Hỗ trợ công thức toán học
+\usepackage{hyperref}       % Tạo link click được cho Mục lục
+\usepackage{xurl}           % Hỗ trợ định dạng URL
+\usepackage{rotating}
+\usepackage{tcolorbox}
+\usepackage{setspace}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
+\setlist{nosep} % Loại bỏ khoảng trắng thừa giữa các dòng
+\setlist[itemize]{leftmargin=*} % Căn lề thông minh cho gạch đầu dòng
+\setlist[enumerate]{leftmargin=*} % Căn lề thông minh cho số thứ tự
+
+% Cấu hình Header và Footer
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Project 2: Data Fitting}
+\fancyhead[R]{Toán ứng dụng và Thống kê}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\tcbset{
+    mycodebox/.style={
+        colback=gray!5!white,    % Màu nền xám nhạt cực sang
+        colframe=gray!50!black,  % Màu viền xám đậm
+        boxrule=0.5pt,           % Độ dày viền mỏng
+        arc=3pt,                 % Bo góc tròn
+        left=2mm, right=2mm, top=2mm, bottom=2mm, % Căn lề trong hộp
+        fontupper=\ttfamily\small % Dùng font code (monospace)
+    }
+}
+
+\setstretch{1.3} % Thiết lập giãn dòng 1.3 cho toàn bộ tài liệu
+
+% Cài đặt màu và định dạng cho phần chèn code
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\DeclareMathOperator{\rank}{rank}
+
+\renewcommand{\lstlistlistingname}{Danh mục mã nguồn}
+\renewcommand{\lstlistingname}{Đoạn mã}
+
+\lstdefinestyle{mystyle}{   
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+% Định dạng link ẩn khung viền đỏ
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=blue,      
+    urlcolor=blue,
+    citecolor=black,
+}
+
+\begin{document}
+
+
+% ==========================================
+% TRANG BÌA
+% ==========================================
+\input{content/cover}
+
+% ==========================================
+% MỤC LỤC
+% ==========================================
+\tableofcontents
+\newpage
+
+\listoffigures % Danh mục hình ảnh
+\newpage
+
+\listoftables % Danh sách bảng biểu
+\newpage
+
+\lstlistoflistings % Danh mục mã nguồn
+\newpage
+
+% ==========================================
+% NỘI DUNG CHÍNH 
+% ==========================================
+
+% Phân công công việc
+\input{content/assignment}
+\newpage
+
+\setcounter{section}{-1}
+\input{content/system_overview}
+\newpage
+
+\input{content/part1}
+\newpage
+
+\input{content/part2}
+\newpage
+
+% ==========================================
+% KẾT LUẬN
+% ==========================================
+\input{content/summary}
+\newpage
+
+% ==========================================
+% TÀI LIỆU THAM KHẢO
+% ==========================================
+\input{content/references}
+\newpage
+
+% ==========================================
+% PHỤ LỤC
+% ==========================================
+\input{content/appendix}
+
+\end{document}

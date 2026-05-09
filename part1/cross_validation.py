@@ -42,11 +42,11 @@ def kfold_cv(
         **model_kwargs: Tham số bổ sung truyền vào model_fn (vd: lam=0.5).
 
     Trả về dict:
-        mean_cv_score : float       — trung bình MSE qua k fold.
-        std_cv_score  : float       — độ lệch chuẩn MSE.
-        cv_scores     : list[float] — MSE từng fold.
-        mean_cv_r2    : float       — trung bình R² qua k fold.
-        cv_r2_list    : list[float] — R² từng fold.
+        mean_cv_score : float       - trung bình MSE qua k fold.
+        std_cv_score  : float       - độ lệch chuẩn MSE.
+        cv_scores     : list[float] - MSE từng fold.
+        mean_cv_r2    : float       - trung bình R² qua k fold.
+        cv_r2_list    : list[float] - R² từng fold.
     """
     n = len(y)
 
@@ -121,9 +121,9 @@ def cv_lambda_search(
     Tìm λ tối ưu qua k-fold CV và vẽ biểu đồ λ vs CV-MSE (log scale).
 
     Trả về:
-        best_lam      : float — λ cho MSE thấp nhất.
+        best_lam      : float - λ cho MSE thấp nhất.
         lambdas       : list[float]
-        mean_cv_mse   : list[float] — MSE trung bình mỗi λ.
+        mean_cv_mse   : list[float] - MSE trung bình mỗi λ.
         std_cv_mse    : list[float]
     """
     if lambdas is None:
@@ -179,7 +179,7 @@ def cv_lambda_search(
 
 
 # ---------------------------------------------------------------------------
-# Unit Tests — F9  (≥ 4 tests)
+# Unit Tests - F9  (≥ 4 tests)
 # ---------------------------------------------------------------------------
 
 
@@ -262,7 +262,7 @@ if __name__ == "__main__":
     from ridge_lasso import ridge_fit, ridge_predict
     
     print("=" * 55)
-    print("  UNIT TESTS — cross_validation.py")
+    print("  UNIT TESTS - cross_validation.py")
     print("=" * 55)
 
     passed = 0
@@ -276,7 +276,7 @@ if __name__ == "__main__":
     def _ridge_predict(X_val: list[list[float]], model: dict) -> list[float]:
         return ridge_predict(X_val, model["beta_hat"], model["mean_X"], model["std_X"])
 
-    TestLogger.print_suite_header("F9 — k-Fold Cross-Validation")
+    TestLogger.print_suite_header("F9 - k-Fold Cross-Validation")
 
     # test_kfold_cv_returns_correct_keys
     X, y = make_linear_data()

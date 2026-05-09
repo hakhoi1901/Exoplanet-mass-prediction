@@ -10,7 +10,7 @@ from utils import transpose, matmul, matvec, dot_product, inverse, solve_system,
 from config import RANDOM_STATE, EPSILON
 
 # ---------------------------------------------------------------------------
-# F1: OLS Fit — Giải Normal Equations
+# F1: OLS Fit - Giải Normal Equations
 # ---------------------------------------------------------------------------
 
 def ols_fit(
@@ -24,17 +24,17 @@ def ols_fit(
         β̂ = (XᵀX)⁻¹Xᵀy
         σ̂² = RSS / (n - p - 1)
 
-    X nhận vào CHƯA có cột bias — hàm tự thêm cột 1 bên trong.
+    X nhận vào CHƯA có cột bias - hàm tự thêm cột 1 bên trong.
 
     Tham số:
-        X : list[list[float]] — Ma trận features, shape (n, p), chưa có bias.
-        y : list[float]       — Vector target, shape (n,).
+        X : list[list[float]] - Ma trận features, shape (n, p), chưa có bias.
+        y : list[float]       - Vector target, shape (n,).
 
     Trả về dict:
-        beta_hat   : list[float] — [intercept, β₁, …, βₚ], shape (p+1,).
-        sigma2_hat : float       — Ước lượng phương sai nhiễu RSS/(n-p-1).
-        y_hat      : list[float] — Giá trị dự đoán, shape (n,).
-        residuals  : list[float] — Phần dư y - ŷ, shape (n,).
+        beta_hat   : list[float] - [intercept, β₁, …, βₚ], shape (p+1,).
+        sigma2_hat : float       - Ước lượng phương sai nhiễu RSS/(n-p-1).
+        y_hat      : list[float] - Giá trị dự đoán, shape (n,).
+        residuals  : list[float] - Phần dư y - ŷ, shape (n,).
     """
     n = len(X)
     p = len(X[0])
@@ -71,24 +71,24 @@ def ols_fit(
 
 
 # ---------------------------------------------------------------------------
-# F2: Hat Matrix — Ma trận chiếu H
+# F2: Hat Matrix - Ma trận chiếu H
 # ---------------------------------------------------------------------------
 
 def hat_matrix(X: list[list[float]]) -> dict:
     """
     F2: Tính Hat Matrix H = X(XᵀX)⁻¹Xᵀ và kiểm tra các tính chất.
 
-    X nhận vào CHƯA có cột bias — hàm tự thêm cột 1 bên trong.
+    X nhận vào CHƯA có cột bias - hàm tự thêm cột 1 bên trong.
 
     Tham số:
-        X : list[list[float]] — Ma trận features, shape (n, p), chưa có bias.
+        X : list[list[float]] - Ma trận features, shape (n, p), chưa có bias.
 
     Trả về dict:
-        H             : list[list[float]] — Hat matrix (n x n).
-        is_idempotent : bool              — H² ≈ H (sai số < 1e-8).
-        is_symmetric  : bool              — Hᵀ ≈ H (sai số < 1e-8).
-        rank          : int               — rank(H) = p+1.
-        eigenvalues   : list[float]       — Giá trị riêng (chỉ 0 hoặc 1).
+        H             : list[list[float]] - Hat matrix (n x n).
+        is_idempotent : bool              - H² ≈ H (sai số < 1e-8).
+        is_symmetric  : bool              - Hᵀ ≈ H (sai số < 1e-8).
+        rank          : int               - rank(H) = p+1.
+        eigenvalues   : list[float]       - Giá trị riêng (chỉ 0 hoặc 1).
     """
     n = len(X)
     p = len(X[0])
@@ -106,7 +106,7 @@ def hat_matrix(X: list[list[float]]) -> dict:
     temp = matmul(XtX_inv, Xt)   # (p+1, n)
     H = matmul(X_bias, temp)     # (n, n)
 
-    # Bước 5: Kiểm tra idempotent — H² ≈ H
+    # Bước 5: Kiểm tra idempotent - H² ≈ H
     H2 = matmul(H, H)
     is_idempotent = True
     for i in range(n):
@@ -117,7 +117,7 @@ def hat_matrix(X: list[list[float]]) -> dict:
         if not is_idempotent:
             break
 
-    # Bước 6: Kiểm tra symmetric — Hᵀ ≈ H
+    # Bước 6: Kiểm tra symmetric - Hᵀ ≈ H
     Ht = transpose(H)
     is_symmetric = True
     for i in range(n):
@@ -128,15 +128,15 @@ def hat_matrix(X: list[list[float]]) -> dict:
         if not is_symmetric:
             break
 
-    # Bước 7: Rank — Với ma trận chiếu, rank = trace(H) làm tròn
+    # Bước 7: Rank - Với ma trận chiếu, rank = trace(H) làm tròn
     trace_H = sum(H[i][i] for i in range(n))
     rank = round(trace_H)
 
-    # Bước 8: Eigenvalues — Với ma trận chiếu idempotent,
+    # Bước 8: Eigenvalues - Với ma trận chiếu idempotent,
     # eigenvalues lý thuyết chỉ gồm 0 và 1.
     # Số eigenvalue = 1 chính bằng rank (= p+1).
     # KNOWN LIMITATION: eigenvalues được tính theo lý thuyết (hardcode [1]*rank + [0]*(n-rank))
-    # thay vì tính thực từ ma trận bằng QR iteration — vượt scope dự án.
+    # thay vì tính thực từ ma trận bằng QR iteration - vượt scope dự án.
     # Giá trị này chính xác về mặt lý thuyết cho projection matrix idempotent.
     eigenvalues = [1.0] * rank + [0.0] * (n - rank)
 
@@ -150,7 +150,7 @@ def hat_matrix(X: list[list[float]]) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# F3: Model Metrics — Các chỉ số đánh giá mô hình
+# F3: Model Metrics - Các chỉ số đánh giá mô hình
 # ---------------------------------------------------------------------------
 
 def model_metrics(
@@ -162,22 +162,22 @@ def model_metrics(
     F3: Tính đầy đủ các chỉ số đánh giá mô hình hồi quy.
 
     Tham số:
-        y     : list[float] — Ground truth, shape (n,).
-        y_hat : list[float] — Dự đoán, shape (n,).
-        p     : int         — Số features (không tính intercept).
+        y     : list[float] - Ground truth, shape (n,).
+        y_hat : list[float] - Dự đoán, shape (n,).
+        p     : int         - Số features (không tính intercept).
 
     Trả về dict:
-        RSS      : float — Residual Sum of Squares = Σ(yᵢ - ŷᵢ)².
-        TSS      : float — Total Sum of Squares    = Σ(yᵢ - ȳ)².
-        MSS      : float — Model Sum of Squares    = TSS - RSS.
-        R2       : float — Hệ số xác định          = 1 - RSS/TSS.
-        R2_adj   : float — R² hiệu chỉnh           = 1 - (n-1)/(n-p-1)*(1-R²).
-        F_stat   : float — F-statistic             = (MSS/p) / (RSS/(n-p-1)).
-        F_pvalue : float — p-value của F-test.
-        MAE      : float — Mean Absolute Error      = mean(|y - ŷ|).
-        RMSE     : float — Root Mean Squared Error   = sqrt(mean((y - ŷ)²)).
+        RSS      : float - Residual Sum of Squares = Σ(yᵢ - ŷᵢ)².
+        TSS      : float - Total Sum of Squares    = Σ(yᵢ - ȳ)².
+        MSS      : float - Model Sum of Squares    = TSS - RSS.
+        R2       : float - Hệ số xác định          = 1 - RSS/TSS.
+        R2_adj   : float - R² hiệu chỉnh           = 1 - (n-1)/(n-p-1)*(1-R²).
+        F_stat   : float - F-statistic             = (MSS/p) / (RSS/(n-p-1)).
+        F_pvalue : float - p-value của F-test.
+        MAE      : float - Mean Absolute Error      = mean(|y - ŷ|).
+        RMSE     : float - Root Mean Squared Error   = sqrt(mean((y - ŷ)²)).
     """
-    # Chỉ dùng scipy cho F p-value — không có closed-form thủ công hợp lý
+    # Chỉ dùng scipy cho F p-value - không có closed-form thủ công hợp lý
     from scipy.stats import f as f_dist
 
     n = len(y)
@@ -229,7 +229,7 @@ def model_metrics(
 
 
 # ---------------------------------------------------------------------------
-# F4: Coefficient Inference — SE, t-stat, p-value, CI
+# F4: Coefficient Inference - SE, t-stat, p-value, CI
 # Liên kết: Nhận output từ F1 (beta_hat, sigma2_hat)
 # ---------------------------------------------------------------------------
 
@@ -252,17 +252,17 @@ def coef_inference(
     Tham số:
         X        : Ma trận features (n x p), chưa có bias.
         y        : Vector target (n,).
-        beta_hat : list[float] — [intercept, β₁, …, βₚ] từ ols_fit.
-        sigma2   : float — σ̂² từ ols_fit.
+        beta_hat : list[float] - [intercept, β₁, …, βₚ] từ ols_fit.
+        sigma2   : float - σ̂² từ ols_fit.
 
-    Trả về dict (không phải DataFrame — dùng pandas.DataFrame(coef_inference(...)) nếu cần hiển thị bảng):
-        coef     : list[float] — Hệ số β̂.
-        std_err  : list[float] — Standard errors.
-        t_stat   : list[float] — t-statistics.
-        p_value  : list[float] — p-values (two-sided).
-        ci_lower : list[float] — 95% CI cận dưới.
-        ci_upper : list[float] — 95% CI cận trên.
-        names    : list[str]   — Tên hệ số.
+    Trả về dict (không phải DataFrame - dùng pandas.DataFrame(coef_inference(...)) nếu cần hiển thị bảng):
+        coef     : list[float] - Hệ số β̂.
+        std_err  : list[float] - Standard errors.
+        t_stat   : list[float] - t-statistics.
+        p_value  : list[float] - p-values (two-sided).
+        ci_lower : list[float] - 95% CI cận dưới.
+        ci_upper : list[float] - 95% CI cận trên.
+        names    : list[str]   - Tên hệ số.
     """
     # Chỉ dùng scipy cho t-distribution CDF
     from scipy.stats import t as t_dist
@@ -318,7 +318,7 @@ def coef_inference(
 
 
 # ---------------------------------------------------------------------------
-# F5: VIF — Variance Inflation Factor
+# F5: VIF - Variance Inflation Factor
 # Liên kết: Gọi F1 (ols_fit) và F3 (model_metrics) cho mỗi sub-regression
 # ---------------------------------------------------------------------------
 
@@ -332,10 +332,10 @@ def vif(X: list[list[float]]) -> dict[str, float]:
         - VIFⱼ = 1 / (1 - R²ⱼ)
 
     Tham số:
-        X : list[list[float]] — Ma trận features (n x p), chưa có bias.
+        X : list[list[float]] - Ma trận features (n x p), chưa có bias.
 
     Trả về:
-        dict[str, float] — {"x1": VIF₁, "x2": VIF₂, ...}
+        dict[str, float] - {"x1": VIF₁, "x2": VIF₂, ...}
     """
     n = len(X)
     p = len(X[0])
@@ -367,7 +367,7 @@ def vif(X: list[list[float]]) -> dict[str, float]:
 
 
 # ---------------------------------------------------------------------------
-# Unit Tests — F1-F5
+# Unit Tests - F1-F5
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     if hasattr(sys.stdout, 'reconfigure'):
@@ -376,7 +376,7 @@ if __name__ == "__main__":
     from test_utils import TestLogger, make_linear_data, make_collinear_data, assert_close, assert_equal, assert_true, assert_shape, assert_raises, verify_vs_sklearn_ols
 
     print("=" * 55)
-    print("  UNIT TESTS — ols_implementation.py")
+    print("  UNIT TESTS - ols_implementation.py")
     print("=" * 55)
 
     passed = 0
@@ -388,7 +388,7 @@ if __name__ == "__main__":
         passed += int(result)
 
     # --- F1: ols_fit ---
-    TestLogger.print_suite_header("F1 — ols_fit")
+    TestLogger.print_suite_header("F1 - ols_fit")
     X, y = make_linear_data(n=30, beta=[1.0, 2.0, -1.5], sigma=0.5, seed=RANDOM_STATE)
     res_f1 = ols_fit(X, y)
     
@@ -398,7 +398,7 @@ if __name__ == "__main__":
     run(assert_raises(ValueError, ols_fit, [[1.0, 1.0], [1.0, 1.0]], [1.0, 2.0], label="ols_fit singular matrix raises error"))
 
     # --- F2: hat_matrix ---
-    TestLogger.print_suite_header("F2 — hat_matrix")
+    TestLogger.print_suite_header("F2 - hat_matrix")
     X_hat, _ = make_linear_data(n=20, beta=[1.0, 2.0], sigma=0.0, seed=RANDOM_STATE)
     res_f2 = hat_matrix(X_hat)
     
@@ -411,7 +411,7 @@ if __name__ == "__main__":
     run(assert_equal(len(zeros_and_ones), len(res_f2["eigenvalues"]), label="hat_matrix eigenvalues are 0 or 1"))
 
     # --- F3: model_metrics ---
-    TestLogger.print_suite_header("F3 — model_metrics")
+    TestLogger.print_suite_header("F3 - model_metrics")
     X_m, y_m = make_linear_data(n=50, beta=[1.0, 2.0], sigma=1.0, seed=RANDOM_STATE)
     res_ols_m = ols_fit(X_m, y_m)
     res_f3 = model_metrics(y_m, res_ols_m["y_hat"], p=1)
@@ -422,7 +422,7 @@ if __name__ == "__main__":
     run(assert_raises(ValueError, model_metrics, [1.0, 2.0], [1.1, 1.9], 2, label="model_metrics error when n <= p+1"))
 
     # --- F4: coef_inference ---
-    TestLogger.print_suite_header("F4 — coef_inference")
+    TestLogger.print_suite_header("F4 - coef_inference")
     X_i, y_i = make_linear_data(n=60, beta=[0.5, 3.0], sigma=1.0, seed=RANDOM_STATE)
     res_ols_i = ols_fit(X_i, y_i)
     res_f4 = coef_inference(X_i, y_i, res_ols_i["beta_hat"], res_ols_i["sigma2_hat"])
@@ -433,7 +433,7 @@ if __name__ == "__main__":
     run(assert_true(all(res_f4["ci_lower"][i] <= res_f4["ci_upper"][i] for i in range(2)), label="coef_inference ci_lower <= ci_upper"))
 
     # --- F5: vif ---
-    TestLogger.print_suite_header("F5 — vif")
+    TestLogger.print_suite_header("F5 - vif")
     X_v, _ = make_collinear_data(n=100, seed=RANDOM_STATE)
     res_f5 = vif(X_v)
     

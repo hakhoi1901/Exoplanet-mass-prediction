@@ -1,5 +1,5 @@
 """
-test_utils.py — MTH00051 Đồ Án 2: Data Fitting & OLS
+test_utils.py - MTH00051 Đồ Án 2: Data Fitting & OLS
 Shared testing utilities cho tất cả thành viên.
 
 Cách dùng:
@@ -18,7 +18,7 @@ from config import *
 os.system('')
 
 # ─────────────────────────────────────────────────────────────────
-#  DATA FACTORIES — tạo data test
+#  DATA FACTORIES - tạo data test
 # ─────────────────────────────────────────────────────────────────
 
 def make_linear_data(
@@ -32,12 +32,12 @@ def make_linear_data(
 
     Args:
         n:     Số quan sát.
-        beta:  [intercept, b1, b2, ...]  — mặc định [1.0, 2.0].
+        beta:  [intercept, b1, b2, ...]  - mặc định [1.0, 2.0].
         sigma: Độ lệch chuẩn nhiễu. 0 = không noise (nghiệm exact).
         seed:  Random seed.
 
     Returns:
-        (X, y)  —  list[list[float]], list[float]
+        (X, y)  -  list[list[float]], list[float]
         X chưa có cột bias, shape (n, p).
     """
     rng  = np.random.default_rng(seed)
@@ -65,7 +65,7 @@ def make_multifeature_data(
         seed:  Random seed.
         
     Returns:
-        (X, y)  —  list[list[float]], list[float]
+        (X, y)  -  list[list[float]], list[float]
         X chưa có cột bias, shape (n, p).
     """
     rng  = np.random.default_rng(seed)
@@ -88,7 +88,7 @@ def make_collinear_data(
         seed:  Random seed.
         
     Returns:
-        (X, y)  —  list[list[float]], list[float]
+        (X, y)  -  list[list[float]], list[float]
         X chưa có cột bias, shape (n, 3).
     """
     rng = np.random.default_rng(seed)
@@ -101,7 +101,7 @@ def make_collinear_data(
 
 
 # ─────────────────────────────────────────────────────────────────
-#  ASSERT HELPERS — trả về bool, không raise
+#  ASSERT HELPERS - trả về bool, không raise
 # ─────────────────────────────────────────────────────────────────
 
 def assert_close(
@@ -256,7 +256,7 @@ def assert_raises(exc_type: type, fn, *args, label: str = "", **kwargs) -> bool:
 class TestLogger:
     """
     Giao diện in kết quả test ra terminal.
-    Tất cả thành viên đều dùng class này — đảm bảo output đồng bộ.
+    Tất cả thành viên đều dùng class này - đảm bảo output đồng bộ.
 
     Endpoints:
         TestLogger.print_suite_header(suite_name)
@@ -294,10 +294,10 @@ class TestLogger:
     @classmethod
     def print_suite_header(cls, suite_name: str) -> None:
         """
-        In tiêu đề lớn — gọi một lần đầu mỗi hàm/nhóm test.
+        In tiêu đề lớn - gọi một lần đầu mỗi hàm/nhóm test.
 
         Ví dụ:
-            TestLogger.print_suite_header("F1 — ols_fit")
+            TestLogger.print_suite_header("F1 - ols_fit")
         """
         bar = cls._SEP * cls._W
         print(f"\n{cls.CYAN}{cls.BOLD}{bar}{cls.RESET}")
@@ -347,7 +347,7 @@ class TestLogger:
     @classmethod
     def print_value(cls, label: str, actual, expected=None) -> None:
         """
-        In giá trị actual (và expected nếu có) — tiện debug.
+        In giá trị actual (và expected nếu có) - tiện debug.
 
         Ví dụ:
             TestLogger.print_value("beta[0]",  1.0001, expected=1.0)
@@ -363,7 +363,7 @@ class TestLogger:
     @classmethod
     def print_warn(cls, message: str, detail: str = "") -> None:
         """
-        In cảnh báo — không ảnh hưởng pass/fail, chỉ để lưu ý.
+        In cảnh báo - không ảnh hưởng pass/fail, chỉ để lưu ý.
 
         Ví dụ:
             TestLogger.print_warn("VIF = 12.3 > 10", "feature: x3")
@@ -376,7 +376,7 @@ class TestLogger:
     @classmethod
     def print_info(cls, message: str) -> None:
         """
-        In thông tin phụ — màu xám nhạt, không phải pass/fail.
+        In thông tin phụ - màu xám nhạt, không phải pass/fail.
 
         Ví dụ:
             TestLogger.print_info("Dùng sklearn để kiểm chứng")
@@ -386,7 +386,7 @@ class TestLogger:
     @classmethod
     def print_summary(cls, passed_count: int, total_count: int) -> None:
         """
-        In tổng kết cuối suite — gọi sau khi chạy hết test.
+        In tổng kết cuối suite - gọi sau khi chạy hết test.
 
         Ví dụ:
             TestLogger.print_summary(passed, total)
@@ -418,13 +418,13 @@ class TestLogger:
             msg = f"  {cls._OK}  TẤT CẢ {total_count} TEST PASSED"
             print(f"{cls.GREEN}{cls.BOLD}{msg}{cls.RESET}")
         else:
-            msg = f"  {cls._FAIL}  {failed}/{total_count} TEST FAILED — kiểm tra lại!"
+            msg = f"  {cls._FAIL}  {failed}/{total_count} TEST FAILED - kiểm tra lại!"
             print(f"{cls.RED}{cls.BOLD}{msg}{cls.RESET}")
         print()
 
 
 # ─────────────────────────────────────────────────────────────────
-#  SKLEARN VERIFIERS — kiểm chứng nhanh với thư viện chuẩn
+#  SKLEARN VERIFIERS - kiểm chứng nhanh với thư viện chuẩn
 # ─────────────────────────────────────────────────────────────────
 
 def verify_vs_sklearn_ols(
@@ -443,7 +443,7 @@ def verify_vs_sklearn_ols(
     try:
         from sklearn.linear_model import LinearRegression
     except ImportError:
-        TestLogger.print_warn("sklearn không có — bỏ qua kiểm chứng OLS")
+        TestLogger.print_warn("sklearn không có - bỏ qua kiểm chứng OLS")
         return True
 
     X_np = np.asarray(X, dtype=float)
@@ -451,8 +451,8 @@ def verify_vs_sklearn_ols(
     sk   = LinearRegression().fit(X_np, y_np)
     bh   = np.asarray(beta_hat, dtype=float)
 
-    ok1  = assert_close(bh[0],  sk.intercept_, label="vs sklearn — intercept", rtol=rtol)
-    ok2  = assert_close(bh[1:], sk.coef_,      label="vs sklearn — coef",      rtol=rtol)
+    ok1  = assert_close(bh[0],  sk.intercept_, label="vs sklearn - intercept", rtol=rtol)
+    ok2  = assert_close(bh[1:], sk.coef_,      label="vs sklearn - coef",      rtol=rtol)
     return ok1 and ok2
 
 
@@ -472,7 +472,7 @@ def verify_vs_sklearn_ridge(
     try:
         from sklearn.linear_model import Ridge
     except ImportError:
-        TestLogger.print_warn("sklearn không có — bỏ qua kiểm chứng Ridge")
+        TestLogger.print_warn("sklearn không có - bỏ qua kiểm chứng Ridge")
         return True
 
     X_np = np.asarray(X, dtype=float)
@@ -480,8 +480,8 @@ def verify_vs_sklearn_ridge(
     sk   = Ridge(alpha=lam, fit_intercept=True).fit(X_np, y_np)
     bh   = np.asarray(beta_hat, dtype=float)
 
-    ok1  = assert_close(bh[0],  sk.intercept_, label=f"vs sklearn Ridge(λ={lam}) — intercept", rtol=rtol)
-    ok2  = assert_close(bh[1:], sk.coef_,      label=f"vs sklearn Ridge(λ={lam}) — coef",      rtol=rtol)
+    ok1  = assert_close(bh[0],  sk.intercept_, label=f"vs sklearn Ridge(λ={lam}) - intercept", rtol=rtol)
+    ok2  = assert_close(bh[1:], sk.coef_,      label=f"vs sklearn Ridge(λ={lam}) - coef",      rtol=rtol)
     return ok1 and ok2
 
 
@@ -499,7 +499,7 @@ if __name__ == '__main__':
         passed += int(result)
 
     # ── Suite F1: ols_fit ────────────────────────────
-    TestLogger.print_suite_header("F1 — ols_fit  |  Normal Equations & residuals")
+    TestLogger.print_suite_header("F1 - ols_fit  |  Normal Equations & residuals")
 
     TestLogger.print_group("Output format")
     run(assert_true(True,  label="output có key 'beta_hat'"))
@@ -523,10 +523,10 @@ if __name__ == '__main__':
     TestLogger.print_value("beta[0]",   beta_fake[0],  expected=1.0)
     TestLogger.print_value("beta[1]",   beta_fake[1],  expected=2.0)
     TestLogger.print_value("sigma2",    0.0,           expected="≈ 0")
-    TestLogger.print_warn("Dataset nhỏ — chỉ dùng để test giao diện", "n=20")
+    TestLogger.print_warn("Dataset nhỏ - chỉ dùng để test giao diện", "n=20")
 
     # ── Suite F3: model_metrics ──────────────────────
-    TestLogger.print_suite_header("F3 — model_metrics  |  R², RSS, TSS, F-stat")
+    TestLogger.print_suite_header("F3 - model_metrics  |  R², RSS, TSS, F-stat")
 
     TestLogger.print_group("R² và các chỉ số cơ bản")
     run(assert_in_range(0.87,  0.0, 1.0,  label="R² ∈ [0, 1]"))

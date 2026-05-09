@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.dirname(__file__))  # cho phép import sibling module
 
 
 # ---------------------------------------------------------------------------
-# F8: Phân Tích Phần Dư — 4 biểu đồ chẩn đoán
+# F8: Phân Tích Phần Dư - 4 biểu đồ chẩn đoán
 # Liên kết: Dùng F2 hat_matrix để tính leverage và Cook's Distance
 # ---------------------------------------------------------------------------
 
@@ -26,10 +26,10 @@ def residual_plots(
     F8: Vẽ 4 biểu đồ chẩn đoán phần dư chuẩn.
 
     Biểu đồ:
-        1. Residuals vs Fitted  — kiểm tra tính tuyến tính & đồng phương sai.
-        2. Normal Q-Q           — kiểm tra tính chuẩn của phần dư (GM5).
-        3. Scale-Location       — kiểm tra homoscedasticity.
-        4. Cook's Distance      — phát hiện influential points.
+        1. Residuals vs Fitted  - kiểm tra tính tuyến tính & đồng phương sai.
+        2. Normal Q-Q           - kiểm tra tính chuẩn của phần dư (GM5).
+        3. Scale-Location       - kiểm tra homoscedasticity.
+        4. Cook's Distance      - phát hiện influential points.
 
     Liên kết:
         - Gọi hat_matrix (F2) để tính leverage h_ii cho Cook's Distance.
@@ -44,8 +44,8 @@ def residual_plots(
 
     Trả về dict:
         residuals    : list[float]
-        std_residuals: list[float]  — standardized residuals
-        cooks_d      : list[float]  — Cook's Distance (hoặc |e| nếu X=None)
+        std_residuals: list[float]  - standardized residuals
+        cooks_d      : list[float]  - Cook's Distance (hoặc |e| nếu X=None)
     """
     os.makedirs(save_dir, exist_ok=True)
     n = len(y)
@@ -86,7 +86,7 @@ def residual_plots(
     # --- sqrt(|e_std|) ---
     sqrt_abs_std = [math.sqrt(abs(s)) for s in std_residuals]
 
-    # --- Vẽ (dùng matplotlib cho visualization — cho phép) ---
+    # --- Vẽ (dùng matplotlib cho visualization - cho phép) ---
     import scipy.stats as stats
     import numpy as np
 
@@ -101,7 +101,7 @@ def residual_plots(
 
     # 1. Residuals vs Fitted
     ax = axes[0, 0]
-    ax.scatter(y_hat_np, e_np, alpha=0.55, edgecolors="steelblue", facecolors="none", linewidths=0.8)
+    ax.scatter(y_hat_np, e_np, s=15, alpha=0.55, edgecolors="steelblue", facecolors="none", linewidths=0.8)
     ax.axhline(0, color="red", linestyle="--", linewidth=1.2, label="e = 0")
     _smooth_line(ax, y_hat_np, e_np, color="orange", label="LOWESS approx.")
     ax.set_title("Residuals vs Fitted", fontsize=12)
@@ -112,7 +112,7 @@ def residual_plots(
     # 2. Normal Q-Q
     ax = axes[0, 1]
     (osm, osr), (slope, intercept_q, _) = stats.probplot(e_np, dist="norm")
-    ax.scatter(osm, osr, alpha=0.55, edgecolors="steelblue", facecolors="none", linewidths=0.8,
+    ax.scatter(osm, osr, s=15, alpha=0.55, edgecolors="steelblue", facecolors="none", linewidths=0.8,
                label="Quantile")
     qqx = np.array([min(osm), max(osm)])
     ax.plot(qqx, slope * qqx + intercept_q, color="red", linestyle="--", linewidth=1.2,
@@ -124,7 +124,7 @@ def residual_plots(
 
     # 3. Scale-Location (√|e_std| vs Fitted)
     ax = axes[1, 0]
-    ax.scatter(y_hat_np, sqrt_abs_np, alpha=0.55, edgecolors="steelblue", facecolors="none",
+    ax.scatter(y_hat_np, sqrt_abs_np, s=15, alpha=0.55, edgecolors="steelblue", facecolors="none",
                linewidths=0.8)
     _smooth_line(ax, y_hat_np, sqrt_abs_np, color="orange", label="LOWESS approx.")
     ax.set_title("Scale-Location", fontsize=12)
@@ -144,7 +144,7 @@ def residual_plots(
                label=f"Ngưỡng 4/n = {threshold:.3f}")
     influential = np.where(cooks_np > threshold)[0]
     if len(influential) > 0:
-        ax.scatter(influential, cooks_np[influential], color="red", zorder=5,
+        ax.scatter(influential, cooks_np[influential], s=15, color="red", zorder=5,
                    label=f"Influential ({len(influential)} pts)")
     ax.set_title("Cook's Distance", fontsize=12)
     ax.set_xlabel("Observation index")
@@ -181,7 +181,7 @@ def _smooth_line(ax, x, y, n_bins: int = 20, **kwargs):
 
 
 # ---------------------------------------------------------------------------
-# Unit Tests — F8  (≥ 4 tests)
+# Unit Tests - F8  (≥ 4 tests)
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
@@ -192,7 +192,7 @@ if __name__ == "__main__":
     import random
 
     print("=" * 55)
-    print("  UNIT TESTS — residual_analysis.py")
+    print("  UNIT TESTS - residual_analysis.py")
     print("=" * 55)
 
     passed = 0
@@ -203,7 +203,7 @@ if __name__ == "__main__":
         total += 1
         passed += int(result)
 
-    TestLogger.print_suite_header("F8 — Residual Analysis")
+    TestLogger.print_suite_header("F8 - Residual Analysis")
 
     # test_residual_plots_returns_correct_keys
     y     = [1.0, 2.0, 3.0, 4.0, 5.0]
@@ -249,5 +249,16 @@ if __name__ == "__main__":
     y_hat5 = [1.0, 2.0, 3.0, 4.5]
     res5 = residual_plots(y5, y_hat5, X=None, save_dir="output/test")
     run(assert_equal(len(res5["cooks_d"]), 4, label="residual_plots correctly falls back to |e| when X is None"))
+
+    # Sinh anh demo cho bao cao
+    TestLogger.print_info("Sinh anh demo cho bao cao voi n=200...")
+    from test_utils import make_linear_data
+    try:
+        from ols_implementation import ols_fit
+        X_demo, y_demo = make_linear_data(n=200, beta=[2.0, 3.0, -1.5], sigma=1.0)
+        res_demo = ols_fit(X_demo, y_demo)
+        residual_plots(y_demo, res_demo["y_hat"], X=X_demo, save_dir="output")
+    except ImportError:
+        TestLogger.print_warn("Khong the import ols_fit de sinh anh demo.")
 
     TestLogger.print_summary(passed, total)

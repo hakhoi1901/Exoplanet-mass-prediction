@@ -1,0 +1,57 @@
+\babel@toc {vietnamese}{}\relax 
+\contentsline {section}{Bảng phân công công việc}{6}{Doc-Start}%
+\contentsline {section}{\numberline {0}Tổng quan Kiến trúc Hệ thống và Các Module dùng chung}{9}{section.0}%
+\contentsline {subsection}{\numberline {0.1}Tổ chức file theo hướng Module hóa}{9}{subsection.0.1}%
+\contentsline {subsection}{\numberline {0.2}Module cấu hình toàn cục: \texttt {config.py}}{10}{subsection.0.2}%
+\contentsline {subsection}{\numberline {0.3}Các hàm tiện ích nội bộ dùng chung: \texttt {utils.py}}{11}{subsection.0.3}%
+\contentsline {paragraph}{Nhóm phép toán ma trận cơ bản}{11}{subsection.0.3}%
+\contentsline {paragraph}{Nhóm giải hệ tuyến tính}{12}{subsection.0.3}%
+\contentsline {paragraph}{Nhóm kiểm tra và chuẩn hóa}{12}{subsection.0.3}%
+\contentsline {paragraph}{Nhóm trực giao hóa và null space}{12}{subsection.0.3}%
+\contentsline {subsection}{\numberline {0.4}Module tiện ích kiểm thử dùng chung: \texttt {test\_utils.py}}{14}{subsection.0.4}%
+\contentsline {paragraph}{Sinh dữ liệu giả lập nhất quán}{14}{subsection.0.4}%
+\contentsline {paragraph}{Hàm assert có log màu}{14}{subsection.0.4}%
+\contentsline {paragraph}{Hàm kiểm chứng với sklearn}{15}{subsection.0.4}%
+\contentsline {subsection}{\numberline {0.5}Quy ước Import và Chạy Test}{15}{subsection.0.5}%
+\contentsline {subsection}{\numberline {0.6}Quản lý Sai số Dấu phẩy động: IEEE 754 và Machine Epsilon}{16}{subsection.0.6}%
+\contentsline {subsubsection}{\numberline {0.6.1}Giới hạn biểu diễn: Machine Epsilon}{16}{subsubsection.0.6.1}%
+\contentsline {subsubsection}{\numberline {0.6.2}Chiến lược quản lý sai số trong dự án}{16}{subsubsection.0.6.2}%
+\contentsline {paragraph}{Lớp 1 --- Ngưỡng epsilon toàn cục (\texttt {EPSILON = 1e-12})}{16}{subsubsection.0.6.2}%
+\contentsline {paragraph}{Lớp 2 --- Làm sạch kết quả trung gian (\texttt {zero\_rectify})}{17}{subsubsection.0.6.2}%
+\contentsline {paragraph}{Lớp 3 --- Chọn chốt từng phần (Partial Pivoting)}{17}{subsubsection.0.6.2}%
+\contentsline {subsubsection}{\numberline {0.6.3}Ảnh hưởng của điều kiện số lên OLS}{17}{subsubsection.0.6.3}%
+\contentsline {section}{\numberline {1}Phần 1: Lý Thuyết Data Fitting và Minh Họa}{18}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Bài Toán Data Fitting}{18}{subsection.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.1}Phát Biểu Bài Toán Tổng Quát}{18}{subsubsection.1.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.2}Các Giả Thiết Gauss–Markov}{18}{subsubsection.1.1.2}%
+\contentsline {subsection}{\numberline {1.2}Phương Pháp Ordinary Least Squares (OLS)}{19}{subsection.1.2}%
+\contentsline {subsubsection}{\numberline {1.2.1}Hàm Mất Mát và Nghiệm OLS}{19}{subsubsection.1.2.1}%
+\contentsline {subsubsection}{\numberline {1.2.2}Ma Trận Chiếu và Hat Matrix}{20}{subsubsection.1.2.2}%
+\contentsline {subsubsection}{\numberline {1.2.3}Định Lý Gauss–Markov}{20}{subsubsection.1.2.3}%
+\contentsline {subsubsection}{\numberline {1.2.4}Ước Lượng Phương Sai Nhiễu}{21}{subsubsection.1.2.4}%
+\contentsline {subsection}{\numberline {1.3}Đánh Giá Mô Hình}{22}{subsection.1.3}%
+\contentsline {subsubsection}{\numberline {1.3.1}Hệ Số Xác Định $R^2$ và $\bar {R}^2$ Hiệu Chỉnh}{22}{subsubsection.1.3.1}%
+\contentsline {subsubsection}{\numberline {1.3.2}Kiểm Định Giả Thuyết}{22}{subsubsection.1.3.2}%
+\contentsline {subsection}{\numberline {1.4}Các Vấn Đề Nâng Cao}{23}{subsection.1.4}%
+\contentsline {subsubsection}{\numberline {1.4.1}Đa Cộng Tuyến và Hệ Số VIF}{23}{subsubsection.1.4.1}%
+\contentsline {subsubsection}{\numberline {1.4.2}Hồi Quy Ridge và Lasso (Regularization)}{24}{subsubsection.1.4.2}%
+\contentsline {subsection}{\numberline {1.5}Phân Tích Phần Dư}{25}{subsection.1.5}%
+\contentsline {subsection}{\numberline {1.6}Cross-Validation và Lựa Chọn Mô Hình}{26}{subsection.1.6}%
+\contentsline {subsubsection}{\numberline {1.6.1}$k$-Fold Cross-Validation}{26}{subsubsection.1.6.1}%
+\contentsline {subsubsection}{\numberline {1.6.2}Tiêu Chí Lựa Chọn Mô Hình}{28}{subsubsection.1.6.2}%
+\contentsline {subsection}{\numberline {1.7}Kết Quả Cài Đặt và Kiểm Chứng}{28}{subsection.1.7}%
+\contentsline {subsubsection}{\numberline {1.7.1}Tổng Hợp Các Hàm Cài Đặt}{28}{subsubsection.1.7.1}%
+\contentsline {subsubsection}{\numberline {1.7.2}Cấu Trúc Phụ Thuộc Giữa Các Hàm}{29}{subsubsection.1.7.2}%
+\contentsline {subsubsection}{\numberline {1.7.3}Kiểm Chứng Với NumPy và Sklearn}{29}{subsubsection.1.7.3}%
+\contentsline {subsubsection}{\numberline {1.7.4}Nhận Xét Kết Quả Phần 1}{30}{subsubsection.1.7.4}%
+\contentsline {section}{\numberline {2}Phần 2: Phân Rã Ma Trận và Trực Quan Hóa với Manim}{32}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Cơ sở lý thuyết phương pháp phân rã SVD}{32}{subsection.2.1}%
+\contentsline {section}{\numberline {3}Kết luận}{33}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Tóm tắt kết quả đạt được}{33}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Bài học rút ra}{34}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Khó khăn chuyên môn và các nghịch lý Toán học tính toán}{34}{subsection.3.3}%
+\contentsline {section}{\numberline {A}Phụ lục}{38}{appendix.A}%
+\contentsline {subsection}{\numberline {A.1}Link mã nguồn và Video Demo}{38}{subsection.A.1}%
+\contentsline {subsection}{\numberline {A.2}Hướng dẫn cài đặt và chạy thử}{39}{subsection.A.2}%
+\contentsline {subsection}{\numberline {A.3}Chi tiết Log kiểm thử thuật toán}{42}{subsection.A.3}%
+\contentsline {subsection}{\numberline {A.4}Bảng dữ liệu đo lường hiệu năng toàn diện (Raw Benchmark Data)}{46}{subsection.A.4}%

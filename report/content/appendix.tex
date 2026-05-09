@@ -1,0 +1,388 @@
+\appendix
+\section{Phụ lục}
+
+% ===========================================================
+\subsection{Link mã nguồn và Video Demo}
+
+Nhằm đảm bảo tính minh bạch và cung cấp đầy đủ tài liệu phục vụ việc đối chiếu, toàn bộ mã nguồn của dự án cùng với video trực quan hóa thuật toán SVD bằng thư viện Manim đã được nhóm tác giả công khai trên các nền tảng lưu trữ trực tuyến. Hội đồng chấm thi và độc giả quan tâm có thể dễ dàng truy cập, sao chép mã nguồn về chạy thử hoặc xem lại video biểu diễn hình học thông qua các đường dẫn dưới đây. Dành cho bản in giấy, nhóm có đính kèm mã QR để quý vị tiện truy cập nhanh chóng từ thiết bị di động.
+
+\begin{itemize}
+    \item \textbf{Repository mã nguồn (GitHub):} \\
+    \url{https://github.com/hakhoi1901/Singular-Value-Decomposition}
+    \item \textbf{Video Demo Trực quan hóa SVD (YouTube/Google Drive):} \\
+    \url{https://drive.google.com/file/d/1HuGETaMBw7vqiIAkyfKJO6q24ZnRubCj/view?usp=sharing}
+\end{itemize}
+
+\newpage
+
+% ===========================================================
+\subsection{Hướng dẫn cài đặt và chạy thử}
+
+Để tái tạo lại toàn bộ kết quả thực nghiệm và kiểm tra hoạt động của từng phân hệ thuật toán, hệ thống yêu cầu môi trường \textbf{Python 3.10 trở lên}. Quá trình triển khai được thực hiện tuần tự qua các bước sau.
+
+\begin{enumerate}
+
+    % ---
+    \item \textbf{Clone dự án từ kho lưu trữ GitHub}
+
+    Sử dụng \texttt{git} để tải toàn bộ mã nguồn về máy cục bộ:
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+git clone https://github.com/hakhoi1901/Singular-Value-Decomposition.git
+cd "Singular Value Decomposition"
+\end{verbatim}
+\end{tcolorbox}
+
+    % ---
+    \item \textbf{Tạo và kích hoạt môi trường ảo}
+
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+python -m venv venv
+
+:: Windows
+venv\Scripts\activate
+
+# Linux / macOS
+source venv/bin/activate
+\end{verbatim}
+\end{tcolorbox}
+
+    % ---
+    \item \textbf{Cài đặt các thư viện phụ thuộc}
+
+    Toàn bộ thư viện yêu cầu (bao gồm \texttt{numpy}, \texttt{manim}, \texttt{matplotlib}, \texttt{jupyter}) đã được
+    liệt kê trong tệp \texttt{requirements.txt}. Chạy lệnh sau để cài đặt một lần:
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+pip install -r requirements.txt
+\end{verbatim}
+\end{tcolorbox}
+
+    \textbf{Lưu ý quan trọng:} \texttt{NumPy} trong dự án này \emph{chỉ} được dùng để xác minh kết quả kiểm thử
+    và cung cấp dữ liệu đầu vào cho Manim. Toàn bộ thuật toán lõi (khử Gauss, tính trị riêng, phân rã SVD)
+    được cài đặt bằng Python thuần, không phụ thuộc vào bất kỳ hàm phân rã nào của NumPy/SciPy.
+
+    % ---
+    \item \textbf{Kiểm thử từng module đơn lẻ (Unit Tests)}
+
+    Mỗi module trong từng phần đều có hàm kiểm thử riêng. Chạy trực tiếp file Python tương ứng
+    để xem kết quả PASSED/FAILED cho từng ca kiểm thử:
+
+    \textit{Phần 1 -- Khử Gauss và các ứng dụng:}
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+python part1/gaussian.py
+python part1/back_substitution.py
+python part1/determinant.py
+python part1/inverse.py
+python part1/rank_basis.py
+python part1/verify_solution.py
+\end{verbatim}
+\end{tcolorbox}
+
+    \textit{Phần 1 -- Chạy toàn bộ test:}
+
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+python part1/run_all_tests.py
+\end{verbatim}
+\end{tcolorbox}
+
+    \textit{Phần 2 -- Chéo hóa và Phân rã SVD:}
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+python part2/decomposition.py
+python part2/diagonalization.py
+\end{verbatim}
+\end{tcolorbox}
+
+    % ---
+    \item \textbf{Chạy toàn bộ hệ thống kiểm thử tự động (Part 1)}
+
+    File \texttt{run\_all\_tests.py} trong thư mục \texttt{part1/} tự động thu gom và chạy
+    tuần tự toàn bộ 6 bộ kiểm thử của Phần 1, bao gồm:
+    \texttt{gaussian\_eliminate}, \texttt{back\_substitution}, \texttt{determinant},
+    \texttt{rank\_and\_basis}, \texttt{inverse} và \texttt{verify\_solution}:
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+cd part1
+python run_all_tests.py
+\end{verbatim}
+\end{tcolorbox}
+
+    % ---
+    \item \textbf{Khởi chạy kịch bản Benchmark và xuất dữ liệu JSON (Part 3)}
+
+    Script \texttt{time\_benchmark.py} thực hiện đo lường hiệu năng thời gian thực thi
+    của ba bộ giải (Gauss LU, SVD, Gauss-Seidel) trên nhiều kích thước ma trận,
+    lặp lại 5 lần (\texttt{N\_RUNS = 5}) để loại bỏ nhiễu hệ điều hành, rồi xuất kết quả
+    ra file \texttt{benchmark\_results.json} phục vụ Jupyter Notebook đọc và vẽ biểu đồ:
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+python part3/time_benchmark.py
+\end{verbatim}
+\end{tcolorbox}
+
+    Để xem phân tích trực quan hóa đầy đủ (log-log chart, bảng sai số tương đối), mở Jupyter Notebook:
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+jupyter notebook
+# Mo file: part3/analysis.ipynb
+\end{verbatim}
+\end{tcolorbox}
+
+    % ---
+    \item \textbf{Render video trực quan hóa Manim (tùy chọn)}
+
+    Scene Manim trong \texttt{part2/manim\_scene.py} trực quan hóa ý nghĩa hình học của phép
+    phân rã $A = U\Sigma V^T$ theo tiếp cận ``Rotate -- Scale -- Rotate''. Yêu cầu đã cài đặt
+    \texttt{manim} và \texttt{FFmpeg}. Các lệnh render theo chất lượng:
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+# Xem truoc nhanh (480p)
+manim -pql part2/manim_scene.py Scene1_AnatomyOfChaos
+
+# Chat luong cao (1080p60)
+manim -pqh part2/manim_scene.py Scene1_AnatomyOfChaos
+
+# Xuat GIF
+manim -pql --format=gif part2/manim_scene.py Scene1_AnatomyOfChaos
+\end{verbatim}
+\end{tcolorbox}
+
+    Output video được lưu tự động tại \texttt{part2/media/videos/}.
+
+    % ---
+    \item \textbf{Biên dịch báo cáo LaTeX}
+
+    Để tái tạo lại file PDF từ mã nguồn \LaTeX{}, chạy \texttt{pdflatex} hai lần
+    (lần một để sinh nội dung, lần hai để cập nhật tham chiếu chéo và mục lục):
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+cd report
+pdflatex report.tex
+pdflatex report.tex
+\end{verbatim}
+\end{tcolorbox}
+
+\end{enumerate}
+
+\newpage
+
+% ===========================================================
+\subsection{Chi tiết Log kiểm thử thuật toán}
+
+Phần dưới đây cung cấp log trích xuất nguyên bản từ Terminal khi chạy bộ kiểm thử
+đầy đủ của Phần 1. Các ca kiểm thử bao gồm các tình huống hóc búa nhất về mặt số học:
+ma trận cần \textit{Partial Pivoting}, hiện tượng \textit{swamping} (chênh lệch hệ số
+khổng lồ), ma trận Hilbert (số điều kiện cực lớn) và ma trận suy biến (thiếu hạng).
+Chuỗi log này là minh chứng trực tiếp cho năng lực ổn định số học của các thuật toán
+tự cài đặt trong dự án.
+
+\subsubsection*{Log kiểm thử Phần 1: \texttt{gaussian\_eliminate}}
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+============================================================================
+TEST SUITE: KHỬ GAUSS (GAUSSIAN ELIMINATE)
+============================================================================
+ Hệ cơ bản (Nghiệm nguyên)                     PASSED  (e = 0.00e+00)
+ Cần Partial Pivoting                          PASSED  (e = 0.00e+00)
+ Nhiễu làm tròn (Round-off)                    PASSED  (e = 2.78e-17)
+ Chênh lệch hệ số khổng lồ (Swamping)          PASSED  (e = 0.00e+00)
+ Hệ điều kiện kém (Near-singular)              PASSED  (e = 0.00e+00)
+ Ma trận Hilbert 3x3                           PASSED  (e = 1.11e-16)
+Không có pivot tại cột 2
+
+[+] Hệ có vô số nghiệm. Công thức nghiệm tổng quát:
+    x = [1.0, 0.0]
+      + t_1 * [-2.0, 1.0]
+    (với t_i là các tham số tự do thuộc R)
+
+ Ma trận suy biến                              PASSED
+---------------------------------------------------------------------------
+ TỔNG KẾT: 7/7 PASSED
+\end{verbatim}
+\end{tcolorbox}
+
+
+\subsubsection*{Log kiểm thử Phần 1: \texttt{back\_substitution}}
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+============================================================================
+TEST SUITE: THẾ NGƯỢC (BACK SUBSTITUTION)
+============================================================================
+ 2x2 nghiem nguyen                             PASSED  (e = 0.00e+00)
+ 3x3 tam giac tren day du                      PASSED  (e = 0.00e+00)
+ Don vi 4x4                                    PASSED  (e = 0.00e+00)
+ 1x1                                           PASSED  (e = 0.00e+00)
+ Cheo lon (scale)                              PASSED  (e = 0.00e+00)
+ Duong cheo suy bien - tra ve rong             PASSED
+ c sai do dai                                  PASSED  (Bắt đúng lỗi: Vector c)
+ U khong vuong (hang lech)                     PASSED  (Bắt đúng lỗi: Matrix U)
+ Ma tran rong                                  PASSED
+---------------------------------------------------------------------------
+ TỔNG KẾT: 9/9 PASSED
+\end{verbatim}
+\end{tcolorbox}
+
+\subsubsection*{Log kiểm thử Phần 1: \texttt{determinant}}
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+============================================================================
+TEST SUITE: ĐỊNH THỨC (DETERMINANT)
+============================================================================
+ Don vi 2x2                                    PASSED
+ 2x2 [[1,2],[3,4]]                             PASSED
+ 2x2 [[2,1],[1,3]] (det=5)                     PASSED
+ Hoan vi [[0,1],[1,0]]                         PASSED
+ Suy bien [[1,2],[2,4]]                        PASSED
+ Tam giac tren - tich duong cheo               PASSED
+ 3x3 inverse test                              PASSED
+ Cheo diag(1,2,3,4)                            PASSED
+ 1x1                                           PASSED
+ Toan khong 3x3                                PASSED
+ Hang lap - rank 1                             PASSED
+ Ma trận 3x3 (Đã sửa lại Toán)                 PASSED
+ Khong vuong                                   PASSED  (Bắt lỗi: A phải vuông)
+---------------------------------------------------------------------------
+ TỔNG KẾT: 13/13 PASSED
+\end{verbatim}
+\end{tcolorbox}
+
+
+
+\subsubsection*{Log kiểm thử Phần 1: \texttt{inverse}}
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+============================================================================
+TEST SUITE: TÌM MA TRẬN NGHỊCH ĐẢO A^-1
+============================================================================
+ Ma trận đơn vị 2x2                            PASSED  (A * A^-1 = I)
+ Ma trận số âm                                 PASSED  (A * A^-1 = I)
+ Ma trận suy biến (Hàng 2 gấp đôi hàng 1)      PASSED  (Bắt đúng ngoại lệ)
+ Ma trận 3x3                                   PASSED  (A * A^-1 = I)
+ Ma trận có phần tử chốt bằng 0 ở giữa         PASSED  (A * A^-1 = I)
+ Ma trận số thực nhỏ (Ill-conditioned)         PASSED  (A * A^-1 = I)
+ Ma trận suy biến do số cực nhỏ (< EPSILON)    PASSED  (Bắt đúng ngoại lệ)
+ Ma trận không vuông 2x3                       PASSED  (Bắt đúng ngoại lệ)
+---------------------------------------------------------------------------
+ TỔNG KẾT: 8/8 PASSED
+\end{verbatim}
+\end{tcolorbox}
+
+\subsubsection*{Log kiểm thử Phần 1:\texttt{rank\_and\_basis}}
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+============================================================================
+TEST SUITE: TÌM HẠNG VÀ CƠ SỞ (RANK & BASIS)
+============================================================================
+ Ma trận đơn vị 3x3 (Full Rank)                PASSED  
+ Ma trận không 2x3                             PASSED  
+ Ma trận có dòng phụ thuộc tuyến tính          PASSED  
+ Ma trận 1 dòng nhiều cột                      PASSED  
+ Ma trận có cột toàn số 0 ở giữa               PASSED  
+ Ma trận vuông suy biến                        PASSED  
+ Ma trận số thực cực nhỏ (< EPSILON)           PASSED  
+ Ma trận kích thước 1x1                        PASSED  
+---------------------------------------------------------------------------
+ TỔNG KẾT: 8/8 PASSED
+\end{verbatim}
+\end{tcolorbox}
+
+\subsubsection*{Log kiểm thử Phần 2: \texttt{decompose\_svd}}
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+============================================================================
+TEST SUITE: PHÂN RÃ GIÁ TRỊ SUY BIẾN (SVD)
+============================================================================
+ Ma trận vuông full-rank 3x3                   PASSED  (err = 2.22e-15)
+ Ma trận chữ nhật ngang 2x3                    PASSED  (err = 8.88e-16)
+ Ma trận chữ nhật dọc 3x2                      PASSED  (err = 8.88e-16)
+ Ma trận suy biến (hai dòng phụ thuộc)         PASSED  (err = 8.88e-16)
+ Ma trận toàn 0 kích thước 3x4                 PASSED  (err = 0.00e+00)
+ Ma trận đơn vị 4x4                            PASSED  (err = 0.00e+00)
+ Ma trận đường chéo có singular values lặp     PASSED  (err = 0.00e+00)
+ Ma trận chứa số âm                            PASSED  (err = 4.44e-16)
+ Ma trận kích thước 1x1                        PASSED  (err = 0.00e+00)
+ Ma trận 1xN                                   PASSED  (err = 4.44e-16)
+ Ma trận Nx1                                   PASSED  (err = 0.00e+00)
+ Ma trận số rất nhỏ gần EPSILON                PASSED  (err = 2.00e-13)
+ Ma trận Hilbert 3x3 (kiểm tra độ ổn định)     PASSED  (err = 6.69e-14)
+ Dữ liệu rỗng                                  PASSED  (Lỗi: Ma trận A không rỗng)
+ Ma trận có 0 cột                              PASSED  (Lỗi: A có ít nhất 1 cột)
+ Ma trận không cùng số cột                     PASSED  (Lỗi: Dòng phải cùng số cột)
+---------------------------------------------------------------------------
+ TỔNG KẾT: 16/16 PASSED
+\end{verbatim}
+\end{tcolorbox}
+
+
+\subsubsection*{Log kiểm thử Phần 2: \texttt{diagonalize}}
+\begin{tcolorbox}[mycodebox]
+\begin{verbatim}
+============================================================================
+TEST SUITE: CHÉO HÓA MA TRẬN
+============================================================================
+ Ma trận chéo 3x3, trị riêng phân biệt         PASSED  (err = 0.00e+00)
+ Ma trận tam giác trên có trị riêng thực       PASSED  (err = 1.11e-16)
+ Ma trận đối xứng có trị riêng lặp             PASSED  (err = 0.00e+00)
+ Ma trận đơn vị 4x4                            PASSED  (err = 0.00e+00)
+ Ma trận suy biến nhưng chéo hóa được          PASSED  (err = 0.00e+00)
+ Ma trận kích thước 1x1                        PASSED  (err = 0.00e+00)
+ Khối Jordan bậc 2 (không chéo hóa được)       PASSED  (Lỗi: thiếu vector riêng)
+ Ma trận quay có trị riêng phức                PASSED  (Lỗi: Không hội tụ QR)
+ Ma trận rỗng                                  PASSED  (Lỗi: Ma trận không rỗng)
+ Ma trận không vuông                           PASSED  (Lỗi: A là ma trận vuông)
+ Ma trận không cùng số cột                     PASSED  (Lỗi: Các dòng không đều)
+ Ma trận tam giác dưới (kiểm tra khả năng QR)  PASSED  (err = 3.20e-11)
+---------------------------------------------------------------------------
+ TỔNG KẾT: 12/12 PASSED
+\end{verbatim}
+\end{tcolorbox}
+
+% ===========================================================
+\subsection{Bảng dữ liệu đo lường hiệu năng toàn diện (Raw Benchmark Data)}
+
+Dữ liệu thô (raw data) dưới đây được trích xuất trực tiếp từ file \texttt{benchmark\_results.json}...
+
+\begin{sidewaystable}[htbp]
+    \centering
+    \renewcommand{\arraystretch}{1.3}
+    \begin{tabular}{|c|c|c|c|c|c|}
+        \hline
+        \multirow{2}{*}{\textbf{Kích thước $n$}} & \multirow{2}{*}{\textbf{Phương pháp}} & \multicolumn{2}{c|}{\textbf{Ma trận SPD (Well-conditioned)}} & \multicolumn{2}{c|}{\textbf{Ma trận Hilbert (Ill-conditioned)}} \\
+        \cline{3-6}
+        & & \textbf{Thời gian (s)} & \textbf{Sai số tương đối} & \textbf{Thời gian (s)} & \textbf{Sai số tương đối} \\
+        \hline
+        \multirow{3}{*}{50} 
+        & Khử Gauss (LU) & $8.03 \times 10^{-5}$ & $2.47 \times 10^{-16}$ & - & $5.58 \times 10^{-16}$ \\
+        & Phân rã SVD & $2.90 \times 10^{-4}$ & $7.83 \times 10^{-16}$ & - & $8.47 \times 10^{-16}$ \\
+        & Gauss-Seidel & $2.77 \times 10^{-3}$ & $1.21 \times 10^{-12}$ & - & Không hội tụ (ERR) \\
+        \hline
+        \multirow{3}{*}{100} 
+        & Khử Gauss (LU) & $2.50 \times 10^{-4}$ & $2.56 \times 10^{-16}$ & - & $5.81 \times 10^{-15}$ \\
+        & Phân rã SVD & $3.65 \times 10^{-3}$ & $8.35 \times 10^{-16}$ & - & $1.22 \times 10^{-15}$ \\
+        & Gauss-Seidel & $1.03 \times 10^{-2}$ & $1.18 \times 10^{-12}$ & - & Không hội tụ (ERR) \\
+        \hline
+        \multirow{3}{*}{200} 
+        & Khử Gauss (LU) & $1.09 \times 10^{-3}$ & $3.51 \times 10^{-16}$ & - & $2.67 \times 10^{-15}$ \\
+        & Phân rã SVD & $6.55 \times 10^{-3}$ & $1.74 \times 10^{-15}$ & - & $1.15 \times 10^{-15}$ \\
+        & Gauss-Seidel & $3.98 \times 10^{-2}$ & $2.06 \times 10^{-13}$ & - & Không hội tụ (ERR) \\
+        \hline
+        \multirow{3}{*}{500} 
+        & Khử Gauss (LU) & $8.26 \times 10^{-3}$ & $4.68 \times 10^{-16}$ & - & $2.49 \times 10^{-14}$ \\
+        & Phân rã SVD & $4.21 \times 10^{-2}$ & $1.37 \times 10^{-15}$ & - & $1.28 \times 10^{-15}$ \\
+        & Gauss-Seidel & $2.52 \times 10^{-1}$ & $2.17 \times 10^{-13}$ & - & Không hội tụ (ERR) \\
+        \hline
+        \multirow{3}{*}{1000} 
+        & Khử Gauss (LU) & $3.62 \times 10^{-2}$ & $6.67 \times 10^{-16}$ & - & Kích thước quá lớn \\
+        & Phân rã SVD & $2.53 \times 10^{-1}$ & $1.51 \times 10^{-15}$ & - & Kích thước quá lớn \\
+        & Gauss-Seidel & $1.09 \times 10^{0}$ & $2.20 \times 10^{-13}$ & - & Không hội tụ (ERR) \\
+        \hline
+    \end{tabular}
+    \caption{Bảng dữ liệu đo lường thô trích xuất từ \texttt{benchmark\_results.json}.}
+    \label{tab:appendix_raw_data}
+\end{sidewaystable}
+
+\textit{Ghi chú: Cột thời gian của ma trận Hilbert không được ghi nhận do kịch bản đo lường sự ổn định (Stability) được tách biệt độc lập với kịch bản đo lường hiệu năng (Performance).}

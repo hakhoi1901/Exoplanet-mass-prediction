@@ -1,5 +1,5 @@
 """
-test_ols_implementation.py — Unit Tests cho F1, F2, F3
+test_ols_implementation.py - Unit Tests cho F1, F2, F3
 Mỗi hàm có ít nhất 4 unit test, tự tạo data (không phụ thuộc file bên ngoài).
 
 Cách chạy:
@@ -228,7 +228,7 @@ if __name__ == "__main__":
         passed += int(result)
 
     # --- F1: ols_fit ---
-    TestLogger.print_suite_header("F1 — ols_fit  |  Normal Equations")
+    TestLogger.print_suite_header("F1 - ols_fit  |  Normal Equations")
     run(test_ols_exact_solution())
     run(test_ols_output_shape())
     run(test_ols_residuals_sum_zero())
@@ -237,7 +237,7 @@ if __name__ == "__main__":
     run(test_ols_sigma2_positive())
 
     # --- F2: hat_matrix ---
-    TestLogger.print_suite_header("F2 — hat_matrix  |  Projection Properties")
+    TestLogger.print_suite_header("F2 - hat_matrix  |  Projection Properties")
     run(test_hat_idempotent())
     run(test_hat_symmetric())
     run(test_hat_rank())
@@ -245,7 +245,7 @@ if __name__ == "__main__":
     run(test_hat_eigenvalues())
 
     # --- F3: model_metrics ---
-    TestLogger.print_suite_header("F3 — model_metrics  |  R², F-test, MAE, RMSE")
+    TestLogger.print_suite_header("F3 - model_metrics  |  R², F-test, MAE, RMSE")
     run(test_metrics_perfect_fit())
     run(test_metrics_tss_decomposition())
     run(test_metrics_r2_range())
