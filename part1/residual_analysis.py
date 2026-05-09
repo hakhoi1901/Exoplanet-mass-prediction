@@ -1,14 +1,18 @@
 from __future__ import annotations
 import math
 import os
+import sys
 
 import matplotlib.pyplot as plt
-import numpy as np
-import scipy.stats as stats
+
+# Import utils và F2 hat_matrix
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 
 
 # ---------------------------------------------------------------------------
 # F8: Phân Tích Phần Dư — 4 biểu đồ chẩn đoán
+# Liên kết: Dùng F2 hat_matrix để tính leverage và Cook's Distance
 # ---------------------------------------------------------------------------
 
 def residual_plots(
@@ -26,60 +30,77 @@ def residual_plots(
         3. Scale-Location       — kiểm tra homoscedasticity.
         4. Cook's Distance      — phát hiện influential points.
 
+    Liên kết:
+        - Gọi hat_matrix (F2) để tính leverage h_ii cho Cook's Distance.
+
     Tham số:
         y       : Giá trị thực (n,).
         y_hat   : Giá trị dự đoán (n,).
-        X       : Ma trận design ĐÃ có cột bias (n x (p+1)). Bắt buộc để tính
-                  Cook's Distance chính xác. Nếu None, dùng |residuals| thay thế.
+        X       : Ma trận features (n x p), CHƯA có bias.
+                  Bắt buộc để tính Cook's Distance chính xác qua F2.
+                  Nếu None, dùng |residuals| thay thế.
         save_dir: Thư mục lưu ảnh.
 
     Trả về dict:
-        residuals   : list[float]
+        residuals    : list[float]
         std_residuals: list[float]  — standardized residuals
-        cooks_d     : list[float]   — Cook's Distance (hoặc |e| nếu X=None)
+        cooks_d      : list[float]  — Cook's Distance (hoặc |e| nếu X=None)
     """
     os.makedirs(save_dir, exist_ok=True)
+    n = len(y)
 
-    y_arr     = np.array(y, dtype=float)
-    y_hat_arr = np.array(y_hat, dtype=float)
-    e         = y_arr - y_hat_arr          # phần dư thô
-    n         = len(y_arr)
+    # --- Residuals ---
+    residuals = [y[i] - y_hat[i] for i in range(n)]
 
     # --- Standardized residuals ---
-    sigma_hat = math.sqrt(max(float(np.sum(e ** 2)) / max(n - 2, 1), 1e-12))
-    e_std     = e / sigma_hat
+    rss = sum(r * r for r in residuals)
+    sigma_hat = math.sqrt(max(rss / max(n - 2, 1), 1e-12))
+    std_residuals = [r / sigma_hat for r in residuals]
 
-    # --- Hat matrix leverage & Cook's Distance ---
+    # --- Cook's Distance (liên kết F2) ---
     if X is not None:
-        X_np = np.array(X, dtype=float)           # đã có bias
-        # leverage h_ii = diag(X(XᵀX)⁻¹Xᵀ)
-        try:
-            XtX_inv = np.linalg.inv(X_np.T @ X_np)
-            H       = X_np @ XtX_inv @ X_np.T
-            h       = np.diag(H)                  # leverage values
-            p1      = X_np.shape[1]               # p + 1
-            # Cook's D: D_i = e_i² / (p1 * s²) * h_ii / (1 - h_ii)²
-            denom   = p1 * (sigma_hat ** 2) * ((1 - h) ** 2)
-            denom   = np.where(np.abs(denom) < 1e-12, 1e-12, denom)
-            cooks_d = (e ** 2 * h) / denom
-        except np.linalg.LinAlgError:
-            cooks_d = np.abs(e)   # fallback
+        # Dùng F2 hat_matrix để tính leverage
+        from part1.ols_implementation import hat_matrix as compute_hat_matrix
+        hat_res = compute_hat_matrix(X)
+        H = hat_res["H"]
+
+        # h_ii = diagonal(H) = leverage values
+        h = [H[i][i] for i in range(n)]
+        p1 = len(X[0]) + 1   # p + 1 (bao gồm intercept)
+
+        # Cook's D_i = (e_i² / (p1 * σ̂²)) * (h_ii / (1 - h_ii)²)
+        cooks_d = []
+        for i in range(n):
+            denom = p1 * (sigma_hat ** 2) * ((1.0 - h[i]) ** 2)
+            if abs(denom) < 1e-12:
+                denom = 1e-12
+            d_i = (residuals[i] ** 2 * h[i]) / denom
+            cooks_d.append(d_i)
     else:
-        cooks_d = np.abs(e)       # placeholder khi không có X
+        # Fallback khi không có X
+        cooks_d = [abs(r) for r in residuals]
 
-    sqrt_abs_std = np.sqrt(np.abs(e_std))
-    indices      = np.arange(n)
+    # --- sqrt(|e_std|) ---
+    sqrt_abs_std = [math.sqrt(abs(s)) for s in std_residuals]
 
-    # --- Vẽ ---
+    # --- Vẽ (dùng matplotlib cho visualization — cho phép) ---
+    import scipy.stats as stats
+    import numpy as np
+
+    y_hat_np = np.array(y_hat)
+    e_np = np.array(residuals)
+    e_std_np = np.array(std_residuals)
+    sqrt_abs_np = np.array(sqrt_abs_std)
+    cooks_np = np.array(cooks_d)
+
     fig, axes = plt.subplots(2, 2, figsize=(13, 10))
     fig.suptitle("Phân Tích Phần Dư (Residual Diagnostic Plots)", fontsize=14, y=1.01)
 
     # 1. Residuals vs Fitted
     ax = axes[0, 0]
-    ax.scatter(y_hat_arr, e, alpha=0.55, edgecolors="steelblue", facecolors="none", linewidths=0.8)
+    ax.scatter(y_hat_np, e_np, alpha=0.55, edgecolors="steelblue", facecolors="none", linewidths=0.8)
     ax.axhline(0, color="red", linestyle="--", linewidth=1.2, label="e = 0")
-    # LOWESS smoother (dùng numpy đơn giản — trung bình cục bộ)
-    _smooth_line(ax, y_hat_arr, e, color="orange", label="LOWESS approx.")
+    _smooth_line(ax, y_hat_np, e_np, color="orange", label="LOWESS approx.")
     ax.set_title("Residuals vs Fitted", fontsize=12)
     ax.set_xlabel("Fitted values (ŷ)")
     ax.set_ylabel("Residuals (e = y − ŷ)")
@@ -87,7 +108,7 @@ def residual_plots(
 
     # 2. Normal Q-Q
     ax = axes[0, 1]
-    (osm, osr), (slope, intercept_q, _) = stats.probplot(e, dist="norm")
+    (osm, osr), (slope, intercept_q, _) = stats.probplot(e_np, dist="norm")
     ax.scatter(osm, osr, alpha=0.55, edgecolors="steelblue", facecolors="none", linewidths=0.8,
                label="Quantile")
     qqx = np.array([min(osm), max(osm)])
@@ -100,9 +121,9 @@ def residual_plots(
 
     # 3. Scale-Location (√|e_std| vs Fitted)
     ax = axes[1, 0]
-    ax.scatter(y_hat_arr, sqrt_abs_std, alpha=0.55, edgecolors="steelblue", facecolors="none",
+    ax.scatter(y_hat_np, sqrt_abs_np, alpha=0.55, edgecolors="steelblue", facecolors="none",
                linewidths=0.8)
-    _smooth_line(ax, y_hat_arr, sqrt_abs_std, color="orange", label="LOWESS approx.")
+    _smooth_line(ax, y_hat_np, sqrt_abs_np, color="orange", label="LOWESS approx.")
     ax.set_title("Scale-Location", fontsize=12)
     ax.set_xlabel("Fitted values (ŷ)")
     ax.set_ylabel("√|Standardized Residuals|")
@@ -110,18 +131,17 @@ def residual_plots(
 
     # 4. Cook's Distance
     ax = axes[1, 1]
+    indices = np.arange(n)
     markerline, stemlines, baseline = ax.stem(
-        indices, cooks_d, linefmt="steelblue", markerfmt=" ", basefmt="black"
+        indices, cooks_np, linefmt="steelblue", markerfmt=" ", basefmt="black"
     )
     stemlines.set_linewidths(0.8)
-    # Ngưỡng phổ biến: 4/n
     threshold = 4.0 / n
     ax.axhline(threshold, color="red", linestyle="--", linewidth=1.2,
                label=f"Ngưỡng 4/n = {threshold:.3f}")
-    # Đánh dấu các điểm vượt ngưỡng
-    influential = np.where(cooks_d > threshold)[0]
+    influential = np.where(cooks_np > threshold)[0]
     if len(influential) > 0:
-        ax.scatter(influential, cooks_d[influential], color="red", zorder=5,
+        ax.scatter(influential, cooks_np[influential], color="red", zorder=5,
                    label=f"Influential ({len(influential)} pts)")
     ax.set_title("Cook's Distance", fontsize=12)
     ax.set_xlabel("Observation index")
@@ -135,14 +155,15 @@ def residual_plots(
     print(f"[F8] Biểu đồ phần dư đã lưu tại: {out_path}")
 
     return {
-        "residuals":    e.tolist(),
-        "std_residuals": e_std.tolist(),
-        "cooks_d":      cooks_d.tolist(),
+        "residuals":    residuals,
+        "std_residuals": std_residuals,
+        "cooks_d":      cooks_d,
     }
 
 
-def _smooth_line(ax, x: np.ndarray, y: np.ndarray, n_bins: int = 20, **kwargs):
+def _smooth_line(ax, x, y, n_bins: int = 20, **kwargs):
     """Vẽ đường LOWESS đơn giản bằng moving average theo bin."""
+    import numpy as np
     order  = np.argsort(x)
     xs, ys = x[order], y[order]
     bins   = np.array_split(np.arange(len(xs)), n_bins)
@@ -178,14 +199,16 @@ def test_residuals_correct_values():
 
 def test_cooks_distance_with_X():
     """Cook's Distance phải là list độ dài n khi X được cung cấp."""
+    import numpy as np
     np.random.seed(0)
     n, p = 30, 2
     X_np  = np.random.randn(n, p)
-    X_b   = np.column_stack([np.ones(n), X_np])   # design matrix với bias
     beta  = np.array([1.0, 2.0, -1.0])
+    X_b   = np.column_stack([np.ones(n), X_np])
     y     = (X_b @ beta).tolist()
     y_hat = (X_b @ beta + 0.1 * np.random.randn(n)).tolist()
-    res   = residual_plots(y, y_hat, X=X_b.tolist(), save_dir="output/test")
+    # Truyền X chưa có bias (F8 sẽ gọi F2 hat_matrix, tự thêm bias)
+    res   = residual_plots(y, y_hat, X=X_np.tolist(), save_dir="output/test")
     assert len(res["cooks_d"]) == n
     assert all(d >= 0 for d in res["cooks_d"]), "Cook's D phải >= 0"
     print("test_cooks_distance_with_X: PASSED")
@@ -193,16 +216,18 @@ def test_cooks_distance_with_X():
 
 def test_influential_point_detected():
     """Điểm outlier rõ ràng phải có Cook's D lớn hơn 4/n."""
+    import numpy as np
     n = 30
     np.random.seed(1)
     X_np = np.random.randn(n, 1)
+    beta = np.array([0.0, 1.0])
     X_b  = np.column_stack([np.ones(n), X_np])
-    y    = (X_b @ np.array([0.0, 1.0])).tolist()
+    y    = (X_b @ beta).tolist()
     y_hat = y[:]
     # Tạo một điểm outlier cực đoan ở cuối
     y[-1]     = 100.0
     y_hat[-1] = 0.0
-    res = residual_plots(y, y_hat, X=X_b.tolist(), save_dir="output/test")
+    res = residual_plots(y, y_hat, X=X_np.tolist(), save_dir="output/test")
     threshold = 4.0 / n
     assert res["cooks_d"][-1] > threshold, "Điểm outlier phải vượt ngưỡng Cook's D"
     print("test_influential_point_detected: PASSED")
@@ -222,6 +247,7 @@ def test_residual_plots_no_X():
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    import numpy as np
     print("=" * 55)
     print("  UNIT TESTS — residual_analysis.py")
     print("=" * 55)
@@ -237,8 +263,9 @@ if __name__ == "__main__":
     np.random.seed(42)
     n, p = 80, 3
     X_np   = np.random.randn(n, p)
-    X_bias = np.column_stack([np.ones(n), X_np])
     beta   = np.array([2.0, 1.5, -1.0, 0.5])
-    y_demo = (X_bias @ beta + np.random.randn(n) * 0.8).tolist()
-    y_hat_demo = (X_bias @ beta).tolist()
-    residual_plots(y_demo, y_hat_demo, X=X_bias.tolist())
+    X_bias_np = np.column_stack([np.ones(n), X_np])
+    y_demo = (X_bias_np @ beta + np.random.randn(n) * 0.8).tolist()
+    y_hat_demo = (X_bias_np @ beta).tolist()
+    # Truyền X chưa có bias cho F8 (F8 sẽ gọi F2, F2 tự thêm bias)
+    residual_plots(y_demo, y_hat_demo, X=X_np.tolist())
