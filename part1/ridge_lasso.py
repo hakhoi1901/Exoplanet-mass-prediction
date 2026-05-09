@@ -4,78 +4,25 @@ import os
 import sys
 
 import matplotlib.pyplot as plt
-import numpy as np
 
-# Tái sử dụng Utils từ Project 1
-# from utils import matmul, transpose, solve_system, matvec
-
-# ---------------------------------------------------------------------------
-# Helpers nội bộ (dùng khi chưa integrate Utils.py hoàn chỉnh)
-# TODO: Thay _matmul, _matvec, _solve bằng hàm tương ứng từ Utils.py
-# ---------------------------------------------------------------------------
-
-def _solve(A: list[list[float]], b: list[float]) -> list[float]:
-    """
-    Giải hệ Ax = b bằng Gaussian Elimination với partial pivoting.
-    Wrapper tạm thời – sẽ thay bằng solve_system(A, b) từ Utils.py.
-    """
-    import copy
-    n = len(b)
-    M = [A[i][:] + [b[i]] for i in range(n)]   # augmented matrix
-
-    for col in range(n):
-        # Partial pivoting
-        pivot = max(range(col, n), key=lambda r: abs(M[r][col]))
-        M[col], M[pivot] = M[pivot], M[col]
-        if abs(M[col][col]) < 1e-12:
-            raise ValueError("Ma trận suy biến, không giải được hệ phương trình.")
-        for row in range(col + 1, n):
-            factor = M[row][col] / M[col][col]
-            for j in range(col, n + 1):
-                M[row][j] -= factor * M[col][j]
-
-    # Back substitution
-    x = [0.0] * n
-    for i in range(n - 1, -1, -1):
-        x[i] = M[i][n]
-        for j in range(i + 1, n):
-            x[i] -= M[i][j] * x[j]
-        x[i] /= M[i][i]
-    return x
-
-
-def _matmul(A: list[list[float]], B: list[list[float]]) -> list[list[float]]:
-    """Nhân hai ma trận. Wrapper tạm – thay bằng matmul() từ Utils.py."""
-    m, p = len(A), len(A[0])
-    n = len(B[0])
-    C = [[0.0] * n for _ in range(m)]
-    for i in range(m):
-        for k in range(p):
-            if A[i][k] == 0.0:
-                continue
-            for j in range(n):
-                C[i][j] += A[i][k] * B[k][j]
-    return C
-
-
-def _transpose(A: list[list[float]]) -> list[list[float]]:
-    return [list(col) for col in zip(*A)]
-
-
-def _matvec(A: list[list[float]], v: list[float]) -> list[float]:
-    return [sum(A[i][j] * v[j] for j in range(len(v))) for i in range(len(A))]
+# Import utils từ Project 1
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from utils import transpose, matmul, matvec, dot_product, solve_system
+from config import EPSILON, RANDOM_STATE
 
 
 # ---------------------------------------------------------------------------
-# Utilities nội bộ
+# Utilities nội bộ — chuẩn hóa (manual, không dùng numpy)
 # ---------------------------------------------------------------------------
 
 def _col_mean(X: list[list[float]]) -> list[float]:
+    """Tính mean từng cột của X."""
     n, p = len(X), len(X[0])
     return [sum(X[i][j] for i in range(n)) / n for j in range(p)]
 
 
 def _col_std(X: list[list[float]], mean: list[float]) -> list[float]:
+    """Tính population std từng cột của X."""
     n, p = len(X), len(X[0])
     return [
         math.sqrt(max(sum((X[i][j] - mean[j]) ** 2 for i in range(n)) / n, 1e-12))
@@ -84,6 +31,7 @@ def _col_std(X: list[list[float]], mean: list[float]) -> list[float]:
 
 
 def _standardize(X: list[list[float]], mean: list[float], std: list[float]) -> list[list[float]]:
+    """Chuẩn hóa X theo mean và std đã cho."""
     return [[(X[i][j] - mean[j]) / std[j] for j in range(len(mean))] for i in range(len(X))]
 
 
@@ -94,6 +42,7 @@ def _add_bias(X: list[list[float]]) -> list[list[float]]:
 
 # ---------------------------------------------------------------------------
 # F6: Ridge Regression — Closed-form
+# Liên kết: Dùng solve_system, transpose, matmul, matvec từ utils.py
 # ---------------------------------------------------------------------------
 
 def ridge_fit(
@@ -109,6 +58,8 @@ def ridge_fit(
     trong đó X̃ là ma trận design đã chuẩn hóa + bias,
     I* là ma trận đơn vị với I*[0,0] = 0 (không penalize intercept).
 
+    Liên kết: Dùng transpose, matmul, matvec, solve_system từ utils.py.
+
     Tham số:
         X    : Ma trận features (n x p), CHƯA có cột bias.
         y    : Vector target (n,).
@@ -122,6 +73,7 @@ def ridge_fit(
     """
     n, p = len(X), len(X[0])
 
+    # Chuẩn hóa features
     mean_X = _col_mean(X)
     std_X  = _col_std(X, mean_X)
     X_sc   = _standardize(X, mean_X, std_X)
@@ -132,14 +84,16 @@ def ridge_fit(
     I_star[0][0] = 0.0
 
     # A = XᵀX + λI*,  rhs = Xᵀy
-    Xt  = _transpose(X_b)
-    XtX = _matmul(Xt, X_b)
+    Xt  = transpose(X_b)               # utils.py
+    XtX = matmul(Xt, X_b)              # utils.py
     A   = [[XtX[i][j] + lam * I_star[i][j] for j in range(p + 1)] for i in range(p + 1)]
-    rhs = _matvec(Xt, y)
 
-    # TODO: thay _solve bằng solve_system(A, rhs) từ Utils.py
-    beta_hat = _solve(A, rhs)
-    y_hat    = _matvec(X_b, beta_hat)
+    # Xᵀy — dùng dot_product cho từng hàng của Xᵀ
+    rhs = [dot_product(Xt[i], y) for i in range(p + 1)]
+
+    # Giải hệ (XᵀX + λI*)β = Xᵀy
+    beta_hat = solve_system(A, rhs)     # utils.py
+    y_hat    = matvec(X_b, beta_hat)    # utils.py
 
     return {
         "beta_hat": beta_hat,
@@ -158,7 +112,7 @@ def ridge_predict(
     """Dự đoán y cho X mới dùng beta_hat từ ridge_fit."""
     X_sc = _standardize(X, mean_X, std_X)
     X_b  = _add_bias(X_sc)
-    return _matvec(X_b, beta_hat)
+    return matvec(X_b, beta_hat)        # utils.py
 
 
 def ridge_trace(
@@ -202,6 +156,7 @@ def ridge_trace(
 
 # ---------------------------------------------------------------------------
 # F7: Lasso Regression — Coordinate Descent
+# Liên kết: Dùng soft_threshold (manual), _standardize, _add_bias, matvec
 # ---------------------------------------------------------------------------
 
 def soft_threshold(rho: float, lam: float) -> float:
@@ -221,7 +176,7 @@ def lasso_fit(
     tol: float = 1e-6,
 ) -> dict:
     """
-    F7: Lasso Regression — Coordinate Descent.
+    F7: Lasso Regression — Coordinate Descent (manual, không dùng numpy).
 
     Tối thiểu hóa: ‖y − Xβ‖² + λ‖β‖₁
     Nghiệm không có dạng closed-form; dùng coordinate descent.
@@ -240,36 +195,54 @@ def lasso_fit(
         mean_X   : list[float]
         std_X    : list[float]
     """
-    X_np = np.array(X, dtype=float)
-    y_np = np.array(y, dtype=float)
-    n, p = X_np.shape
+    n = len(X)
+    p = len(X[0])
 
-    mean_X = X_np.mean(axis=0).tolist()
-    std_X  = X_np.std(axis=0).tolist()
-    std_X  = [max(s, 1e-12) for s in std_X]
+    # Chuẩn hóa features (manual)
+    mean_X = _col_mean(X)
+    std_X  = _col_std(X, mean_X)
+    X_sc   = _standardize(X, mean_X, std_X)
 
-    X_sc = (X_np - np.array(mean_X)) / np.array(std_X)
+    # Intercept = mean(y), center y
+    y_mean = sum(y) / n
+    intercept = y_mean
+    y_centered = [y[i] - intercept for i in range(n)]
 
-    intercept    = float(y_np.mean())
-    beta         = np.zeros(p)
-    y_centered   = y_np - intercept
-    z            = np.sum(X_sc ** 2, axis=0)   # ‖x_j‖² (pre-compute)
+    # Khởi tạo beta = 0
+    beta = [0.0] * p
+
+    # Pre-compute z_j = ‖x_j‖² cho mỗi cột j
+    z = [sum(X_sc[i][j] ** 2 for i in range(n)) for j in range(p)]
 
     n_iter = max_iter
     for it in range(max_iter):
-        beta_old = beta.copy()
-        for j in range(p):
-            r_j   = y_centered - (X_sc @ beta - X_sc[:, j] * beta[j])
-            rho_j = float(X_sc[:, j] @ r_j)
-            beta[j] = soft_threshold(rho_j, lam) / z[j]
+        beta_old = beta[:]
 
-        if np.max(np.abs(beta - beta_old)) < tol:
+        for j in range(p):
+            # Tính partial residual: r_j = y_centered - Σ_{k≠j} X_sc[:,k] * beta[k]
+            # = y_centered - (X_sc @ beta - X_sc[:,j] * beta[j])
+            # Tối ưu: tính X_sc @ beta trước, rồi cộng lại X_sc[:,j] * beta[j]
+            r_j = [0.0] * n
+            for i in range(n):
+                pred_i = sum(X_sc[i][k] * beta[k] for k in range(p)) - X_sc[i][j] * beta[j]
+                r_j[i] = y_centered[i] - pred_i
+
+            # rho_j = X_sc[:,j] · r_j
+            rho_j = sum(X_sc[i][j] * r_j[i] for i in range(n))
+
+            # Update beta[j] với soft-thresholding
+            beta[j] = soft_threshold(rho_j, lam) / z[j] if abs(z[j]) > EPSILON else 0.0
+
+        # Kiểm tra hội tụ: max |Δβ|
+        max_change = max(abs(beta[j] - beta_old[j]) for j in range(p))
+        if max_change < tol:
             n_iter = it + 1
             break
 
-    beta_hat = [intercept] + beta.tolist()
-    X_b      = np.column_stack([np.ones(n), X_sc])
-    y_hat    = (X_b @ np.array(beta_hat)).tolist()
+    # Tạo output
+    beta_hat = [intercept] + beta
+    X_b = _add_bias(X_sc)
+    y_hat = matvec(X_b, beta_hat)   # utils.py
 
     return {
         "beta_hat": beta_hat,
@@ -289,7 +262,7 @@ def lasso_predict(
     """Dự đoán y cho X mới dùng beta_hat từ lasso_fit."""
     X_sc = _standardize(X, mean_X, std_X)
     X_b  = _add_bias(X_sc)
-    return _matvec(X_b, beta_hat)
+    return matvec(X_b, beta_hat)        # utils.py
 
 
 # ---------------------------------------------------------------------------
@@ -314,6 +287,7 @@ def test_ridge_output_shape():
 
 def test_ridge_lam0_close_to_ols():
     """Khi λ → 0, Ridge ≈ OLS (kiểm tra MSE nhỏ)."""
+    import numpy as np
     np.random.seed(42)
     X = np.random.randn(50, 3).tolist()
     beta_true = [1.0, -2.0, 0.5]
@@ -350,6 +324,7 @@ def test_ridge_predict_consistent():
 
 def test_ridge_vs_sklearn():
     """Kiểm chứng beta_hat với sklearn Ridge (verify only)."""
+    import numpy as np
     from sklearn.linear_model import Ridge
     np.random.seed(0)
     X_np = np.random.randn(30, 2)
@@ -363,7 +338,6 @@ def test_ridge_vs_sklearn():
     sk.fit(X_np, y_np)
     mse_sk = float(np.mean((y_np - sk.predict(X_np)) ** 2))
 
-    # MSE phải gần nhau (sai biệt < 5% do chuẩn hóa khác nhau)
     # Cho phép sai lệch 60% do sklearn dùng norm khác (trên dữ liệu gốc, không chuẩn hóa)
     assert abs(mse_ours - mse_sk) / (mse_sk + 1e-12) < 0.60, (
         f"MSE chênh lệch quá lớn: ours={mse_ours:.4f}, sklearn={mse_sk:.4f}"
@@ -385,6 +359,7 @@ def test_lasso_output_shape():
 
 def test_lasso_sparsity():
     """Lambda đủ lớn → một số hệ số bị zero (sparsity)."""
+    import numpy as np
     np.random.seed(42)
     X = np.random.randn(60, 5).tolist()
     # chỉ feature 0 và 1 thật sự có ảnh hưởng
@@ -408,6 +383,7 @@ def test_lasso_predict_consistent():
 
 def test_lasso_lam0_close_to_ols():
     """Khi λ → 0, Lasso ≈ OLS."""
+    import numpy as np
     np.random.seed(1)
     X = np.random.randn(40, 2).tolist()
     y = [2.0 * X[i][0] - 1.0 * X[i][1] for i in range(40)]
@@ -419,6 +395,7 @@ def test_lasso_lam0_close_to_ols():
 
 def test_lasso_vs_sklearn():
     """Kiểm chứng với sklearn Lasso (verify only)."""
+    import numpy as np
     from sklearn.linear_model import Lasso
     np.random.seed(5)
     X_np = np.random.randn(50, 3)
@@ -443,6 +420,7 @@ def test_lasso_vs_sklearn():
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    import numpy as np
     print("=" * 55)
     print("  UNIT TESTS — ridge_lasso.py")
     print("=" * 55)

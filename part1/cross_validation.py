@@ -1,14 +1,18 @@
 from __future__ import annotations
 import math
 import os
-from typing import Callable, Any
+import sys
+from typing import Callable
 
-import matplotlib.pyplot as plt
-import numpy as np
+# Import config
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from config import RANDOM_STATE, EPSILON
 
 
 # ---------------------------------------------------------------------------
 # F9: k-Fold Cross-Validation
+# Liên kết: Nhận model_fn (F1 ols_fit / F6 ridge_fit / F7 lasso_fit)
+#           và predict_fn để fit + đánh giá trên mỗi fold
 # ---------------------------------------------------------------------------
 
 def kfold_cv(
@@ -20,7 +24,11 @@ def kfold_cv(
     **model_kwargs,
 ) -> dict:
     """
-    F9: k-Fold Cross-Validation từ đầu.
+    F9: k-Fold Cross-Validation từ đầu (manual, không dùng numpy cho logic).
+
+    Liên kết:
+        - model_fn: Nhận hàm fit từ F1/F6/F7 (ols_fit, ridge_fit, lasso_fit).
+        - predict_fn: Nhận hàm predict tương ứng.
 
     Tham số:
         X          : Ma trận features (n x p), CHƯA có cột bias.
@@ -38,50 +46,89 @@ def kfold_cv(
         mean_cv_r2   : float      — trung bình R² qua k fold.
         cv_r2_list   : list[float]— R² từng fold.
     """
-    X_np = np.array(X, dtype=float)
-    y_np = np.array(y, dtype=float)
-    n    = len(y_np)
+    n = len(y)
 
-    # Shuffle với seed cố định (RANDOM_STATE = 42)
-    rng     = np.random.default_rng(42)
-    indices = rng.permutation(n)
-    folds   = np.array_split(indices, k)
+    # Shuffle indices với seed cố định (RANDOM_STATE = 42)
+    # Dùng Fisher-Yates shuffle manual thay vì numpy
+    indices = list(range(n))
+    _manual_shuffle(indices, seed=RANDOM_STATE)
+
+    # Chia thành k fold
+    folds = _split_into_k(indices, k)
 
     cv_mse = []
     cv_r2  = []
 
     for i in range(k):
-        val_idx   = folds[i]
-        train_idx = np.concatenate([folds[j] for j in range(k) if j != i])
+        # Tách validation và training indices
+        val_idx = folds[i]
+        train_idx = []
+        for j in range(k):
+            if j != i:
+                train_idx.extend(folds[j])
 
-        X_train = X_np[train_idx].tolist()
-        y_train = y_np[train_idx].tolist()
-        X_val   = X_np[val_idx].tolist()
-        y_val   = y_np[val_idx]
+        # Tạo X_train, y_train, X_val, y_val
+        X_train = [X[idx] for idx in train_idx]
+        y_train = [y[idx] for idx in train_idx]
+        X_val   = [X[idx] for idx in val_idx]
+        y_val   = [y[idx] for idx in val_idx]
 
-        # Fit model
+        # Fit model (gọi F1/F6/F7)
         model = model_fn(X_train, y_train, **model_kwargs)
 
         # Predict
-        y_pred = np.array(predict_fn(X_val, model), dtype=float)
+        y_pred = predict_fn(X_val, model)
 
-        # MSE
-        mse = float(np.mean((y_val - y_pred) ** 2))
+        # MSE = mean((y_val - y_pred)²)
+        n_val = len(y_val)
+        mse = sum((y_val[q] - y_pred[q]) ** 2 for q in range(n_val)) / n_val
         cv_mse.append(mse)
 
-        # R²
-        ss_res = float(np.sum((y_val - y_pred) ** 2))
-        ss_tot = float(np.sum((y_val - y_val.mean()) ** 2))
-        r2     = 1.0 - ss_res / ss_tot if ss_tot > 1e-12 else 0.0
+        # R² = 1 - SS_res / SS_tot
+        y_val_mean = sum(y_val) / n_val
+        ss_res = sum((y_val[q] - y_pred[q]) ** 2 for q in range(n_val))
+        ss_tot = sum((y_val[q] - y_val_mean) ** 2 for q in range(n_val))
+        r2 = 1.0 - ss_res / ss_tot if abs(ss_tot) > EPSILON else 0.0
         cv_r2.append(r2)
 
+    # Tính mean và std (manual)
+    mean_mse = sum(cv_mse) / k
+    mean_r2  = sum(cv_r2) / k
+    std_mse  = math.sqrt(sum((m - mean_mse) ** 2 for m in cv_mse) / k)
+
     return {
-        "mean_cv_mse": float(np.mean(cv_mse)),
-        "std_cv_mse":  float(np.std(cv_mse)),
+        "mean_cv_mse": mean_mse,
+        "std_cv_mse":  std_mse,
         "cv_mse_list": cv_mse,
-        "mean_cv_r2":  float(np.mean(cv_r2)),
+        "mean_cv_r2":  mean_r2,
         "cv_r2_list":  cv_r2,
     }
+
+
+def _manual_shuffle(lst: list, seed: int) -> None:
+    """Fisher-Yates shuffle in-place với LCG pseudo-random generator."""
+    # Linear Congruential Generator (đơn giản, reproducible)
+    state = seed
+    n = len(lst)
+    for i in range(n - 1, 0, -1):
+        state = (state * 1103515245 + 12345) & 0x7FFFFFFF
+        j = state % (i + 1)
+        lst[i], lst[j] = lst[j], lst[i]
+
+
+def _split_into_k(indices: list[int], k: int) -> list[list[int]]:
+    """Chia list indices thành k phần (gần bằng nhau)."""
+    n = len(indices)
+    fold_size = n // k
+    remainder = n % k
+    folds = []
+    start = 0
+    for i in range(k):
+        # Các fold đầu nhận thêm 1 phần tử nếu có dư
+        end = start + fold_size + (1 if i < remainder else 0)
+        folds.append(indices[start:end])
+        start = end
+    return folds
 
 
 def cv_lambda_search(
@@ -113,11 +160,16 @@ def cv_lambda_search(
         mean_mse_list.append(res["mean_cv_mse"])
         std_mse_list.append(res["std_cv_mse"])
 
-    best_idx = int(np.argmin(mean_mse_list))
+    # Tìm best λ (manual argmin)
+    best_idx = 0
+    for i in range(1, len(mean_mse_list)):
+        if mean_mse_list[i] < mean_mse_list[best_idx]:
+            best_idx = i
     best_lam = lambdas[best_idx]
 
     # --- Vẽ λ vs CV-MSE ---
     os.makedirs(save_dir, exist_ok=True)
+    import matplotlib.pyplot as plt
     fig, ax = plt.subplots(figsize=(9, 5))
     ax.errorbar(
         lambdas, mean_mse_list, yerr=std_mse_list,
@@ -152,6 +204,8 @@ def cv_lambda_search(
 # ---------------------------------------------------------------------------
 
 def _make_linear_data(n=60, seed=42):
+    """Tạo data test (dùng numpy CHỈ trong tests)."""
+    import numpy as np
     rng  = np.random.default_rng(seed)
     X    = rng.standard_normal((n, 3))
     beta = np.array([1.5, -1.0, 0.5])
@@ -161,13 +215,13 @@ def _make_linear_data(n=60, seed=42):
 
 # Adapter cho ridge (dùng trong tests)
 def _ridge_predict(X_val: list[list[float]], model: dict) -> list[float]:
-    from ridge_lasso import ridge_predict
+    from part1.ridge_lasso import ridge_predict
     return ridge_predict(X_val, model["beta_hat"], model["mean_X"], model["std_X"])
 
 
 def test_kfold_cv_returns_correct_keys():
     """Kết quả phải có đủ 5 key."""
-    from ridge_lasso import ridge_fit
+    from part1.ridge_lasso import ridge_fit
     X, y = _make_linear_data()
     res  = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=0.1)
     for key in ("mean_cv_mse", "std_cv_mse", "cv_mse_list", "mean_cv_r2", "cv_r2_list"):
@@ -177,7 +231,7 @@ def test_kfold_cv_returns_correct_keys():
 
 def test_kfold_cv_number_of_folds():
     """cv_mse_list phải có đúng k phần tử."""
-    from ridge_lasso import ridge_fit
+    from part1.ridge_lasso import ridge_fit
     X, y = _make_linear_data()
     for k in (3, 5, 10):
         res = kfold_cv(X, y, k=k, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=0.1)
@@ -187,7 +241,7 @@ def test_kfold_cv_number_of_folds():
 
 def test_kfold_cv_mse_positive():
     """MSE từng fold phải >= 0."""
-    from ridge_lasso import ridge_fit
+    from part1.ridge_lasso import ridge_fit
     X, y = _make_linear_data()
     res  = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1.0)
     for i, mse in enumerate(res["cv_mse_list"]):
@@ -197,7 +251,7 @@ def test_kfold_cv_mse_positive():
 
 def test_kfold_cv_mean_matches_list():
     """mean_cv_mse phải bằng trung bình cv_mse_list."""
-    from ridge_lasso import ridge_fit
+    from part1.ridge_lasso import ridge_fit
     X, y = _make_linear_data()
     res  = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=0.5)
     expected_mean = sum(res["cv_mse_list"]) / len(res["cv_mse_list"])
@@ -207,7 +261,7 @@ def test_kfold_cv_mean_matches_list():
 
 def test_kfold_cv_r2_range():
     """R² của mô hình tốt trên dữ liệu tuyến tính phải > 0.5."""
-    from ridge_lasso import ridge_fit
+    from part1.ridge_lasso import ridge_fit
     X, y = _make_linear_data(n=100, seed=7)
     res  = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1e-4)
     assert res["mean_cv_r2"] > 0.5, f"R² quá thấp: {res['mean_cv_r2']:.3f}"
@@ -216,7 +270,7 @@ def test_kfold_cv_r2_range():
 
 def test_kfold_cv_reproducible():
     """Kết quả phải giống nhau khi gọi hai lần (seed cố định)."""
-    from ridge_lasso import ridge_fit
+    from part1.ridge_lasso import ridge_fit
     X, y = _make_linear_data()
     res1 = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1.0)
     res2 = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1.0)
@@ -242,7 +296,7 @@ if __name__ == "__main__":
 
     # Demo: tìm λ tối ưu
     print("\n--- Demo: λ Search với Ridge ---")
-    from ridge_lasso import ridge_fit, ridge_predict
+    from part1.ridge_lasso import ridge_fit, ridge_predict
     X_d, y_d = _make_linear_data(n=120, seed=0)
     cv_lambda_search(
         X_d, y_d,
