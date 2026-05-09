@@ -10,6 +10,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from config import RANDOM_STATE
 
 from test_utils import (
     TestLogger, assert_close, assert_equal, assert_true,
@@ -17,7 +18,7 @@ from test_utils import (
     make_linear_data, make_multifeature_data,
     verify_vs_sklearn_ols,
 )
-from part1.ols_implementation import ols_fit, hat_matrix, model_metrics
+from ols_implementation import ols_fit, hat_matrix, model_metrics
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -76,6 +77,18 @@ def test_ols_sigma2_exact():
     )
 
 
+def test_ols_sigma2_positive():
+    """sigma > 0 → sigma2_hat phải dương và gần true_sigma² khi n lớn."""
+    TRUE_SIGMA = 1.0
+    X, y = make_linear_data(n=100, beta=[1.0, 2.0], sigma=TRUE_SIGMA, seed=RANDOM_STATE)
+    res  = ols_fit(X, y)
+    # Với n=100 và sigma=1.0, sigma2_hat phải nằm trong [0.5, 2.0]
+    return assert_in_range(
+        res["sigma2_hat"], 0.5, 2.0,
+        label="F1: sigma2_hat ≈ true_sigma² khi sigma=1.0 (n=100)",
+    )
+
+
 # ═══════════════════════════════════════════════════════════════════
 #  F2: hat_matrix
 # ═══════════════════════════════════════════════════════════════════
@@ -114,7 +127,7 @@ def test_hat_rank():
 def test_hat_projection():
     """H @ y == ŷ (từ ols_fit)."""
     from utils import matvec
-    X, y = make_linear_data(n=15, beta=[1.0, 2.0], sigma=0.5, seed=7)
+    X, y = make_linear_data(n=15, beta=[1.0, 2.0], sigma=0.5, seed=RANDOM_STATE)
     ols_res = ols_fit(X, y)
     hat_res = hat_matrix(X)
     y_hat_from_H = matvec(hat_res["H"], y)
@@ -127,6 +140,10 @@ def test_hat_projection():
 
 def test_hat_eigenvalues():
     """Eigenvalues chỉ gồm 0 và 1."""
+    # KNOWN LIMITATION: eigenvalues trong hat_matrix được hardcode là [1.0]*rank + [0.0]*(n-rank)
+    # thay vì tính thực từ ma trận bằng QR iteration. Test này kiểm tra tính nhất quán
+    # (giá trị luôn ∈ {0, 1}), không phát hiện được bug trong thuật toán tính eigenvalue thực.
+    # Accepted scope limitation cho dự án này.
     X, _ = make_linear_data(n=15, beta=[1.0, 2.0], sigma=0.0)
     res  = hat_matrix(X)
     evs  = res["eigenvalues"]
@@ -217,6 +234,7 @@ if __name__ == "__main__":
     run(test_ols_residuals_sum_zero())
     run(test_ols_vs_sklearn())
     run(test_ols_sigma2_exact())
+    run(test_ols_sigma2_positive())
 
     # --- F2: hat_matrix ---
     TestLogger.print_suite_header("F2 — hat_matrix  |  Projection Properties")

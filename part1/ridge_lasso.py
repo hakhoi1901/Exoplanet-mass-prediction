@@ -95,11 +95,14 @@ def ridge_fit(
     beta_hat = solve_system(A, rhs)     # utils.py
     y_hat    = matvec(X_b, beta_hat)    # utils.py
 
+    residuals = [y[i] - y_hat[i] for i in range(n)]
+
     return {
-        "beta_hat": beta_hat,
-        "y_hat":    y_hat,
-        "mean_X":   mean_X,
-        "std_X":    std_X,
+        "beta_hat":  beta_hat,
+        "y_hat":     y_hat,
+        "residuals": residuals,
+        "mean_X":    mean_X,
+        "std_X":     std_X,
     }
 
 
@@ -120,6 +123,7 @@ def ridge_trace(
     y: list[float],
     lambdas: list[float] | None = None,
     save_dir: str = "output",
+    show_plot: bool = False,
 ) -> dict:
     """
     Vẽ Ridge Trace: λ vs hệ số hồi quy (không tính intercept).
@@ -148,8 +152,13 @@ def ridge_trace(
     ax.legend(loc="upper right", fontsize=8)
     ax.axhline(0, color="black", linewidth=0.8, linestyle="--")
     plt.tight_layout()
-    plt.savefig(os.path.join(save_dir, "ridge_trace.png"), dpi=150, bbox_inches="tight")
-    plt.show()
+    out_path = os.path.join(save_dir, "ridge_trace.png")
+    plt.savefig(out_path, dpi=150, bbox_inches="tight")
+    
+    if show_plot:
+        print(f"[F6] Ridge Trace đã lưu tại: {out_path}")
+        plt.show()
+    plt.close(fig)
 
     return {"lambdas": lambdas, "coefs": [list(c) for c in coefs]}
 
@@ -265,7 +274,54 @@ def lasso_predict(
     return matvec(X_b, beta_hat)        # utils.py
 
 
-# ---------------------------------------------------------------------------
+def lasso_trace(
+    X: list[list[float]],
+    y: list[float],
+    lambdas: list[float] | None = None,
+    save_dir: str = "output",
+    show_plot: bool = False,
+) -> dict:
+    """
+    Vẽ Lasso Path: λ vs hệ số hồi quy (không tính intercept).
+
+    Tương tự ridge_trace nhưng dùng lasso_fit (coordinate descent).
+    Lưu ý: lasso_fit chậm hơn ridge nên dùng lưới λ thưa hơn.
+
+    Trả về dict: {'lambdas': list, 'coefs': list[list]} để dùng tiếp.
+    """
+    if lambdas is None:
+        # Lưới thưa hơn ridge để tiết kiệm thời gian (coordinate descent chậm)
+        lambdas = [10 ** e for e in [x / 5 for x in range(-10, 21)]]  # 1e-2 … 1e4
+
+    coefs = []
+    for lam in lambdas:
+        res = lasso_fit(X, y, lam)
+        coefs.append(res["beta_hat"][1:])  # bỏ intercept
+
+    coefs_T = list(zip(*coefs))  # (p, n_lambdas)
+    p = len(coefs_T)
+
+    os.makedirs(save_dir, exist_ok=True)
+    fig, ax = plt.subplots(figsize=(9, 5))
+    for j in range(p):
+        ax.plot(lambdas, coefs_T[j], label=f"β_{j + 1}")
+    ax.set_xscale("log")
+    ax.set_title("Lasso Path: λ vs Hệ Số Hồi Quy", fontsize=13)
+    ax.set_xlabel("λ (log scale)")
+    ax.set_ylabel("Giá trị hệ số β")
+    ax.legend(loc="upper right", fontsize=8)
+    ax.axhline(0, color="black", linewidth=0.8, linestyle="--")
+    plt.tight_layout()
+    out_path = os.path.join(save_dir, "lasso_path.png")
+    plt.savefig(out_path, dpi=150, bbox_inches="tight")
+
+    if show_plot:
+        print(f"[F7] Lasso Path đã lưu tại: {out_path}")
+        plt.show()
+    plt.close(fig)
+
+    return {"lambdas": lambdas, "coefs": [list(c) for c in coefs]}
+
 
 # ---------------------------------------------------------------------------
 # Unit Tests — F6 & F7  (≥ 4 test mỗi hàm)
@@ -302,7 +358,7 @@ if __name__ == "__main__":
     run(assert_equal(len(res["y_hat"]), 4, label="ridge_fit y_hat length matches n"))
 
     # test_ridge_lam0_close_to_ols
-    np.random.seed(42)
+    np.random.seed(RANDOM_STATE)
     X_np = np.random.randn(50, 3).tolist()
     beta_true = [1.0, -2.0, 0.5]
     y_np = [sum(beta_true[j] * X_np[i][j] for j in range(3)) for i in range(50)]
@@ -325,16 +381,20 @@ if __name__ == "__main__":
     # test_ridge_vs_sklearn
     try:
         from sklearn.linear_model import Ridge
-        np.random.seed(0)
+        from sklearn.preprocessing import StandardScaler
+        from sklearn.pipeline import Pipeline
+        np.random.seed(RANDOM_STATE)
         X_sk = np.random.randn(30, 2)
         y_sk = X_sk @ np.array([2.0, -1.0]) + 0.5
         X4 = X_sk.tolist(); y4 = y_sk.tolist()
         res4 = ridge_fit(X4, y4, lam=1.0)
         mse_ours = _mse(y4, res4["y_hat"])
-        sk_model = Ridge(alpha=1.0, fit_intercept=True).fit(X_sk, y_sk)
-        mse_sk = float(np.mean((y_sk - sk_model.predict(X_sk)) ** 2))
+        # Dùng Pipeline(StandardScaler + Ridge) để khớp với cách chúng ta standardize X bên trong
+        pipe = Pipeline([("sc", StandardScaler()), ("ridge", Ridge(alpha=1.0, fit_intercept=True))])
+        pipe.fit(X_sk, y_sk)
+        mse_sk = float(np.mean((y_sk - pipe.predict(X_sk)) ** 2))
         diff_ratio = abs(mse_ours - mse_sk) / (mse_sk + 1e-12)
-        run(assert_true(diff_ratio < 0.60, label=f"ridge_fit performance matches sklearn.linear_model.Ridge"))
+        run(assert_true(diff_ratio < 0.10, label=f"ridge_fit performance matches sklearn Pipeline(StandardScaler+Ridge) (diff={diff_ratio:.1%})"))
     except ImportError:
         TestLogger.print_warn("Bỏ qua test_ridge_vs_sklearn vì không có thư viện sklearn")
 
@@ -347,7 +407,7 @@ if __name__ == "__main__":
     run(assert_equal(len(res5["y_hat"]), 4, label="lasso_fit y_hat length matches n"))
 
     # test_lasso_sparsity
-    np.random.seed(42)
+    np.random.seed(RANDOM_STATE)
     X_ls = np.random.randn(60, 5).tolist()
     y_ls = [2 * X_ls[i][0] - 1.5 * X_ls[i][1] + 0.05 * np.random.randn() for i in range(60)]
     res6 = lasso_fit(X_ls, y_ls, lam=2.0)
@@ -360,7 +420,7 @@ if __name__ == "__main__":
     run(assert_close(res7["y_hat"], pred7, label="lasso_predict outputs exactly match training y_hat", rtol=1e-6))
 
     # test_lasso_lam0_close_to_ols
-    np.random.seed(1)
+    np.random.seed(RANDOM_STATE)
     X_l0 = np.random.randn(40, 2).tolist()
     y_l0 = [2.0 * X_l0[i][0] - 1.0 * X_l0[i][1] for i in range(40)]
     res8 = lasso_fit(X_l0, y_l0, lam=1e-6)
@@ -370,7 +430,7 @@ if __name__ == "__main__":
     # test_lasso_vs_sklearn
     try:
         from sklearn.linear_model import Lasso
-        np.random.seed(5)
+        np.random.seed(RANDOM_STATE)
         X_sk2 = np.random.randn(50, 3)
         y_sk2 = X_sk2 @ np.array([1.0, 0.0, -2.0]) + np.random.randn(50) * 0.3
         X9 = X_sk2.tolist(); y9 = y_sk2.tolist()

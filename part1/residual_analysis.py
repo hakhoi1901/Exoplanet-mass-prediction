@@ -2,11 +2,13 @@ from __future__ import annotations
 import math
 import os
 import sys
+from config import RANDOM_STATE
 
 import matplotlib.pyplot as plt
 
 # Import utils và F2 hat_matrix
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.dirname(__file__))  # cho phép import sibling modules trong part1/
 
 
 
@@ -20,6 +22,7 @@ def residual_plots(
     y_hat: list[float],
     X: list[list[float]] | None = None,
     save_dir: str = "output",
+    show_plot: bool = False,
 ) -> dict:
     """
     F8: Vẽ 4 biểu đồ chẩn đoán phần dư chuẩn.
@@ -54,13 +57,15 @@ def residual_plots(
 
     # --- Standardized residuals ---
     rss = sum(r * r for r in residuals)
-    sigma_hat = math.sqrt(max(rss / max(n - 2, 1), 1e-12))
+    # Degrees of freedom: n-p-1 khi biết số features, n-2 khi không biết (X=None)
+    p_feat = len(X[0]) if X is not None else 1
+    sigma_hat = math.sqrt(max(rss / max(n - p_feat - 1, 1), 1e-12))
     std_residuals = [r / sigma_hat for r in residuals]
 
     # --- Cook's Distance (liên kết F2) ---
     if X is not None:
         # Dùng F2 hat_matrix để tính leverage
-        from part1.ols_implementation import hat_matrix as compute_hat_matrix
+        from ols_implementation import hat_matrix as compute_hat_matrix
         hat_res = compute_hat_matrix(X)
         H = hat_res["H"]
 
@@ -151,13 +156,17 @@ def residual_plots(
     plt.tight_layout()
     out_path = os.path.join(save_dir, "residual_plots.png")
     plt.savefig(out_path, dpi=150, bbox_inches="tight")
-    plt.show()
-    print(f"[F8] Biểu đồ phần dư đã lưu tại: {out_path}")
+    
+    if show_plot:
+        print(f"[F8] Biểu đồ phần dư đã lưu tại: {out_path}")
+        plt.show()
+    plt.close(fig)
 
     return {
-        "residuals":    residuals,
+        "fig":           fig,
+        "residuals":     residuals,
         "std_residuals": std_residuals,
-        "cooks_d":      cooks_d,
+        "cooks_d":       cooks_d,
     }
 
 
@@ -213,7 +222,7 @@ if __name__ == "__main__":
     run(assert_close(res2["residuals"], expected, label="residuals exactly match formula (y - y_hat)"))
 
     # test_cooks_distance_with_X
-    random.seed(0)
+    random.seed(RANDOM_STATE)
     n, p = 30, 2
     X_np  = [[random.gauss(0, 1) for _ in range(p)] for _ in range(n)]
     beta  = [1.0, 2.0, -1.0]
@@ -225,7 +234,7 @@ if __name__ == "__main__":
     run(assert_true(all(d >= 0 for d in res3["cooks_d"]), label="all calculated Cook's distances are non-negative"))
 
     # test_influential_point_detected
-    random.seed(1)
+    random.seed(RANDOM_STATE)
     X_np2 = [[random.gauss(0, 1)] for _ in range(n)]
     beta2 = [0.0, 1.0]
     X_b2  = [[1.0] + row for row in X_np2]

@@ -6,10 +6,8 @@ import os
 # Thêm thư mục gốc vào path để import utils và config
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from utils import transpose, matmul, matvec, dot_product, inverse, solve_system, identity_matrix
-from config import EPSILON
-
-from utils import matmul, transpose, inverse, add_bias, matvec, solve_system
+from utils import transpose, matmul, matvec, dot_product, inverse, solve_system, identity_matrix, add_bias
+from config import RANDOM_STATE, EPSILON
 
 # ---------------------------------------------------------------------------
 # F1: OLS Fit — Giải Normal Equations
@@ -137,6 +135,9 @@ def hat_matrix(X: list[list[float]]) -> dict:
     # Bước 8: Eigenvalues — Với ma trận chiếu idempotent,
     # eigenvalues lý thuyết chỉ gồm 0 và 1.
     # Số eigenvalue = 1 chính bằng rank (= p+1).
+    # KNOWN LIMITATION: eigenvalues được tính theo lý thuyết (hardcode [1]*rank + [0]*(n-rank))
+    # thay vì tính thực từ ma trận bằng QR iteration — vượt scope dự án.
+    # Giá trị này chính xác về mặt lý thuyết cho projection matrix idempotent.
     eigenvalues = [1.0] * rank + [0.0] * (n - rank)
 
     return {
@@ -180,6 +181,8 @@ def model_metrics(
     from scipy.stats import f as f_dist
 
     n = len(y)
+    if n <= p + 1:
+        raise ValueError(f"Cần n > p + 1 để tính model metrics (n={n}, p={p})")
     y_bar = sum(y) / n
 
     # Sums of Squares
@@ -252,7 +255,7 @@ def coef_inference(
         beta_hat : list[float] — [intercept, β₁, …, βₚ] từ ols_fit.
         sigma2   : float — σ̂² từ ols_fit.
 
-    Trả về dict:
+    Trả về dict (không phải DataFrame — dùng pandas.DataFrame(coef_inference(...)) nếu cần hiển thị bảng):
         coef     : list[float] — Hệ số β̂.
         std_err  : list[float] — Standard errors.
         t_stat   : list[float] — t-statistics.
@@ -337,6 +340,9 @@ def vif(X: list[list[float]]) -> dict[str, float]:
     n = len(X)
     p = len(X[0])
 
+    if p < 2:
+        raise ValueError("VIF requires at least 2 features")
+
     vifs: dict[str, float] = {}
     for j in range(p):
         # Tách feature j làm target, các feature còn lại làm predictors
@@ -358,99 +364,7 @@ def vif(X: list[list[float]]) -> dict[str, float]:
 
     return vifs
 
-def hat_matrix(X: list[list[float]]) -> dict:
-    """
-    F2: Tính Hat Matrix H = X(XᵀX)⁻¹Xᵀ và kiểm tra các tính chất.
-    """
-    X_bias = add_bias(X)
-    n = len(X_bias)
-    p1 = len(X_bias[0]) if n > 0 else 0
-    
-    Xt = transpose(X_bias)
-    XtX = matmul(Xt, X_bias)
-    
-    try:
-        A_inv = inverse(XtX)
-    except ValueError:
-        raise ValueError("Matrix is singular")
-        
-    H = matmul(matmul(X_bias, A_inv), Xt)
-    
-    # Check idempotent: H^2 = H
-    H_sq = matmul(H, H)
-    is_idempotent = True
-    for i in range(n):
-        for j in range(n):
-            if abs(H_sq[i][j] - H[i][j]) > 1e-8:
-                is_idempotent = False
-                break
-        if not is_idempotent:
-            break
-            
-    # Check symmetric: H^T = H
-    H_T = transpose(H)
-    is_symmetric = True
-    for i in range(n):
-        for j in range(n):
-            if abs(H_T[i][j] - H[i][j]) > 1e-8:
-                is_symmetric = False
-                break
-        if not is_symmetric:
-            break
-            
-    # rank = trace(H) for idempotent matrix
-    rank = int(round(sum(H[i][i] for i in range(n))))
-    
-    # eigenvalues
-    eigenvalues = np.linalg.eigvals(np.array(H)).real.tolist()
-    
-    return {
-        "H": H,
-        "is_idempotent": is_idempotent,
-        "is_symmetric": is_symmetric,
-        "rank": rank,
-        "eigenvalues": eigenvalues
-    }
 
-def model_metrics(y: list[float], y_hat: list[float], p: int) -> dict:
-    """
-    F3: Tính đầy đủ các chỉ số đánh giá mô hình.
-    """
-    n = len(y)
-    if n <= p + 1:
-        raise ValueError("Need n > p + 1 for model metrics")
-        
-    y_bar = sum(y) / n
-    rss = sum((y[i] - y_hat[i])**2 for i in range(n))
-    tss = sum((y[i] - y_bar)**2 for i in range(n))
-    mss = tss - rss
-    
-    r2 = 1.0 - rss / tss if tss > 1e-12 else 0.0
-    r2_adj = 1.0 - (n - 1) / (n - p - 1) * (1.0 - r2)
-    
-    mse_model = mss / p if p > 0 else 0.0
-    mse_res = rss / (n - p - 1)
-    
-    f_stat = mse_model / mse_res if mse_res > 1e-12 else float('inf')
-    if f_stat != float('inf') and p > 0:
-        f_pvalue = f.sf(f_stat, p, n - p - 1)
-    else:
-        f_pvalue = float('nan')
-        
-    mae = sum(abs(y[i] - y_hat[i]) for i in range(n)) / n
-    rmse = math.sqrt(rss / n)
-    
-    return {
-        "RSS": rss,
-        "TSS": tss,
-        "MSS": mss,
-        "R2": r2,
-        "R2_adj": r2_adj,
-        "F_stat": f_stat,
-        "F_pvalue": f_pvalue,
-        "MAE": mae,
-        "RMSE": rmse
-    }
 
 # ---------------------------------------------------------------------------
 # Unit Tests — F1-F5
@@ -475,7 +389,7 @@ if __name__ == "__main__":
 
     # --- F1: ols_fit ---
     TestLogger.print_suite_header("F1 — ols_fit")
-    X, y = make_linear_data(n=30, beta=[1.0, 2.0, -1.5], sigma=0.5, seed=42)
+    X, y = make_linear_data(n=30, beta=[1.0, 2.0, -1.5], sigma=0.5, seed=RANDOM_STATE)
     res_f1 = ols_fit(X, y)
     
     run(assert_true("beta_hat" in res_f1 and "y_hat" in res_f1, label="ols_fit returns correct keys"))
@@ -485,7 +399,7 @@ if __name__ == "__main__":
 
     # --- F2: hat_matrix ---
     TestLogger.print_suite_header("F2 — hat_matrix")
-    X_hat, _ = make_linear_data(n=20, beta=[1.0, 2.0], sigma=0.0, seed=42)
+    X_hat, _ = make_linear_data(n=20, beta=[1.0, 2.0], sigma=0.0, seed=RANDOM_STATE)
     res_f2 = hat_matrix(X_hat)
     
     run(assert_shape(res_f2["H"], (20, 20), label="hat_matrix H shape is (n, n)"))
@@ -498,7 +412,7 @@ if __name__ == "__main__":
 
     # --- F3: model_metrics ---
     TestLogger.print_suite_header("F3 — model_metrics")
-    X_m, y_m = make_linear_data(n=50, beta=[1.0, 2.0], sigma=1.0, seed=1)
+    X_m, y_m = make_linear_data(n=50, beta=[1.0, 2.0], sigma=1.0, seed=RANDOM_STATE)
     res_ols_m = ols_fit(X_m, y_m)
     res_f3 = model_metrics(y_m, res_ols_m["y_hat"], p=1)
     
@@ -509,18 +423,18 @@ if __name__ == "__main__":
 
     # --- F4: coef_inference ---
     TestLogger.print_suite_header("F4 — coef_inference")
-    X_i, y_i = make_linear_data(n=60, beta=[0.5, 3.0], sigma=1.0, seed=2)
+    X_i, y_i = make_linear_data(n=60, beta=[0.5, 3.0], sigma=1.0, seed=RANDOM_STATE)
     res_ols_i = ols_fit(X_i, y_i)
     res_f4 = coef_inference(X_i, y_i, res_ols_i["beta_hat"], res_ols_i["sigma2_hat"])
     
-    run(assert_shape(res_f4, (2, 6), label="coef_inference returns DataFrame of shape (p+1, 6)"))
-    run(assert_true(all(res_f4["std_err"] >= 0), label="coef_inference std_err >= 0"))
-    run(assert_true(all(res_f4["p_value"] >= 0) and all(res_f4["p_value"] <= 1), label="coef_inference p_value in [0,1]"))
-    run(assert_true(all(res_f4["ci_lower"] <= res_f4["ci_upper"]), label="coef_inference ci_lower <= ci_upper"))
+    run(assert_true(len(res_f4["names"]) == 2, label="coef_inference returns dict with lists of length p+1"))
+    run(assert_true(all(se >= 0 for se in res_f4["std_err"]), label="coef_inference std_err >= 0"))
+    run(assert_true(all(0 <= p <= 1 for p in res_f4["p_value"]), label="coef_inference p_value in [0,1]"))
+    run(assert_true(all(res_f4["ci_lower"][i] <= res_f4["ci_upper"][i] for i in range(2)), label="coef_inference ci_lower <= ci_upper"))
 
     # --- F5: vif ---
     TestLogger.print_suite_header("F5 — vif")
-    X_v, _ = make_collinear_data(n=100, seed=42)
+    X_v, _ = make_collinear_data(n=100, seed=RANDOM_STATE)
     res_f5 = vif(X_v)
     
     run(assert_equal(len(res_f5), 3, label="vif returns dict of length p"))

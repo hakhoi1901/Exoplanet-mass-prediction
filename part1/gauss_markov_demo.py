@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 
 # Import utils và F1 ols_fit
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from utils import matvec, dot_product
+sys.path.insert(0, os.path.dirname(__file__))  # cho phép import sibling modules trong part1/
+from utils import matvec, dot_product, build_null_vector
 from config import RANDOM_STATE, EPSILON
 
 
@@ -16,52 +17,6 @@ from config import RANDOM_STATE, EPSILON
 # F10: Gauss-Markov Monte Carlo Demo
 # Liên kết: Dùng F1 ols_fit để tính OLS estimates trong mỗi simulation
 # ---------------------------------------------------------------------------
-
-def _build_null_vector(X_bias: list[list[float]]) -> list[float]:
-    """
-    Xây dựng vector v thuộc Null(X_biasᵀ), tức v ⊥ tất cả cột của X_bias.
-
-    Dùng phương pháp Gram-Schmidt: tạo vector random rồi chiếu xuống
-    không gian trực giao của X_bias.
-
-    Tham số:
-        X_bias: Ma trận design đã có bias, shape (n, p+1).
-
-    Trả về:
-        list[float]: vector v shape (n,) sao cho Xᵀv ≈ 0.
-    """
-    n = len(X_bias)
-    p1 = len(X_bias[0])
-
-    if p1 >= n:
-        raise ValueError("Cần n > p + 1 để có null space không tầm thường")
-
-    # Lấy các cột của X_bias
-    cols = [[X_bias[i][j] for i in range(n)] for j in range(p1)]
-
-    # Tạo vector ngẫu nhiên (dùng LCG cho reproducible)
-    v = [0.0] * n
-    state = 12345
-    for i in range(n):
-        state = (state * 1103515245 + 12345) & 0x7FFFFFFF
-        v[i] = (state / 0x7FFFFFFF) * 2.0 - 1.0
-
-    # Chiếu v ra khỏi không gian cột của X_bias (Gram-Schmidt)
-    for col in cols:
-        dot_vc = dot_product(v, col)
-        dot_cc = dot_product(col, col)
-        if abs(dot_cc) > EPSILON:
-            coeff = dot_vc / dot_cc
-            v = [v[i] - coeff * col[i] for i in range(n)]
-
-    # Chuẩn hóa
-    norm_v = math.sqrt(sum(vi * vi for vi in v))
-    if norm_v < EPSILON:
-        raise ValueError("Không thể xây dựng null vector")
-    v = [vi / norm_v for vi in v]
-
-    return v
-
 
 def monte_carlo_gauss_markov(
     n_sim: int = 1000,
@@ -99,7 +54,7 @@ def monte_carlo_gauss_markov(
         beta_ols_all : list[list[float]] — tất cả β̂_OLS (n_sim x 3)
         beta_alt_all : list[list[float]] — tất cả β̂_alt (n_sim x 3)
     """
-    from part1.ols_implementation import ols_fit
+    from ols_implementation import ols_fit
 
     if n_sim <= 0 or n_obs <= 0:
         raise ValueError("n_sim và n_obs phải > 0")
@@ -114,7 +69,7 @@ def monte_carlo_gauss_markov(
 
     # Tạo X_bias cho null vector
     X_bias_fixed = [[1.0] + row for row in X_fixed]
-    v_null = _build_null_vector(X_bias_fixed)
+    v_null = build_null_vector(X_bias_fixed)
 
     # e0 = [1, 0, 0] — perturbation chỉ ảnh hưởng intercept
     e0 = [1.0] + [0.0] * (n_coef - 1)
@@ -255,6 +210,7 @@ if __name__ == "__main__":
         sys.stdout.reconfigure(encoding='utf-8')
         
     from test_utils import TestLogger, assert_shape, assert_true, assert_in_range, assert_equal
+    import numpy as np
 
     print("=" * 55)
     print("  UNIT TESTS — gauss_markov_demo.py")
@@ -271,21 +227,20 @@ if __name__ == "__main__":
     TestLogger.print_suite_header("F10 — Gauss Markov Demo")
 
     # Run simulation with small n_sim for testing
-    res = monte_carlo_gauss_markov(n_sim=50, n_obs=30, random_state=42)
+    res = monte_carlo_gauss_markov(n_sim=200, n_obs=30, random_state=RANDOM_STATE)
 
-    run(assert_true("summary" in res and "beta_ols_arr" in res, label="returns expected dictionary keys"))
+    run(assert_true("ols_bias" in res and "beta_ols_all" in res, label="returns expected dictionary keys"))
     
-    run(assert_shape(res["beta_ols_arr"], (50, 3), label="beta_ols_arr has shape (n_sim, p+1)"))
-    run(assert_shape(res["beta_alt_arr"], (50, 3), label="beta_alt_arr has shape (n_sim, p+1)"))
+    run(assert_shape(res["beta_ols_all"], (200, 3), label="beta_ols_arr has shape (n_sim, p+1)"))
+    run(assert_shape(res["beta_alt_all"], (200, 3), label="beta_alt_arr has shape (n_sim, p+1)"))
 
     # Bias should be small, but with 50 sims it might have variance. Just check it runs.
-    summary = res["summary"]
-    run(assert_true("ols_bias" in summary.columns, label="summary DataFrame has ols_bias column"))
+    run(assert_true(len(res["ols_bias"]) > 0, label="results contain ols_bias array"))
 
     # Test reproducible
     res2 = monte_carlo_gauss_markov(n_sim=5, n_obs=10, random_state=1)
     res3 = monte_carlo_gauss_markov(n_sim=5, n_obs=10, random_state=1)
-    run(assert_true(np.allclose(res2["beta_ols_arr"], res3["beta_ols_arr"]), label="simulation is reproducible given random_state"))
+    run(assert_true(np.allclose(res2["beta_ols_all"], res3["beta_ols_all"]), label="simulation is reproducible given random_state"))
 
     TestLogger.print_summary(passed, total)
 

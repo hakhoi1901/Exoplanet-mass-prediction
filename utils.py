@@ -1,6 +1,6 @@
 from __future__ import annotations
 import math
-from config import is_zero, zero_rectify
+from config import is_zero, zero_rectify, EPSILON
 
 def identity_matrix(n: int) -> list[list[float]]:
     """
@@ -404,3 +404,79 @@ def solve_system(A: list[list[float]], b: list[float]) -> list[float]:
             x[i] -= M[i][j] * x[j]
         x[i] /= M[i][i]
     return x
+
+
+def build_null_vector(X_bias: list[list[float]]) -> list[float]:
+    """
+    Xây dựng vector v thuộc Null(X_biasᵀ), tức v ⊥ tất cả cột của X_bias.
+
+    Dùng phương pháp Gram-Schmidt: tạo vector random rồi chiếu xuống
+    không gian trực giao của X_bias.
+
+    Tham số:
+        X_bias: Ma trận design đã có bias, shape (n, p+1).
+
+    Trả về:
+        list[float]: vector v shape (n,) sao cho Xᵀv ≈ 0.
+    """
+    n = len(X_bias)
+    p1 = len(X_bias[0])
+
+    if p1 >= n:
+        raise ValueError("Cần n > p + 1 để có null space không tầm thường")
+
+    # Lấy các cột của X_bias
+    cols = [[X_bias[i][j] for i in range(n)] for j in range(p1)]
+
+    # Tạo vector ngẫu nhiên (dùng LCG cho reproducible)
+    v = [0.0] * n
+    state = 12345
+    for i in range(n):
+        state = (state * 1103515245 + 12345) & 0x7FFFFFFF
+        v[i] = (state / 0x7FFFFFFF) * 2.0 - 1.0
+
+    # Chiếu v ra khỏi không gian cột của X_bias (Gram-Schmidt)
+    for col in cols:
+        dot_vc = dot_product(v, col)
+        dot_cc = dot_product(col, col)
+        if abs(dot_cc) > EPSILON:
+            coeff = dot_vc / dot_cc
+            v = [v[i] - coeff * col[i] for i in range(n)]
+
+    # Chuẩn hóa
+    norm_v = math.sqrt(sum(vi * vi for vi in v))
+    if norm_v < EPSILON:
+        raise ValueError("Không thể xây dựng null vector")
+    v = [vi / norm_v for vi in v]
+
+    return v
+
+
+# ---------------------------------------------------------------------------
+# List / Iterable Utilities
+# ---------------------------------------------------------------------------
+
+def manual_shuffle(lst: list, seed: int) -> None:
+    """Fisher-Yates shuffle in-place với LCG pseudo-random generator."""
+    # Linear Congruential Generator (đơn giản, reproducible)
+    state = seed
+    n = len(lst)
+    for i in range(n - 1, 0, -1):
+        state = (state * 1103515245 + 12345) & 0x7FFFFFFF
+        j = state % (i + 1)
+        lst[i], lst[j] = lst[j], lst[i]
+
+
+def split_into_k(indices: list[int], k: int) -> list[list[int]]:
+    """Chia list indices thành k phần (gần bằng nhau)."""
+    n = len(indices)
+    fold_size = n // k
+    remainder = n % k
+    folds = []
+    start = 0
+    for i in range(k):
+        # Các fold đầu nhận thêm 1 phần tử nếu có dư
+        end = start + fold_size + (1 if i < remainder else 0)
+        folds.append(indices[start:end])
+        start = end
+    return folds

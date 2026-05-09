@@ -9,7 +9,7 @@ from test_utils import make_collinear_data, make_linear_data
 
 class TestF4CoefInference(unittest.TestCase):
     def test_coef_inference_columns_and_index(self) -> None:
-        X, y = make_linear_data(n=120, beta=[1.5, 2.0], sigma=0.3, seed=1)
+        X, y = make_linear_data(n=120, beta=[1.5, 2.0], sigma=0.3, seed=RANDOM_STATE)
         X_np = np.asarray(X, dtype=float)
         y_np = np.asarray(y, dtype=float)
         X_bias = np.column_stack([np.ones(len(X_np)), X_np])
@@ -27,7 +27,7 @@ class TestF4CoefInference(unittest.TestCase):
 
     def test_coef_inference_ci_contains_true_coefficients(self) -> None:
         true_beta = [2.0, -1.0, 0.7]
-        X, y = make_linear_data(n=600, beta=true_beta, sigma=0.2, seed=11)
+        X, y = make_linear_data(n=600, beta=true_beta, sigma=0.2, seed=RANDOM_STATE)
         X_np = np.asarray(X, dtype=float)
         y_np = np.asarray(y, dtype=float)
         X_bias = np.column_stack([np.ones(len(X_np)), X_np])
@@ -44,12 +44,12 @@ class TestF4CoefInference(unittest.TestCase):
 
 class TestF5Vif(unittest.TestCase):
     def test_vif_returns_one_value_per_feature(self) -> None:
-        X, _ = make_collinear_data(n=150, seed=7)
+        X, _ = make_collinear_data(n=150, seed=RANDOM_STATE)
         out = vif(X)
         self.assertEqual(set(out.keys()), {"x1", "x2", "x3"})
 
     def test_vif_detects_collinearity(self) -> None:
-        X, _ = make_collinear_data(n=200, seed=13)
+        X, _ = make_collinear_data(n=200, seed=RANDOM_STATE)
         out = vif(X)
         self.assertTrue(any(v > 10 for v in out.values()))
 
