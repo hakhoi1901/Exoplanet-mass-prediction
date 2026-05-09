@@ -2,14 +2,12 @@ from __future__ import annotations
 import math
 import os
 import sys
-from config import RANDOM_STATE
-
 import matplotlib.pyplot as plt
 
 # Import utils và F2 hat_matrix
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from config import RANDOM_STATE
 sys.path.insert(0, os.path.dirname(__file__))  # cho phép import sibling modules trong part1/
-
 
 
 # ---------------------------------------------------------------------------
