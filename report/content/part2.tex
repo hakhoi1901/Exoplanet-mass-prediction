@@ -1,4 +1,776 @@
-\section{Phần 2: Phân Rã Ma Trận và Trực Quan Hóa với Manim}
+\section{Phần 2: Ứng Dụng Data Fitting vào Dữ Liệu Thực Tế}
 
-% ===========================================================
-\subsection{Cơ sở lý thuyết phương pháp phân rã SVD}
+Phần này trình bày toàn bộ quy trình áp dụng các phương pháp data fitting đã cài đặt ở
+Phần 1 vào một bộ dữ liệu thực tế. Trọng tâm không chỉ là huấn luyện mô hình hồi quy,
+mà còn là xây dựng một pipeline tiền xử lý có thể tái lập, tránh rò rỉ dữ liệu
+(\emph{data leakage}), xử lý missing values, ngoại lai, đa cộng tuyến, sau đó so sánh
+nhiều mô hình trên tập kiểm tra độc lập.
+
+Toàn bộ code chính thức của Phần 2 nằm trong thư mục \texttt{part2/}:
+\begin{itemize}
+    \item \texttt{data\_pipeline.py}: đọc dữ liệu, EDA, log-transform, winsorization,
+          MICE imputation, VIF filtering, chuẩn hóa, chia train/test.
+    \item \texttt{model\_comparison.py}: huấn luyện và so sánh OLS full, OLS chọn biến,
+          Ridge, Lasso; các mô hình chính tái sử dụng hàm đã cài ở \texttt{part1/}.
+    \item \texttt{advanced\_methods.py}: Kernel Ridge Regression với RBF kernel
+          (phần nâng cao/bonus).
+    \item \texttt{part2\_notebook.ipynb}: notebook tổng hợp để chạy lại toàn bộ pipeline
+          và trình bày kết quả.
+\end{itemize}
+
+% ------------------------------------------------------------
+\subsection{Mô tả Bộ Dữ Liệu}
+% ------------------------------------------------------------
+
+\subsubsection{Nguồn dữ liệu và bài toán hồi quy}
+
+Bộ dữ liệu được sử dụng là tập dữ liệu hành tinh ngoài Hệ Mặt Trời
+(\emph{exoplanet dataset}), lưu tại:
+\begin{center}
+    \texttt{part2/data/planet.csv}.
+\end{center}
+
+Mỗi dòng trong dữ liệu tương ứng với một quan sát về hành tinh và ngôi sao chủ,
+bao gồm các đại lượng quỹ đạo, đại lượng quan sát khi hành tinh đi qua trước sao
+(\emph{transit}), và các thuộc tính của sao chủ. Mục tiêu là dự đoán bán kính hành tinh:
+\begin{equation}
+    y = \texttt{pl\_rade}.
+\end{equation}
+Đây là biến liên tục, do đó phù hợp với yêu cầu bài toán hồi quy của đồ án.
+
+Các biến ban đầu gồm:
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\hline
+\textbf{Nhóm biến} & \textbf{Tên biến} & \textbf{Ý nghĩa} \\
+\hline
+Quỹ đạo & \texttt{pl\_orbper}, \texttt{pl\_orbsmax}, \texttt{pl\_orbeccen}
+        & Chu kỳ, bán trục lớn, độ lệch tâm \\
+Transit & \texttt{pl\_trandur}, \texttt{pl\_trandep}, \texttt{pl\_imppar}
+        & Thời lượng, độ sâu, impact parameter \\
+Năng lượng & \texttt{pl\_eqt}, \texttt{pl\_insol}
+        & Nhiệt độ cân bằng, thông lượng bức xạ \\
+Khối lượng/kích thước & \texttt{pl\_bmasse}, \texttt{pl\_rade}
+        & Khối lượng và bán kính hành tinh \\
+Sao chủ & \texttt{st\_teff}, \texttt{st\_rad}, \texttt{st\_mass},
+          \texttt{st\_met}, \texttt{st\_logg}
+        & Nhiệt độ, bán kính, khối lượng, kim loại tính, log-g \\
+Hệ sao & \texttt{sy\_dist} & Khoảng cách tới hệ sao \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{Lý do chọn bộ dữ liệu}
+
+Bộ dữ liệu này thỏa các tiêu chí của đề bài:
+\begin{itemize}
+    \item \textbf{Dữ liệu thực tế}: các biến là quan sát thiên văn, không phải dữ liệu mô phỏng.
+    \item \textbf{Có missing values}: nhiều cột có tỷ lệ thiếu đáng kể, ví dụ
+          \texttt{pl\_orbeccen}, \texttt{pl\_insol}, \texttt{pl\_orbsmax},
+          \texttt{pl\_eqt}.
+    \item \textbf{Biến mục tiêu liên tục}: \texttt{pl\_rade} là bán kính hành tinh.
+    \item \textbf{Số biến đủ lớn}: dữ liệu có nhiều hơn 3 biến đặc trưng định lượng.
+    \item \textbf{Có vấn đề thực tế}: dữ liệu lệch phải mạnh, có ngoại lai, missing values,
+          và đa cộng tuyến giữa các đại lượng quỹ đạo/nhiệt độ.
+\end{itemize}
+
+Bên cạnh các lý do thống kê, đặc tính vật lý của tập dữ liệu cũng đòi hỏi sự xử lý chuyên biệt.
+Các hành tinh khí khổng lồ (\emph{Gas Giants}) và hành tinh đá (\emph{Terrestrial}) chịu sự
+chi phối của các cơ chế vật lý hoàn toàn khác nhau. Nếu gộp chung, phương trình mặt phẳng hồi quy
+sẽ bị nhiễu nghiêm trọng bởi hiện tượng phương sai không đồng nhất. Do đó, trước khi đưa vào
+pipeline, nhóm đã áp dụng kỹ thuật thu hẹp không gian mẫu (\emph{Domain Restriction}), chỉ trích
+xuất nhóm hành tinh đá và Siêu Trái Đất dựa trên ranh giới Fulton (\emph{Fulton Gap}):
+Bán kính $\le 1.6R_\oplus$ và khối lượng $\le 10M_\oplus$. Thao tác này giúp mô hình tập trung
+học đúng các quy luật tuyến tính cục bộ của riêng nhóm hành tinh này.
+
+% ------------------------------------------------------------
+\subsection{Khám Phá Dữ Liệu Ban Đầu (EDA)}
+% ------------------------------------------------------------
+
+Pipeline tạo các thống kê EDA trong thư mục \texttt{part2/output/eda/}, gồm thống kê mô tả,
+tỷ lệ missing, ma trận tương quan, histogram, và scatter plot giữa các biến có tương quan
+cao với target.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{assets/part2/histograms.png}
+    \caption{Histogram các biến số trước tiền xử lý. Một số biến như
+    \texttt{pl\_orbper}, \texttt{pl\_trandep}, \texttt{pl\_insol} có phân phối lệch mạnh,
+    vì vậy cần log-transform trước khi hồi quy.}
+    \label{fig:part2_histograms}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{assets/part2/correlation_heatmap.png}
+    \caption{Ma trận tương quan Pearson giữa các biến số. Hình này được dùng để nhận diện
+    các nhóm biến dễ gây đa cộng tuyến, đặc biệt là nhóm quỹ đạo
+    (\texttt{pl\_orbper}, \texttt{pl\_orbsmax}) và nhóm nhiệt độ/năng lượng
+    (\texttt{pl\_eqt}, \texttt{pl\_insol}, \texttt{st\_teff}).}
+    \label{fig:part2_corr}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{assets/part2/scatter_top5_target.png}
+    \caption{Scatter plot của các biến có tương quan cao nhất với target \texttt{pl\_rade}.
+    Hình này giúp đánh giá sơ bộ tính tuyến tính và mức độ nhiễu trước khi xây dựng mô hình.}
+    \label{fig:part2_scatter}
+\end{figure}
+
+\subsubsection{Missing values trước xử lý}
+
+Sau khi chia train/test, pipeline ghi log tỷ lệ missing trên tập train. Các cột thiếu nhiều nhất
+được tổng hợp trong Bảng~\ref{tab:missing_before}.
+
+\begin{table}[H]
+\centering
+\caption{Các cột có missing values nhiều nhất trước MICE imputation trên tập train}
+\label{tab:missing_before}
+\begin{tabular}{@{}lrrrr@{}}
+\hline
+\textbf{Cột} & \textbf{Missing} & \textbf{Tỷ lệ (\%)} & \textbf{Observed mean} & \textbf{Observed std} \\
+\hline
+\texttt{pl\_orbeccen}      & 113 & 13.033 & 0.013696 & 0.100342 \\
+\texttt{log\_pl\_insol}    & 83  & 9.573  & 5.036231 & 1.818984 \\
+\texttt{log\_pl\_orbsmax}  & 73  & 8.420  & 0.064713 & 0.115627 \\
+\texttt{log\_pl\_eqt}      & 67  & 7.728  & 6.806412 & 0.489359 \\
+\texttt{pl\_imppar}        & 41  & 4.729  & 0.346475 & 0.285704 \\
+\texttt{log\_pl\_trandep}  & 40  & 4.614  & 0.036569 & 0.306775 \\
+\texttt{st\_met}           & 24  & 2.768  & -0.025205 & 0.173601 \\
+\texttt{pl\_trandur}       & 18  & 2.076  & 2.699806 & 2.941368 \\
+\hline
+\end{tabular}
+\end{table}
+
+Nhận xét: missing values không chỉ xuất hiện ở một cột đơn lẻ mà nằm ở nhiều nhóm biến khác
+nhau. Vì vậy, nếu dùng listwise deletion sẽ làm mất nhiều dòng dữ liệu và có thể gây lệch mẫu.
+Do đó pipeline chọn phương pháp MICE thay cho median imputation đơn giản.
+
+% ------------------------------------------------------------
+\subsection{Thiết Kế Pipeline Tiền Xử Lý}
+% ------------------------------------------------------------
+
+\subsubsection{Nguyên tắc tránh data leakage}
+
+Một yêu cầu quan trọng trong Phần 2 là tập test không được tham gia vào quá trình học tham số
+tiền xử lý. Pipeline thực hiện đúng thứ tự:
+\begin{equation}
+    \text{Load data}
+    \rightarrow
+    \text{Drop missing target}
+    \rightarrow
+    \text{Train/test split}
+    \rightarrow
+    \text{Fit preprocessing trên train}
+    \rightarrow
+    \text{Transform test bằng tham số train}.
+\end{equation}
+
+Trong code:
+\begin{lstlisting}[language=Python, caption={Tách train/test trước khi fit preprocessing}]
+train_raw, test_raw = train_test_split_frame(
+    raw, test_size=0.2, random_state=RANDOM_STATE
+)
+
+pipeline = DataPipeline(target="pl_rade")
+X_train, y_train = pipeline.fit_transform(train_raw)
+X_test,  y_test  = pipeline.transform(test_raw, include_target=True)
+\end{lstlisting}
+
+Sau tiền xử lý, dữ liệu chính thức dùng cho mô hình có kích thước:
+\begin{center}
+\begin{tabular}{@{}lrr@{}}
+\hline
+\textbf{Tập dữ liệu} & \textbf{Số dòng} & \textbf{Số features cuối cùng} \\
+\hline
+Train & 867 & 11 \\
+Test  & 217 & 11 \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{Cơ sở toán học và vật lý của phép biến đổi Logarit}
+
+Trong dữ liệu thiên văn, nhiều đại lượng không thay đổi theo quan hệ cộng tuyến tính đơn giản mà
+theo quan hệ lũy thừa:
+\begin{equation}
+    y = Cx^\alpha.
+\end{equation}
+Lấy logarit hai vế cho ta:
+\begin{equation}
+    \log y = \log C + \alpha \log x.
+\end{equation}
+Như vậy, quan hệ lũy thừa trong miền gốc được đưa về quan hệ tuyến tính trong miền log. Đây là lý
+do quan trọng khiến log-transform phù hợp với hồi quy tuyến tính: mô hình vẫn là tuyến tính theo
+hệ số, nhưng có thể mô tả tốt hơn những quy luật vật lý có bản chất nhân hoặc lũy thừa.
+
+Về mặt thống kê, log-transform còn có ba tác dụng phụ trợ: nén các giá trị cực lớn, giảm độ lệch
+phải của phân phối, và làm phương sai ổn định hơn khi độ nhiễu tăng theo độ lớn của biến. Các cơ sở
+vật lý cụ thể được tóm tắt trong Bảng~\ref{tab:log_physics_basis}.
+
+\begin{table}[H]
+\centering
+\caption{Cơ sở toán học và vật lý cho các biến được log-transform}
+\label{tab:log_physics_basis}
+\begin{tabular}{@{}p{0.22\textwidth}p{0.26\textwidth}p{0.43\textwidth}@{}}
+\hline
+\textbf{Nhóm biến} & \textbf{Tên biến trong code} & \textbf{Bản chất vật lý chi phối} \\
+\hline
+Động lực học quỹ đạo
+& \texttt{pl\_orbper}, \texttt{pl\_orbsmax}
+& Bị chi phối bởi Định luật 3 Kepler ($P^2 \propto a^3$). Đây là quan hệ lũy thừa thuần túy;
+  đồng thời chu kỳ quỹ đạo có thang đo rất rộng, từ vài giờ đến rất dài. \\
+\hline
+Cấu trúc không gian
+& \texttt{pl\_bmasse}, \texttt{pl\_rade}
+& Thể tích tỷ lệ với lập phương bán kính ($V \propto R^3$), nên khối lượng và bán kính thường
+  xuất hiện trong các quan hệ lũy thừa. Log giúp đưa quan hệ này gần tuyến tính hơn. \\
+\hline
+Năng lượng và bức xạ
+& \texttt{pl\_insol}, \texttt{pl\_eqt}
+& Tuân theo Định luật Stefan--Boltzmann ($E \propto T^4$) và định luật nghịch đảo bình phương
+  khoảng cách. Các sao rất nóng có thể tạo đuôi phải lớn trong phân phối bức xạ. \\
+\hline
+Đo lường quang học
+& \texttt{pl\_trandep}
+& Độ sâu quá cảnh xấp xỉ tỷ lệ với bình phương tỷ số bán kính hành tinh và sao mẹ,
+  $\left(R_p/R_s\right)^2$. Logarit giúp tách ảnh hưởng của số mũ bình phương. \\
+\hline
+Khoảng cách ngân hà
+& \texttt{sy\_dist}
+& Khoảng cách từ Trái Đất đến các hệ sao trải trên nhiều bậc độ lớn. Phân phối khoảng cách thường
+  có đuôi phải dài, nên log-transform giúp nén thang đo. \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Log-transform các biến lệch mạnh}
+
+Các biến có độ lệch lớn được biến đổi bằng:
+\begin{equation}
+    z = \log(1+x).
+\end{equation}
+Target cũng được log-transform:
+\begin{equation}
+    y = \log(1+\texttt{pl\_rade}) = \texttt{log\_pl\_rade}.
+\end{equation}
+
+Trạng thái dữ liệu trước và sau bước này được hiểu như sau:
+\begin{itemize}
+    \item \textbf{Trước xử lý}: các biến như \texttt{pl\_orbper}, \texttt{pl\_insol},
+          \texttt{pl\_trandep} còn nằm trên thang đo gốc, có miền giá trị rộng và lệch phải mạnh.
+          Ví dụ, \texttt{pl\_orbper} có skewness 6.861484, còn \texttt{pl\_trandep} có skewness
+          10.180175.
+    \item \textbf{Sau xử lý}: các cột gốc được thay bằng phiên bản \texttt{log\_*}. Số dòng dữ liệu
+          không đổi, vị trí missing values không bị tự ý điền ở bước này, nhưng thang đo được nén lại
+          để quan hệ giữa biến giải thích và target gần tuyến tính hơn.
+\end{itemize}
+
+Bảng~\ref{tab:log_transform} cho thấy log-transform làm giảm skewness đáng kể ở nhiều biến.
+
+\begin{table}[H]
+\centering
+\caption{Ảnh hưởng của log-transform lên skewness}
+\label{tab:log_transform}
+\begin{tabular}{@{}lrrrr@{}}
+\hline
+\textbf{Biến gốc} & \textbf{Biến mới} & \textbf{Missing} & \textbf{Skew trước} & \textbf{Skew sau} \\
+\hline
+\texttt{pl\_orbper}  & \texttt{log\_pl\_orbper}  & 0  & 6.861484  & 0.490095 \\
+\texttt{pl\_orbsmax} & \texttt{log\_pl\_orbsmax} & 73 & 3.231263  & 2.594798 \\
+\texttt{pl\_trandep} & \texttt{log\_pl\_trandep} & 40 & 10.180175 & 6.952230 \\
+\texttt{pl\_insol}   & \texttt{log\_pl\_insol}   & 83 & 3.959605  & -0.381478 \\
+\texttt{pl\_bmasse}  & \texttt{log\_pl\_bmasse}  & 0  & 1.769409  & -0.271630 \\
+\texttt{pl\_eqt}     & \texttt{log\_pl\_eqt}     & 67 & 0.878810  & -0.476649 \\
+\texttt{sy\_dist}    & \texttt{log\_sy\_dist}    & 6  & 1.182893  & -1.150935 \\
+\texttt{pl\_rade}    & \texttt{log\_pl\_rade}    & 0  & -0.692968 & -0.991840 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{assets/part2/log_transform_before_after.png}
+    \caption{So sánh phân phối trước và sau log-transform. Các biến có đuôi phải dài
+    như \texttt{pl\_orbper} và \texttt{pl\_insol} được nén thang đo rõ rệt sau khi
+    chuyển sang \texttt{log\_*}.}
+    \label{fig:log_transform_before_after}
+\end{figure}
+
+Nhận xét: \texttt{pl\_orbper}, \texttt{pl\_insol}, \texttt{pl\_bmasse} được cải thiện rõ rệt.
+\texttt{pl\_trandep} vẫn còn lệch sau log-transform, nhưng mức độ đã giảm so với ban đầu.
+
+\subsubsection{Xử lý ngoại lai bằng Winsorization}
+
+Pipeline không xóa dòng ngoại lai mà dùng \textbf{Winsorization} ở hai đầu phân phối:
+\begin{equation}
+    x' =
+    \begin{cases}
+        q_{0.01}, & x < q_{0.01},\\
+        x,        & q_{0.01} \le x \le q_{0.99},\\
+        q_{0.99}, & x > q_{0.99}.
+    \end{cases}
+\end{equation}
+Các ngưỡng $q_{0.01}$ và $q_{0.99}$ được fit trên train, sau đó áp dụng cho test.
+
+\begin{table}[H]
+\centering
+\caption{Tóm tắt Winsorization trên tập train}
+\label{tab:winsor}
+\begin{tabular}{@{}lrrrrr@{}}
+\hline
+\textbf{Cột} & \textbf{p01} & \textbf{p99} & \textbf{Dưới p01} & \textbf{Trên p99} & \textbf{Tổng cap (\%)} \\
+\hline
+\texttt{pl\_orbeccen} & 0.000000 & 0.299400 & 0 & 8 & 1.061 \\
+\texttt{pl\_trandur}  & 0.624060 & 8.189480 & 9 & 9 & 2.120 \\
+\texttt{pl\_imppar}   & 0.004000 & 0.939500 & 9 & 9 & 2.179 \\
+\texttt{st\_rad}      & 0.196330 & 1.788680 & 9 & 9 & 2.076 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{assets/part2/winsorization_before_after.png}
+    \caption{Boxplot trước và sau Winsorization. Các giá trị cực trị ở hai đuôi được
+    kéo về ngưỡng 1\% và 99\%, trong khi phần trung tâm của phân phối gần như được giữ nguyên.}
+    \label{fig:winsorization_before_after}
+\end{figure}
+
+Diễn giải trước/sau Winsorization:
+\begin{itemize}
+    \item \textbf{Trước xử lý}: các cột được chọn vẫn chứa những giá trị nằm ngoài vùng bách phân vị
+          1\%--99\%. Đây là các quan sát có thể tạo lực kéo lớn lên nghiệm OLS.
+    \item \textbf{Sau xử lý}: giá trị nhỏ hơn $q_{0.01}$ được đưa về $q_{0.01}$, giá trị lớn hơn
+          $q_{0.99}$ được đưa về $q_{0.99}$. Tổng cộng có 62 ô dữ liệu trên tập train bị cap
+          ở bốn cột, nhưng số dòng vẫn giữ nguyên $N=867$.
+    \item \textbf{Khi áp dụng lên test}: pipeline không tính lại ngưỡng trên test mà dùng đúng
+          ngưỡng đã fit từ train, nhờ đó tránh rò rỉ dữ liệu.
+\end{itemize}
+
+Lý do chọn Winsorization thay vì xóa dòng:
+\begin{itemize}
+    \item Giữ nguyên số quan sát, đặc biệt quan trọng khi dữ liệu đã có missing values.
+    \item Giảm ảnh hưởng của các điểm cực đoan lên OLS, Ridge, Lasso.
+    \item Dễ giải thích: chỉ cap giá trị quá thấp/quá cao, không thay đổi phần lớn dữ liệu.
+    \item \textbf{Tôn trọng thực tế quan trắc}: khác với lỗi nhập liệu (\emph{typo}), các giá trị
+          cực trị trong thiên văn học, chẳng hạn sao rất nóng hoặc chu kỳ quỹ đạo rất dài, có thể
+          là dữ liệu có thật. Việc dùng listwise deletion theo quy tắc $1.5\times IQR$ có nguy cơ
+          làm mất một lượng lớn quan sát quý giá.
+    \item \textbf{Vô hiệu hóa điểm đòn bẩy cao}: hồi quy OLS rất nhạy cảm với các điểm cực trị.
+          Kỹ thuật cắt xén ở bách phân vị 1\% và 99\% đóng vai trò như một điểm neo, vừa bảo toàn
+          số lượng quan sát $N$, vừa làm giảm lực kéo của các điểm này, giúp mặt phẳng hồi quy
+          vững hơn.
+\end{itemize}
+
+\subsubsection{Xử lý missing values bằng MICE}
+
+Ban đầu, nhóm thử nghiệm phương pháp median imputation, tức nội suy bằng trung vị. Tuy nhiên,
+phương pháp này bộc lộ nhược điểm quan trọng là làm biến dạng phương sai và phá vỡ mối quan hệ
+vật lý giữa các đại lượng. Ví dụ, khối lượng, bán kính và nhiệt độ luôn có sự tương quan nội tại
+trong các hệ hành tinh. Để xử lý vấn đề này, nhóm nâng cấp sang phương pháp \textbf{MICE}
+(Multiple Imputation by Chained Equations). Bằng cách mô hình hóa từng đặc trưng bị thiếu như
+một hàm của các đặc trưng còn lại, MICE giúp bảo toàn cấu trúc đa biến
+(\emph{multivariate structure}) và giữ lại độ nhiễu tự nhiên của dữ liệu quan trắc.
+
+Trạng thái dữ liệu trước và sau MICE:
+\begin{itemize}
+    \item \textbf{Trước xử lý}: sau log-transform và winsorization, tập train vẫn còn 465 ô missing
+          trên 9 cột. Các cột thiếu nhiều nhất là \texttt{pl\_orbeccen} với 113 giá trị thiếu,
+          \texttt{log\_pl\_insol} với 83 giá trị thiếu, và \texttt{log\_pl\_orbsmax} với
+          73 giá trị thiếu.
+    \item \textbf{Sau xử lý}: MICE chỉ thay thế các ô bị thiếu, không thay đổi các giá trị observed
+          ban đầu. Sau khi chạy 5 bản imputation và 5 vòng chained iterations, số ô missing còn lại
+          bằng 0 trên cả train và test.
+    \item \textbf{Ý nghĩa}: dữ liệu sau MICE trở thành ma trận số đầy đủ để truyền vào các hàm
+          \texttt{ols\_fit}, \texttt{ridge\_fit}, \texttt{lasso\_fit} ở Phần 1.
+\end{itemize}
+
+MICE hoạt động theo ý tưởng:
+\begin{enumerate}
+    \item Khởi tạo missing values bằng median trên train.
+    \item Với mỗi cột có missing, coi cột đó là biến phụ thuộc và các cột còn lại là predictors.
+    \item Fit mô hình hồi quy để dự đoán phần missing của cột hiện tại.
+    \item Lặp theo chuỗi nhiều vòng để các cột thiếu được cập nhật qua lại.
+    \item Tạo nhiều bản imputation và lấy trung bình để giảm phụ thuộc vào một lần điền duy nhất.
+\end{enumerate}
+
+Trong pipeline, mỗi hồi quy con của MICE dùng \texttt{ridge\_fit} và \texttt{ridge\_predict}
+từ \texttt{part1/ridge\_lasso.py}. Các tham số hiện tại:
+\begin{center}
+\begin{tabular}{@{}lr@{}}
+\hline
+\textbf{Tham số} & \textbf{Giá trị} \\
+\hline
+Số bản imputation $m$ & 5 \\
+Số vòng chained iterations & 5 \\
+Ridge regularization trong MICE & 0.001 \\
+Noise scale & 0.15 \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{table}[H]
+\centering
+\caption{Tóm tắt giá trị được MICE impute trên tập train}
+\label{tab:mice}
+\begin{tabular}{@{}lrrrrr@{}}
+\hline
+\textbf{Cột} & \textbf{Missing} & \textbf{Missing (\%)} & \textbf{Median khởi tạo} & \textbf{Mean observed} & \textbf{Mean imputed} \\
+\hline
+\texttt{pl\_orbeccen}     & 113 & 13.033 & 0.000000 & 0.013696 & 0.033514 \\
+\texttt{log\_pl\_insol}   & 83  & 9.573  & 5.207544 & 5.036231 & 5.332386 \\
+\texttt{log\_pl\_orbsmax} & 73  & 8.420  & 0.052213 & 0.064713 & 0.045031 \\
+\texttt{log\_pl\_eqt}     & 67  & 7.728  & 6.856987 & 6.806412 & 6.805654 \\
+\texttt{pl\_imppar}       & 41  & 4.729  & 0.284700 & 0.346475 & 0.394104 \\
+\texttt{log\_pl\_trandep} & 40  & 4.614  & 0.020498 & 0.036569 & 0.046997 \\
+\texttt{st\_met}          & 24  & 2.768  & 0.000000 & -0.025205 & -0.097143 \\
+\texttt{pl\_trandur}      & 18  & 2.076  & 2.372000 & 2.699806 & 2.127761 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{assets/part2/mice_observed_vs_imputed.png}
+    \caption{So sánh phân phối observed và phần được MICE impute ở các cột thiếu nhiều nhất.
+    Giá trị impute không bị gom về một điểm trung vị duy nhất mà vẫn có độ phân tán tự nhiên.}
+    \label{fig:mice_observed_vs_imputed}
+\end{figure}
+
+Sau MICE, số ô missing còn lại bằng 0 trên cả train và test. Đây là điểm quan trọng vì các hàm
+OLS/Ridge/Lasso tự cài ở Phần 1 không nhận \texttt{NaN}.
+
+\subsubsection{Loại biến bằng VIF}
+
+Để kiểm soát đa cộng tuyến, pipeline dùng hàm \texttt{vif} đã cài ở Phần 1. Với mỗi biến $x_j$:
+\begin{equation}
+    \mathrm{VIF}_j = \frac{1}{1 - R_j^2},
+\end{equation}
+trong đó $R_j^2$ là hệ số xác định khi hồi quy $x_j$ theo tất cả các biến còn lại.
+
+Ngưỡng hiện tại:
+\begin{equation}
+    \mathrm{VIF} > 10.
+\end{equation}
+Pipeline lặp như sau: tính VIF cho tất cả biến, drop biến có VIF cao nhất nếu vượt ngưỡng,
+sau đó tính lại VIF.
+
+Trạng thái dữ liệu trước và sau VIF filtering:
+\begin{itemize}
+    \item \textbf{Trước xử lý}: sau MICE và trước VIF, dữ liệu có 13 features ứng viên.
+          Một số biến mang thông tin trùng lặp mạnh, đặc biệt là nhóm quỹ đạo/năng lượng.
+          VIF lớn nhất ban đầu là \texttt{log\_pl\_orbper} với 43.1374.
+    \item \textbf{Sau xử lý}: pipeline loại 2 biến vượt ngưỡng 10 là
+          \texttt{log\_pl\_orbper} và \texttt{log\_pl\_eqt}. Dữ liệu cuối cùng còn 11 features.
+          VIF lớn nhất sau lọc là \texttt{st\_teff} với 9.2570, nhỏ hơn ngưỡng 10.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Các vòng lọc VIF}
+\label{tab:vif}
+\begin{tabular}{@{}lrrl@{}}
+\hline
+\textbf{Vòng} & \textbf{Biến có VIF cao nhất} & \textbf{VIF} & \textbf{Quyết định} \\
+\hline
+1 & \texttt{log\_pl\_orbper} & 43.1374 & Drop \\
+2 & \texttt{log\_pl\_eqt}    & 20.4514 & Drop \\
+3 & \texttt{st\_teff}        & 9.2570  & Dừng vì $<10$ \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Một số VIF lớn nhất sau khi thanh lọc đa cộng tuyến}
+\label{tab:vif_after}
+\begin{tabular}{@{}lr@{}}
+\hline
+\textbf{Feature còn lại} & \textbf{VIF sau lọc} \\
+\hline
+\texttt{st\_teff}        & 9.2570 \\
+\texttt{st\_rad}         & 5.9915 \\
+\texttt{log\_pl\_insol}  & 5.8778 \\
+\texttt{log\_pl\_orbsmax}& 4.6054 \\
+\texttt{pl\_trandur}     & 3.0931 \\
+\texttt{log\_sy\_dist}   & 2.8147 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{assets/part2/vif_before_after.png}
+    \caption{VIF trước và sau khi thanh lọc đa cộng tuyến. Trước khi lọc, nhiều biến vượt
+    ngưỡng 10; sau khi loại \texttt{log\_pl\_orbper} và \texttt{log\_pl\_eqt}, các VIF còn lại
+    đều nằm dưới ngưỡng.}
+    \label{fig:vif_before_after}
+\end{figure}
+
+Nhận xét chuyên sâu: Việc thuật toán VIF phát hiện và loại bỏ \texttt{log\_pl\_orbper}
+(chu kỳ quỹ đạo) ở vòng 1 với VIF lên tới 43.1374 là phù hợp với thực tiễn vật lý thiên văn.
+Theo Định luật thứ 3 của Kepler ($P^2 \propto a^3$), bình phương chu kỳ quỹ đạo tỷ lệ thuận
+với lập phương bán trục lớn \texttt{pl\_orbsmax}. Về bản chất toán học, hai biến này cung cấp
+lượng thông tin gần như trùng lặp, dẫn đến tương quan rất mạnh. Thuật toán VIF đã tự động nhận
+diện quan hệ vật lý này và loại bỏ biến dư thừa, nhờ đó làm giảm nguy cơ hệ số $\beta$ bị tăng
+phương sai do đa cộng tuyến.
+
+Sau VIF filtering, các features cuối cùng là:
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\hline
+\texttt{pl\_orbeccen} & \texttt{pl\_trandur} & \texttt{pl\_imppar} \\
+\texttt{st\_teff} & \texttt{st\_rad} & \texttt{st\_met} \\
+\texttt{log\_pl\_orbsmax} & \texttt{log\_pl\_trandep} & \texttt{log\_pl\_insol} \\
+\texttt{log\_pl\_bmasse} & \texttt{log\_sy\_dist} & \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{Chuẩn hóa dữ liệu}
+
+Cuối cùng, pipeline chuẩn hóa tất cả features bằng z-score:
+\begin{equation}
+    x_{ij}^{\mathrm{std}} =
+    \frac{x_{ij} - \mu_j^{\mathrm{train}}}{\sigma_j^{\mathrm{train}}}.
+\end{equation}
+Mean và standard deviation được fit trên train, rồi áp dụng cho test. Việc này đặc biệt quan trọng
+với Ridge/Lasso vì các hệ số regularization nhạy với thang đo của biến.
+
+% ------------------------------------------------------------
+\subsection{Xây Dựng và So Sánh Mô Hình}
+% ------------------------------------------------------------
+
+\subsubsection{Các mô hình chính}
+
+Bốn mô hình được so sánh:
+\begin{enumerate}
+    \item \textbf{OLS full}: dùng tất cả 11 features sau tiền xử lý.
+    \item \textbf{OLS selected}: chọn biến dựa trên p-value của OLS full với ngưỡng $\alpha=0.05$.
+    \item \textbf{Ridge}: dùng \texttt{ridge\_fit} từ Phần 1, chọn $\lambda$ bằng 5-fold CV.
+    \item \textbf{Lasso}: dùng \texttt{lasso\_fit} từ Phần 1, chọn $\lambda$ bằng 3-fold CV.
+\end{enumerate}
+
+Tất cả mô hình chính đều fit trên train và chỉ đánh giá cuối cùng trên test. Cross-validation
+chỉ được thực hiện trên train.
+
+\subsubsection{OLS full và chọn biến theo p-value}
+
+Từ OLS full, các biến có p-value nhỏ hơn 0.05 được giữ lại trong OLS selected. Kết quả chọn biến:
+\begin{center}
+\texttt{pl\_trandur}, \texttt{pl\_imppar}, \texttt{st\_teff},
+\texttt{log\_pl\_trandep}, \texttt{log\_pl\_bmasse}, \texttt{log\_sy\_dist}.
+\end{center}
+
+\begin{table}[H]
+\centering
+\caption{Một số hệ số OLS full có ý nghĩa thống kê}
+\label{tab:ols_inference}
+\begin{tabular}{@{}lrrrr@{}}
+\hline
+\textbf{Feature} & \textbf{Coef} & \textbf{Std.Err.} & \textbf{t-stat} & \textbf{p-value} \\
+\hline
+\texttt{log\_pl\_bmasse}  & 0.095317 & 0.002466 & 38.6447 & $8.78\times10^{-190}$ \\
+\texttt{log\_sy\_dist}    & 0.034443 & 0.004020 & 8.5689  & $4.84\times10^{-17}$ \\
+\texttt{log\_pl\_trandep} & 0.013692 & 0.003279 & 4.1757  & $3.28\times10^{-5}$ \\
+\texttt{pl\_trandur}      & -0.011414 & 0.004214 & -2.7088 & 0.006888 \\
+\texttt{pl\_imppar}       & 0.005751 & 0.002482 & 2.3169  & 0.020743 \\
+\texttt{st\_teff}         & -0.014611 & 0.007290 & -2.0043 & 0.045348 \\
+\hline
+\end{tabular}
+\end{table}
+
+Nhận xét: \texttt{log\_pl\_bmasse} là biến có hệ số lớn nhất và p-value cực nhỏ,
+phù hợp với trực giác: hành tinh có khối lượng lớn thường có bán kính lớn hơn.
+
+\subsubsection{Chọn $\lambda$ cho Ridge và Lasso}
+
+Ridge quét $\lambda$ theo lưới log-scale từ $10^{-3}$ đến $10^3$ bằng 5-fold CV.
+Giá trị tốt nhất:
+\begin{equation}
+    \lambda^*_{\mathrm{Ridge}} = 10.
+\end{equation}
+
+\begin{table}[H]
+\centering
+\caption{Một số kết quả Ridge CV theo $\lambda$}
+\label{tab:ridge_cv}
+\begin{tabular}{@{}rrrr@{}}
+\hline
+\textbf{$\lambda$} & \textbf{Mean CV-MSE} & \textbf{Std CV-MSE} & \textbf{Mean CV-$R^2$} \\
+\hline
+1.0000  & 0.005075 & 0.001656 & 0.673433 \\
+3.1623  & 0.005074 & 0.001650 & 0.673469 \\
+10.0000 & 0.005074 & 0.001629 & 0.673433 \\
+31.6228 & 0.005090 & 0.001571 & 0.672223 \\
+100.0000 & 0.005240 & 0.001432 & 0.661976 \\
+\hline
+\end{tabular}
+\end{table}
+
+Lasso quét $\lambda \in \{0.001, 0.01, 0.1\}$ bằng 3-fold CV. Giá trị tốt nhất:
+\begin{equation}
+    \lambda^*_{\mathrm{Lasso}} = 0.01.
+\end{equation}
+
+\begin{table}[H]
+\centering
+\caption{Kết quả Lasso CV theo $\lambda$}
+\label{tab:lasso_cv}
+\begin{tabular}{@{}rrrr@{}}
+\hline
+\textbf{$\lambda$} & \textbf{Mean CV-MSE} & \textbf{Std CV-MSE} & \textbf{Mean CV-$R^2$} \\
+\hline
+0.001 & 0.005093 & 0.001421 & 0.672720 \\
+0.010 & 0.005093 & 0.001420 & 0.672726 \\
+0.100 & 0.005093 & 0.001418 & 0.672675 \\
+\hline
+\end{tabular}
+\end{table}
+
+% ------------------------------------------------------------
+\subsection{Kết Quả Thực Nghiệm}
+% ------------------------------------------------------------
+
+\subsubsection{So sánh mô hình trên test set}
+
+\begin{table}[H]
+\centering
+\caption{So sánh các mô hình trên tập test}
+\label{tab:model_summary}
+\begin{tabular}{@{}lrrrrr@{}}
+\hline
+\textbf{Mô hình} & \textbf{Test $R^2$} & \textbf{Test RMSE} & \textbf{Test MAE} & \textbf{CV-MSE} & \textbf{CV-$R^2$} \\
+\hline
+Lasso        & 0.747878 & 0.056932 & 0.037942 & 0.005093 & 0.672726 \\
+OLS full     & 0.747794 & 0.056941 & 0.037952 & 0.005075 & 0.673407 \\
+Ridge        & 0.747678 & 0.056954 & 0.038204 & 0.005074 & 0.673433 \\
+OLS selected & 0.743913 & 0.057378 & 0.039013 & 0.005103 & 0.671611 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{assets/part2/model_comparison.png}
+    \caption{So sánh Test $R^2$, RMSE và MAE giữa các mô hình. Lasso đạt Test $R^2$
+    cao nhất, nhưng khác biệt giữa Lasso, OLS full và Ridge khá nhỏ.}
+    \label{fig:part2_model_comparison}
+\end{figure}
+
+Nhận xét:
+\begin{itemize}
+    \item Lasso có Test $R^2$ cao nhất ($0.747878$), nhưng mức chênh lệch so với OLS full
+          và Ridge rất nhỏ.
+    \item OLS selected có ít biến hơn nhưng Test $R^2$ thấp hơn một chút, cho thấy việc loại biến
+          theo p-value giúp mô hình gọn hơn nhưng có thể làm mất một phần thông tin dự đoán.
+    \item Ridge có CV-MSE thấp nhất trong nhóm gần nhau, chứng tỏ regularization giúp ổn định hơn
+          trên các fold train.
+\end{itemize}
+
+\subsubsection{Phân tích hệ số và feature importance}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.88\textwidth]{assets/part2/feature_importance.png}
+    \caption{Feature importance dựa trên hệ số Ridge sau chuẩn hóa. Các hệ số được so sánh
+    trên cùng thang đo vì pipeline đã chuẩn hóa z-score.}
+    \label{fig:part2_feature_importance}
+\end{figure}
+
+Các biến quan trọng nhất gồm:
+\begin{itemize}
+    \item \texttt{log\_pl\_bmasse}: ảnh hưởng dương mạnh nhất, phù hợp với quan hệ vật lý giữa
+          khối lượng và bán kính hành tinh.
+    \item \texttt{log\_sy\_dist}: có hệ số dương đáng kể, có thể phản ánh thiên lệch quan sát
+          hoặc đặc điểm của mẫu dữ liệu.
+    \item \texttt{log\_pl\_trandep}: có ảnh hưởng dương; transit depth thường liên quan đến
+          tỷ lệ kích thước hành tinh so với sao chủ.
+    \item \texttt{pl\_trandur}, \texttt{st\_teff}: có hệ số âm trong OLS full, cần diễn giải
+          thận trọng vì các biến thiên văn có quan hệ phức tạp và đã qua log/standardization.
+\end{itemize}
+
+\subsubsection{Actual vs Predicted và phân tích phần dư}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.78\textwidth]{assets/part2/actual_vs_predicted.png}
+    \caption{Giá trị thực tế so với giá trị dự đoán trên tập test của mô hình tốt nhất.
+    Các điểm càng gần đường chéo thì mô hình dự đoán càng tốt.}
+    \label{fig:part2_actual_predicted}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{assets/part2/residual_plots.png}
+    \caption{Bốn biểu đồ chẩn đoán phần dư của mô hình tốt nhất:
+    Residuals vs Fitted, Normal Q-Q, Scale-Location và Cook's Distance.}
+    \label{fig:part2_residual}
+\end{figure}
+
+Nhận xét từ residual plots:
+\begin{itemize}
+    \item Phần dư tập trung quanh 0, cho thấy mô hình không bị lệch hệ thống quá rõ.
+    \item Q-Q plot cho phép kiểm tra giả định phân phối chuẩn của phần dư. Nếu hai đầu lệch khỏi
+          đường chéo, điều này gợi ý dữ liệu vẫn còn quan hệ phi tuyến hoặc ngoại lai khó mô tả
+          bằng mô hình tuyến tính.
+    \item Cook's Distance giúp nhận diện quan sát có ảnh hưởng lớn. Các điểm vượt ngưỡng cần được
+          kiểm tra thêm trong phân tích sâu.
+\end{itemize}
+
+% ------------------------------------------------------------
+\subsection{Phương Pháp Nâng Cao: Kernel Ridge Regression}
+% ------------------------------------------------------------
+
+Ngoài các mô hình tuyến tính chính, nhóm thử thêm Kernel Ridge Regression với RBF kernel:
+\begin{equation}
+    k(\mathbf{x}, \mathbf{x}')
+    = \exp\left(-\gamma \|\mathbf{x}-\mathbf{x}'\|^2\right).
+\end{equation}
+
+Do Kernel Ridge cần ma trận Gram kích thước $n \times n$, pipeline chỉ dùng một subset train
+cố định để giữ chi phí tính toán hợp lý. Hyperparameters \texttt{alpha} và \texttt{gamma}
+được chọn trên validation tách từ train subset, sau đó mới đánh giá một lần trên test.
+
+Kết quả tốt nhất:
+\begin{center}
+\begin{tabular}{@{}lrrrrr@{}}
+\hline
+\textbf{Mô hình} & \textbf{Alpha} & \textbf{Gamma} & \textbf{Test $R^2$} & \textbf{RMSE} & \textbf{MAE} \\
+\hline
+Kernel Ridge (RBF) & 0.01 & 0.01 & 0.949666 & 0.147678 & 0.087601 \\
+\hline
+\end{tabular}
+\end{center}
+
+Lưu ý: đây là mô hình nâng cao/bonus. Kết quả cao hơn đáng kể so với các mô hình tuyến tính,
+cho thấy quan hệ giữa các biến thiên văn và bán kính hành tinh có thể chứa thành phần phi tuyến.
+Tuy nhiên, vì mô hình kernel khó giải thích hệ số trực tiếp như OLS/Ridge, phần chính của báo cáo
+vẫn ưu tiên các mô hình tuyến tính để phục vụ phân tích thống kê.
+
+\FloatBarrier
+
+% ------------------------------------------------------------
+\subsection{Kết Luận Phần 2}
+% ------------------------------------------------------------
+
+Phần 2 đã xây dựng được một pipeline data fitting hoàn chỉnh cho dữ liệu thực tế:
+\begin{itemize}
+    \item Dữ liệu được chia train/test ngay từ đầu và duy trì tách biệt trong cả
+          \texttt{data\_pipeline.py}, \texttt{model\_comparison.py},
+          \texttt{advanced\_methods.py}.
+    \item Các bước tiền xử lý gồm log-transform, winsorization, MICE imputation,
+          VIF filtering và standardization đều fit trên train rồi transform test.
+    \item Các mô hình chính tái sử dụng code tự cài ở Phần 1: OLS, Ridge, Lasso,
+          k-fold CV và residual analysis.
+    \item Trên test set, Lasso đạt kết quả tốt nhất trong nhóm mô hình tuyến tính
+          với Test $R^2 = 0.747878$, RMSE $=0.056932$ và MAE $=0.037942$.
+    \item Kernel Ridge RBF cho kết quả cao hơn đáng kể, gợi ý quan hệ phi tuyến trong dữ liệu,
+          nhưng mô hình này được xem là phần nâng cao vì khó diễn giải hơn OLS/Ridge.
+\end{itemize}
+
+Nhìn chung, pipeline hiện tại thỏa yêu cầu Phần 2 của đồ án: có EDA, xử lý missing values có lý do,
+xử lý ngoại lai, kiểm tra đa cộng tuyến, so sánh ít nhất ba mô hình, đánh giá trên test set,
+và có phân tích phần dư cho mô hình tốt nhất.

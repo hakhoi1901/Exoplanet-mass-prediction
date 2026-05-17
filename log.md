@@ -1,0 +1,7 @@
+## Tiền xử lý
+
+### Đa cộng bỏ **log_pl_orbper**
+
+Hiện tượng: Thuật toán VIF ở Vòng 1 báo cáo log_pl_orbper có VIF = 39.58 (vượt xa ngưỡng 30) và quyết định "trảm" cột này. Ngay sau đó ở Vòng 2, hệ số VIF của các cột khác giảm mạnh.Bản chất Vật lý: Tại sao log_pl_orbper (Chu kỳ quỹ đạo) lại bị đa cộng tuyến nặng đến vậy? Vì theo Định luật 3 Kepler ($P^2 \propto a^3$), bình phương chu kỳ quỹ đạo tỷ lệ thuận với lập phương bán trục lớn (pl_orbsmax). Hai biến này về cơ bản đang kể chung một câu chuyện. Thuật toán VIF của bạn đã tự động "học" được định luật Vật lý này và thẳng tay loại bỏ biến trùng lặp để cứu hệ số $\beta$ khỏi sự bất ổn định.
+
+"Động lực vật lý (Physical mechanics) cấu trúc nên một hành tinh khí khổng lồ (Gas Giant) hoàn toàn khác biệt với một hành tinh đá (Terrestrial). Nếu giữ nguyên toàn bộ tập dữ liệu, phương trình mặt phẳng hồi quy sẽ bị nhiễu bởi hiện tượng phương sai không đồng nhất (Heteroskedasticity) do sự chênh lệch quy mô (scale) quá lớn.Nhằm tối ưu hóa khả năng nội suy cục bộ của mô hình, nhóm quyết định lọc và chỉ giữ lại nhóm Hành tinh đá (Super-Earths & Terrestrial) dựa trên ngưỡng phân rã Fulton (Fulton Gap): Bán kính $\le 1.6 \, R_\oplus$ và Khối lượng $\le 10 \, M_\oplus$. Thao tác này được thực hiện ở tầng thô (raw data), đảm bảo bộ nội suy MICE và các tham số chuẩn hóa (Mean/Std) ở các bước sau chỉ học đúng đặc trưng phân phối của riêng nhóm hành tinh này, từ đó đẩy mức độ thuần khiết của tín hiệu lên cao nhất."

@@ -8,6 +8,8 @@
 \usepackage{indentfirst} % Thụt đầu dòng đoạn đầu tiên
 \usepackage[margin=2.5cm]{geometry} % Căn lề giấy
 \usepackage{graphicx}       % Hỗ trợ chèn ảnh
+\usepackage{float}          % Giữ hình/bảng tại đúng vị trí nội dung khi cần
+\usepackage{placeins}       % Chặn hình/bảng trôi sang phần khác
 \usepackage{hyperref}       % Tạo link click được cho Mục lục
 \usepackage{titlesec}       % Tùy chỉnh tiêu đề
 \usepackage{listings}       % Hỗ trợ chèn code
@@ -145,9 +147,8 @@
 \input{content/references}
 \newpage
 
-% ==========================================
-% PHỤ LỤC
-% ==========================================
-\input{content/appendix}
+% Phụ lục được tạm bỏ vì trọng tâm đồ án là quy trình xử lý dữ liệu.
+% Các hình/bảng quan trọng đã được đưa trực tiếp vào nội dung Phần 2.
+% \input{content/appendix}
 
 \end{document}
