@@ -1039,6 +1039,41 @@ của catalog. Xóa cứng sẽ làm báo cáo đẹp hơn về mặt diagnostic
 vậy nhóm giữ lại chúng, dùng log-transform/Winsorization để giảm ảnh hưởng cực trị, và ghi nhận
 đây là một giới hạn khi diễn giải hệ số.
 
+\subsubsection{Kiểm chứng giả thuyết Giãn nở nhiệt (Thermal Expansion Hypothesis)}
+
+\paragraph{Kiểm định tác động tương tác giữa Khối lượng và Nhiệt độ:}
+Từ hiện tượng đường LOWESS bị cong nhẹ ở vùng dự đoán cao trên biểu đồ chẩn đoán Residuals vs Fitted, 
+giả thuyết được đặt ra là: tác động của khối lượng (lực nén hấp dẫn) lên cấu trúc bán kính hành tinh 
+không độc lập, mà bị chi phối bởi mức độ bức xạ nhiệt (hiệu ứng giãn nở). Để kiểm chứng, mô hình hồi 
+quy được mở rộng thành một cấu trúc phi tuyến cục bộ thông qua đại lượng tương tác:
+\begin{equation}
+    Y = \beta_1 X_{\text{mass}} + \beta_2 X_{\text{heat}} + \beta_3 (X_{\text{mass}} \times X_{\text{heat}})
+\end{equation}
+
+Thực nghiệm đầu tiên tiến hành bổ sung biến tương tác giữa khối lượng hành tinh và nhiệt độ bề mặt 
+của sao chủ (\texttt{log\_pl\_bmasse} $\times$ \texttt{st\_teff}). Kết quả truy xuất cho thấy p-value 
+của biến này đạt mức 0.098, vượt ngưỡng mức ý nghĩa $\alpha = 0.05$. Sự thất bại của giả thuyết này 
+có thể lý giải bằng bản chất vật lý: nhiệt độ bề mặt sao chủ không phản ánh chính xác thông lượng 
+nhiệt (heat flux) mà hành tinh thực nhận nếu khuyết đi tham số về khoảng cách quỹ đạo.
+
+Để khắc phục, thực nghiệm thứ hai thay thế nhiệt độ sao bằng thông lượng bức xạ thực nhận (\texttt{log\_pl\_insol} 
+tạo thành biến tương tác (\texttt{log\_pl\_bmasse} $\times$ \texttt{log\_pl\_insol}). Kết quả ghi 
+nhận p-value $\approx 0$, khẳng định sự tồn tại của cơ chế tương tác nhiệt - khối lượng trên tập 
+huấn luyện. Tuy nhiên, nghịch lý xuất hiện khi kiểm định hiệu năng: hệ số xác định trên tập kiểm thử 
+($R^2_{\text{Test}}$) lại sụt giảm từ 0.747 xuống 0.741, đồng thời RMSE tăng.
+
+Bản chất của hiện tượng này là minh chứng kinh điển cho bài toán \emph{Sự đánh đổi giữa Độ chệch và 
+Phương sai (Bias-Variance Tradeoff)}. Biến tương tác đã vô tình kích hoạt hiện tượng Đa cộng tuyến 
+cấu trúc (Structural Multicollinearity). Mặt phẳng OLS bị ép phải vặn xoắn (giảm Bias) nhằm cố gắng 
+nội suy khít với các biến thiên cục bộ sinh ra từ hiệu ứng giãn nở nhiệt trong tập huấn luyện, từ đó 
+đánh mất khả năng khái quát hóa quy luật (tăng Variance) khi tiếp xúc với dữ liệu kiểm thử.
+
+\paragraph{Kết luận:}
+Nỗ lực triệt tiêu sai số phần dư cục bộ bằng các biến tương tác đã dẫn đến hiện tượng quá khớp (Overfitting). 
+Hệ quả này củng cố tính đúng đắn của nguyên lý tinh giản Occam's Razor trong thiết kế Machine Learning: 
+cấu trúc OLS thuần túy hiện tại (không chứa đại lượng tương tác) là điểm cân bằng toàn cục tối ưu nhất 
+giữa năng lực giải thích hiện tượng và sức mạnh ngoại suy định lượng.
+
 \subsubsection{Phương pháp nâng cao: Kernel Ridge Regression}
 
 Ngoài các mô hình tuyến tính chính, nhóm thử Kernel Ridge Regression với RBF kernel:

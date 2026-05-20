@@ -17,5 +17,4 @@ __pycache__/
 Thumbs.db
 
 *.log
-
-data_pipeline/
+/data_pipeline/

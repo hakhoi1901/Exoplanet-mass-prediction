@@ -75,9 +75,12 @@
 \contentsline {subsubsection}{\numberline {2.6.1}So sánh mô hình tuyến tính}{54}{subsubsection.2.6.1}%
 \contentsline {subsubsection}{\numberline {2.6.2}Phân tích hệ số và feature importance}{56}{subsubsection.2.6.2}%
 \contentsline {subsubsection}{\numberline {2.6.3}Phân tích phần dư và giả định mô hình}{57}{subsubsection.2.6.3}%
-\contentsline {subsubsection}{\numberline {2.6.4}Phương pháp nâng cao: Kernel Ridge Regression}{58}{subsubsection.2.6.4}%
-\contentsline {subsection}{\numberline {2.7}Kết Luận Phần 2}{59}{subsection.2.7}%
-\contentsline {section}{\numberline {3}Kết luận}{60}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Tóm tắt kết quả đạt được}{60}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Bài học rút ra}{61}{subsection.3.2}%
-\contentsline {subsection}{\numberline {3.3}Khó khăn chuyên môn và các nghịch lý Toán học tính toán}{61}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {2.6.4}Kiểm chứng giả thuyết Giãn nở nhiệt (Thermal Expansion Hypothesis)}{58}{subsubsection.2.6.4}%
+\contentsline {paragraph}{Kiểm định tác động tương tác giữa Khối lượng và Nhiệt độ:}{58}{subsubsection.2.6.4}%
+\contentsline {paragraph}{Kết luận:}{59}{equation.43}%
+\contentsline {subsubsection}{\numberline {2.6.5}Phương pháp nâng cao: Kernel Ridge Regression}{59}{subsubsection.2.6.5}%
+\contentsline {subsection}{\numberline {2.7}Kết Luận Phần 2}{60}{subsection.2.7}%
+\contentsline {section}{\numberline {3}Kết luận}{61}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Tóm tắt kết quả đạt được}{61}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Bài học rút ra}{62}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Khó khăn chuyên môn và các nghịch lý Toán học tính toán}{62}{subsection.3.3}%

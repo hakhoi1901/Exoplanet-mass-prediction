@@ -23,5 +23,5 @@
 \contentsline {table}{\numberline {22}{\ignorespaces Một số dự báo của mô hình Lasso trên tập test}}{53}{table.22}%
 \contentsline {table}{\numberline {23}{\ignorespaces So sánh các mô hình trên tập test}}{54}{table.23}%
 \contentsline {table}{\numberline {24}{\ignorespaces Kiểm định chẩn đoán trên phần dư test của Lasso}}{58}{table.24}%
-\contentsline {table}{\numberline {25}{\ignorespaces Một số cấu hình Kernel Ridge theo validation RMSE}}{58}{table.25}%
+\contentsline {table}{\numberline {25}{\ignorespaces Một số cấu hình Kernel Ridge theo validation RMSE}}{59}{table.25}%
 \contentsline {table}{\numberline {26}{\ignorespaces Kết quả Kernel Ridge tốt nhất trên test set}}{59}{table.26}%
