@@ -13,7 +13,6 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 
 
@@ -336,19 +335,27 @@ def _coef_table(result: dict) -> pd.DataFrame:
 
 
 def _prediction_summary(y_true: list[float], y_pred: list[float]) -> pd.DataFrame:
-    residual = np.array(y_true, dtype=float) - np.array(y_pred, dtype=float)
-    pred = np.array(y_pred, dtype=float)
+    residual = [float(actual) - float(predicted) for actual, predicted in zip(y_true, y_pred)]
+    pred = [float(value) for value in y_pred]
+
+    def mean(values: list[float]) -> float:
+        return sum(values) / len(values) if values else 0.0
+
+    def std(values: list[float]) -> float:
+        avg = mean(values)
+        return math.sqrt(sum((value - avg) ** 2 for value in values) / len(values)) if values else 0.0
+
     return pd.DataFrame(
         [
             {
-                "pred_mean": float(pred.mean()),
-                "pred_std": float(pred.std()),
-                "pred_min": float(pred.min()),
-                "pred_max": float(pred.max()),
-                "residual_mean": float(residual.mean()),
-                "residual_std": float(residual.std()),
-                "residual_min": float(residual.min()),
-                "residual_max": float(residual.max()),
+                "pred_mean": mean(pred),
+                "pred_std": std(pred),
+                "pred_min": min(pred) if pred else 0.0,
+                "pred_max": max(pred) if pred else 0.0,
+                "residual_mean": mean(residual),
+                "residual_std": std(residual),
+                "residual_min": min(residual) if residual else 0.0,
+                "residual_max": max(residual) if residual else 0.0,
             }
         ]
     ).round(6)
@@ -422,7 +429,7 @@ def run_model_comparison(
         verbose=verbose,
     )
 
-    ridge_grid = [10**exp for exp in np.linspace(-3, 3, 13)]
+    ridge_grid = [10 ** (-3 + 0.5 * i) for i in range(13)]
     ridge_search = lambda_search(X_train, y_train, ridge_fit, _ridge_predict_adapter, ridge_grid, k=5, verbose=verbose, label="Ridge")
     ridge_search_table = pd.DataFrame(ridge_search["rows"]).sort_values("mean_cv_mse").round(6)
     _log_table("Ridge lambda search sorted by CV MSE", ridge_search_table, verbose, max_rows=8)
@@ -443,7 +450,7 @@ def run_model_comparison(
 
     lasso_search = None
     if include_lasso:
-        lasso_grid = [0.001, 0.01, 0.1]
+        lasso_grid = [10 ** (-4 + 0.5 * i) for i in range(13)]
         lasso_kwargs = {"max_iter": 300, "tol": 1e-5}
         lasso_search = lambda_search(
             X_train,

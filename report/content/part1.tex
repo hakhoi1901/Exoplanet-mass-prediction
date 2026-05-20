@@ -233,7 +233,10 @@ c\,\mathbf{e}_0 (\mathbf{v}^T\mathbf{y})$ với
 $\mathbf{v} \in \mathrm{Null}(\mathbf{X}^T)$
 (vẫn là ước lượng không chệch nhưng có phương sai lớn hơn).
 
-Kết quả mô phỏng (Hình~\ref{fig:gauss_markov}) xác nhận:
+Trước khi quay lại phần cài đặt, Hình~\ref{fig:gauss_markov} đóng vai trò như một kiểm chứng
+thực nghiệm cho phần chứng minh ở trên: nếu các giả định Gauss--Markov được giữ, OLS không chỉ
+không chệch mà còn có phương sai nhỏ nhất trong lớp ước lượng tuyến tính không chệch được thử.
+Kết quả mô phỏng xác nhận:
 \begin{itemize}
     \item $E[\hat{\boldsymbol{\beta}}_{\mathrm{OLS}}] \approx \boldsymbol{\beta}$
           (sai số trung bình $< 0.01$).

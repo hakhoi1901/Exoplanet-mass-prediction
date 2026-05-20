@@ -1,0 +1,35 @@
+{
+  "best_epsilon": 1.1,
+  "cv_results": [
+    {
+      "epsilon": 1.1,
+      "cv_rmse": 0.06744500833110909
+    },
+    {
+      "epsilon": 1.35,
+      "cv_rmse": 0.06744500833110909
+    },
+    {
+      "epsilon": 1.5,
+      "cv_rmse": 0.06744500833110909
+    }
+  ],
+  "metrics": {
+    "R2": 0.6991151498254871,
+    "RMSE": 0.07223957657766124,
+    "MAE": 0.043551718296589756
+  },
+  "feature_names": [
+    "log_pl_bmasse",
+    "log_pl_insol",
+    "log_pl_orbsmax",
+    "log_pl_trandep",
+    "log_pl_trandur",
+    "log_st_rad",
+    "log_sy_dist",
+    "pl_imppar",
+    "pl_orbeccen",
+    "st_met",
+    "st_teff"
+  ]
+}

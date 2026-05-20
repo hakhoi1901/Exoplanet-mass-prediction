@@ -15,3 +15,9 @@ python part2/data_pipeline.py --data part2/data/planet.csv --outdir part2/output
 python part2/model_comparison.py --preprocessed part2/output/preprocessed.pkl --outdir part2/output
 python part2/advanced_methods.py --preprocessed part2/output/preprocessed.pkl --outdir part2/output --max-train 500
 ```
+
+python part2/model_comparison.py --preprocessed part2/output-final-report/preprocessed.pkl --outdir part2/output-final-report
+
+
+python part2\data_pipeline.py --data part2\data\planet.csv --outdir part2\final --random-state 42
+python part2\model_comparison.py --preprocessed part2\final\preprocessed.pkl --outdir part2\final

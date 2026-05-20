@@ -1,0 +1,17 @@
+column,missing_count,missing_percent,dtype
+pl_orbeccen,113,13.033,float64
+log_pl_insol,83,9.573,float64
+log_pl_orbsmax,73,8.42,float64
+log_pl_eqt,67,7.728,float64
+pl_imppar,41,4.729,float64
+log_pl_trandep,40,4.614,float64
+st_met,24,2.768,float64
+log_pl_trandur,18,2.076,float64
+log_sy_dist,6,0.692,float64
+st_logg,0,0.0,float64
+st_teff,0,0.0,float64
+st_mass,0,0.0,float64
+log_pl_orbper,0,0.0,float64
+log_pl_bmasse,0,0.0,float64
+log_pl_rade,0,0.0,float64
+log_st_rad,0,0.0,float64

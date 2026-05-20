@@ -2,14 +2,26 @@
 \contentsline {table}{\numberline {1}{Bảng phân công công việc và mức độ đóng góp}}{7}{table.1}%
 \contentsline {table}{\numberline {2}{Tổng hợp các hàm đã cài đặt trong Phần 1}}{30}{table.2}%
 \contentsline {table}{\numberline {3}{\ignorespaces Kết quả kiểm chứng F1 và F6 với NumPy/sklearn}}{31}{table.3}%
-\contentsline {table}{\numberline {4}{\ignorespaces Các cột có missing values nhiều nhất trước MICE imputation trên tập train}}{37}{table.4}%
-\contentsline {table}{\numberline {5}{\ignorespaces Cơ sở toán học và vật lý cho các biến được log-transform}}{39}{table.5}%
-\contentsline {table}{\numberline {6}{\ignorespaces Ảnh hưởng của log-transform lên skewness}}{40}{table.6}%
-\contentsline {table}{\numberline {7}{\ignorespaces Tóm tắt Winsorization trên tập train}}{42}{table.7}%
-\contentsline {table}{\numberline {8}{\ignorespaces Tóm tắt giá trị được MICE impute trên tập train}}{44}{table.8}%
-\contentsline {table}{\numberline {9}{\ignorespaces Các vòng lọc VIF}}{45}{table.9}%
-\contentsline {table}{\numberline {10}{\ignorespaces Một số VIF lớn nhất sau khi thanh lọc đa cộng tuyến}}{45}{table.10}%
-\contentsline {table}{\numberline {11}{\ignorespaces Một số hệ số OLS full có ý nghĩa thống kê}}{47}{table.11}%
-\contentsline {table}{\numberline {12}{\ignorespaces Một số kết quả Ridge CV theo $\lambda $}}{48}{table.12}%
-\contentsline {table}{\numberline {13}{\ignorespaces Kết quả Lasso CV theo $\lambda $}}{48}{table.13}%
-\contentsline {table}{\numberline {14}{\ignorespaces So sánh các mô hình trên tập test}}{48}{table.14}%
+\contentsline {table}{\numberline {4}{\ignorespaces Quy mô dữ liệu qua các bước chính}}{34}{table.4}%
+\contentsline {table}{\numberline {5}{\ignorespaces Nhóm biến ban đầu trong \texttt {planet.csv}}}{35}{table.5}%
+\contentsline {table}{\numberline {6}{\ignorespaces Một vài dòng dữ liệu mẫu từ \texttt {planet.csv} trước domain restriction}}{35}{table.6}%
+\contentsline {table}{\numberline {7}{\ignorespaces Thống kê mô tả của một số biến số sau domain restriction}}{36}{table.7}%
+\contentsline {table}{\numberline {8}{\ignorespaces Kiểm tra duplicate sau domain restriction}}{38}{table.8}%
+\contentsline {table}{\numberline {9}{\ignorespaces Các cột có missing values nhiều nhất trước tiền xử lý}}{38}{table.9}%
+\contentsline {table}{\numberline {10}{\ignorespaces Các nhóm biến bị loại trước khi tạo \texttt {planet.csv}}}{40}{table.10}%
+\contentsline {table}{\numberline {11}{Quyết định xử lý chi tiết các nhóm cột từ \texttt {raw.csv}}}{41}{table.11}%
+\contentsline {table}{\numberline {12}{\ignorespaces Các cột được giữ trong \texttt {planet.csv} và vai trò mô hình hóa}}{43}{table.12}%
+\contentsline {table}{\numberline {13}{\ignorespaces Ảnh hưởng của log-transform lên skewness}}{45}{table.13}%
+\contentsline {table}{\numberline {14}{\ignorespaces Tóm tắt Winsorization trên tập train}}{47}{table.14}%
+\contentsline {table}{\numberline {15}{\ignorespaces Missing values sau log-transform trên tập train}}{47}{table.15}%
+\contentsline {table}{\numberline {16}{\ignorespaces Tóm tắt giá trị được MICE impute trên tập train}}{48}{table.16}%
+\contentsline {table}{\numberline {17}{\ignorespaces Lịch sử lọc VIF}}{49}{table.17}%
+\contentsline {table}{\numberline {18}{\ignorespaces VIF cuối cùng của các feature còn lại}}{49}{table.18}%
+\contentsline {table}{\numberline {19}{\ignorespaces Bảng suy diễn hệ số OLS full}}{51}{table.19}%
+\contentsline {table}{\numberline {20}{\ignorespaces Một số kết quả Ridge CV}}{51}{table.20}%
+\contentsline {table}{\numberline {21}{\ignorespaces Kết quả Lasso CV}}{52}{table.21}%
+\contentsline {table}{\numberline {22}{\ignorespaces Một số dự báo của mô hình Lasso trên tập test}}{53}{table.22}%
+\contentsline {table}{\numberline {23}{\ignorespaces So sánh các mô hình trên tập test}}{54}{table.23}%
+\contentsline {table}{\numberline {24}{\ignorespaces Kiểm định chẩn đoán trên phần dư test của Lasso}}{58}{table.24}%
+\contentsline {table}{\numberline {25}{\ignorespaces Một số cấu hình Kernel Ridge theo validation RMSE}}{58}{table.25}%
+\contentsline {table}{\numberline {26}{\ignorespaces Kết quả Kernel Ridge tốt nhất trên test set}}{59}{table.26}%

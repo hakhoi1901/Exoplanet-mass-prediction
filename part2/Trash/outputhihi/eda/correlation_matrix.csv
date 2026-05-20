@@ -1,0 +1,17 @@
+feature,target,pearson
+pl_bmasse,pl_rade,0.6520198170848234
+pl_eqt,pl_rade,-0.025591587095854133
+pl_imppar,pl_rade,0.016420416728186542
+pl_insol,pl_rade,-0.04135285077286756
+pl_orbeccen,pl_rade,-0.08203744572331335
+pl_orbper,pl_rade,0.10213882934764065
+pl_orbsmax,pl_rade,0.13047129970325813
+pl_rade,pl_rade,1.0
+pl_trandep,pl_rade,0.0497485747386917
+pl_trandur,pl_rade,0.10775746240374724
+st_logg,pl_rade,-0.10455984066208805
+st_mass,pl_rade,0.10930622995162784
+st_met,pl_rade,0.07524420746796223
+st_rad,pl_rade,0.10685965092822097
+st_teff,pl_rade,0.09599023926671588
+sy_dist,pl_rade,0.1961162381167182

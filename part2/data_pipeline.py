@@ -64,7 +64,7 @@ def train_test_split_frame(
     if not 0 < test_size < 1:
         raise ValueError("test_size must be in (0, 1)")
     rng = np.random.default_rng(random_state)
-    indices = np.arange(len(df))
+    indices = list(range(len(df)))
     rng.shuffle(indices)
     n_test = max(1, int(round(len(df) * test_size)))
     test_idx = indices[:n_test]
@@ -80,7 +80,7 @@ def _safe_log1p(series: pd.Series) -> pd.Series:
     if min_value <= -1:
         shift = abs(min_value) + 1.0
         numeric = numeric + shift
-    return np.log1p(numeric)
+    return numeric.map(lambda value: math.log1p(value) if pd.notna(value) else value)
 
 
 def _to_float_frame(df: pd.DataFrame) -> pd.DataFrame:
@@ -91,7 +91,23 @@ def _to_float_frame(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _replace_non_finite(df: pd.DataFrame) -> pd.DataFrame:
-    return df.replace([np.inf, -np.inf], np.nan)
+    return df.replace([math.inf, -math.inf], math.nan)
+
+
+def _flatten_axes(axes) -> list:
+    if isinstance(axes, (list, tuple)):
+        flattened = []
+        for item in axes:
+            flattened.extend(_flatten_axes(item))
+        return flattened
+    if hasattr(axes, "flat"):
+        return list(axes.flat)
+    return [axes]
+
+
+def _axes_grid(axes, rows: int, cols: int) -> list[list]:
+    flattened = _flatten_axes(axes)
+    return [flattened[row * cols : (row + 1) * cols] for row in range(rows)]
 
 
 @dataclass
@@ -109,6 +125,7 @@ class DataPipeline:
     mice_iterations: int = 5
     mice_regularization: float = 1e-3
     mice_noise_scale: float = 0.15
+    random_state: int = RANDOM_STATE
     verbose: bool = True
     log_top_n: int = 8
 
@@ -443,7 +460,7 @@ class DataPipeline:
         base = self._initial_impute(X)
 
         for imputation_idx in range(self.mice_imputations):
-            rng = np.random.default_rng(RANDOM_STATE + imputation_idx)
+            rng = np.random.default_rng(self.random_state + imputation_idx)
             current = base.copy()
             chain: list[dict] = []
 
@@ -473,11 +490,10 @@ class DataPipeline:
                         predicted = self._predict_mice_step(current.loc[missing_mask, predictors], step)
                         residual_std = float(step.get("residual_std", 0.0))
                         if residual_std > 1e-12:
-                            predicted = predicted + rng.normal(
-                                0.0,
-                                residual_std * self.mice_noise_scale,
-                                size=len(predicted),
-                        )
+                            predicted = [
+                                float(value) + float(rng.normal(0.0, residual_std * self.mice_noise_scale))
+                                for value in predicted
+                            ]
                         current.loc[missing_mask, target_col] = predicted
 
             self.mice_chains_.append(chain)
@@ -507,15 +523,17 @@ class DataPipeline:
                 y_observed.tolist(),
                 lam=self.mice_regularization,
             )
-            fitted = np.array(
-                ridge_predict(
-                    X_observed.values.tolist(),
-                    model["beta_hat"],
-                    model["mean_X"],
-                    model["std_X"],
-                )
+            fitted = ridge_predict(
+                X_observed.values.tolist(),
+                model["beta_hat"],
+                model["mean_X"],
+                model["std_X"],
             )
-            residual_std = float(np.std(y_observed.to_numpy() - fitted))
+            residuals = [actual - pred for actual, pred in zip(y_observed.tolist(), fitted)]
+            residual_mean = sum(residuals) / len(residuals) if residuals else 0.0
+            residual_std = math.sqrt(
+                sum((value - residual_mean) ** 2 for value in residuals) / len(residuals)
+            ) if residuals else 0.0
             return {
                 "target": target_col,
                 "predictors": predictors,
@@ -533,21 +551,18 @@ class DataPipeline:
             }
 
     @staticmethod
-    def _predict_mice_step(X_predictors: pd.DataFrame, step: dict) -> np.ndarray:
+    def _predict_mice_step(X_predictors: pd.DataFrame, step: dict) -> list[float]:
         if len(X_predictors) == 0:
-            return np.array([], dtype=float)
+            return []
         if step["kind"] == "constant":
-            return np.full(len(X_predictors), float(step["value"]), dtype=float)
+            return [float(step["value"]) for _ in range(len(X_predictors))]
 
         model = step["model"]
-        return np.array(
-            ridge_predict(
-                X_predictors.astype(float).values.tolist(),
-                model["beta_hat"],
-                model["mean_X"],
-                model["std_X"],
-            ),
-            dtype=float,
+        return ridge_predict(
+            X_predictors.astype(float).values.tolist(),
+            model["beta_hat"],
+            model["mean_X"],
+            model["std_X"],
         )
 
     def _apply_mice_imputer(self, X: pd.DataFrame) -> pd.DataFrame:
@@ -679,6 +694,7 @@ class DataPipeline:
             "mice_iterations": self.mice_iterations,
             "mice_regularization": self.mice_regularization,
             "mice_noise_scale": self.mice_noise_scale,
+            "random_state": self.random_state,
             "mice_missing_columns": self.mice_missing_columns_,
             "standardize": self.standardize,
         }
@@ -717,7 +733,7 @@ def write_eda_outputs(df: pd.DataFrame, target: str, output_dir: str | Path) -> 
         sns.set_theme(style="whitegrid", font_scale=0.8)
 
         fig, axes = plt.subplots(math.ceil(numeric.shape[1] / 4), 4, figsize=(16, 3.0 * math.ceil(numeric.shape[1] / 4)))
-        axes = np.array(axes).reshape(-1)
+        axes = _flatten_axes(axes)
         for i, col in enumerate(numeric.columns):
             axes[i].hist(numeric[col].dropna(), bins=40, color="#3b82f6", alpha=0.8)
             axes[i].set_title(col)
@@ -734,12 +750,10 @@ def write_eda_outputs(df: pd.DataFrame, target: str, output_dir: str | Path) -> 
         corr.to_csv(corr_path)
         paths["correlation_matrix"] = str(corr_path)
 
-        mask = np.tril(np.ones_like(corr, dtype=bool), k=-1)
         fig_size = max(9, 0.72 * len(corr.columns))
         fig, ax = plt.subplots(figsize=(fig_size, fig_size * 0.82))
         sns.heatmap(
             corr,
-            mask=mask,
             cmap="RdBu",
             center=0,
             vmin=-1,
@@ -750,7 +764,7 @@ def write_eda_outputs(df: pd.DataFrame, target: str, output_dir: str | Path) -> 
             linewidths=0.45,
             linecolor="white",
             square=True,
-            cbar_kws={"shrink": 0.82, "ticks": np.linspace(-1, 1, 11)},
+            cbar_kws={"shrink": 0.82, "ticks": [-1.0 + 0.2 * i for i in range(11)]},
             ax=ax,
         )
         ax.set_title("Correlation heatmap (Pearson)", pad=24)
@@ -807,14 +821,14 @@ def write_preprocessing_diagnostic_plots(
     log_cols = [col for col in ("pl_orbper", "pl_insol", "pl_bmasse", "pl_trandep") if col in train_raw.columns]
     if log_cols:
         fig, axes = plt.subplots(len(log_cols), 2, figsize=(11, 2.7 * len(log_cols)))
-        axes = np.array(axes).reshape(len(log_cols), 2)
+        axes = _axes_grid(axes, len(log_cols), 2)
         for row_idx, col in enumerate(log_cols):
             before = pd.to_numeric(train_raw[col], errors="coerce").dropna()
             after = _safe_log1p(train_raw[col]).dropna()
-            axes[row_idx, 0].hist(before, bins=35, color="#2563eb", alpha=0.78)
-            axes[row_idx, 0].set_title(f"{col} - before")
-            axes[row_idx, 1].hist(after, bins=35, color="#0f766e", alpha=0.78)
-            axes[row_idx, 1].set_title(f"log_{col} - after")
+            axes[row_idx][0].hist(before, bins=35, color="#2563eb", alpha=0.78)
+            axes[row_idx][0].set_title(f"{col} - before")
+            axes[row_idx][1].hist(after, bins=35, color="#0f766e", alpha=0.78)
+            axes[row_idx][1].set_title(f"log_{col} - after")
         fig.suptitle("Before/after log-transform", y=1.01)
         fig.tight_layout()
         path = output_dir / "log_transform_before_after.png"
@@ -832,7 +846,7 @@ def write_preprocessing_diagnostic_plots(
     winsor_cols = [col for col in pipeline.winsor_columns if col in before_winsor.columns]
     if winsor_cols:
         fig, axes = plt.subplots(1, len(winsor_cols), figsize=(4 * len(winsor_cols), 4))
-        axes = np.array(axes).reshape(-1)
+        axes = _flatten_axes(axes)
         for ax, col in zip(axes, winsor_cols):
             before = before_winsor[col].dropna()
             after = after_winsor[col].dropna()
@@ -902,6 +916,7 @@ def run_pipeline(
     target: str = DEFAULT_TARGET,
     test_size: float = 0.2,
     make_plots: bool = True,
+    random_state: int = RANDOM_STATE,
 ) -> dict:
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -912,9 +927,9 @@ def run_pipeline(
     print(f"[Domain Restriction] Rocky/Super-Earth samples kept: {len(raw)}", flush=True)
     
     raw = raw.dropna(subset=[target]).reset_index(drop=True)
-    train_raw, test_raw = train_test_split_frame(raw, test_size=test_size, random_state=RANDOM_STATE)
+    train_raw, test_raw = train_test_split_frame(raw, test_size=test_size, random_state=random_state)
 
-    pipeline = DataPipeline(target=target)
+    pipeline = DataPipeline(target=target, random_state=random_state)
     X_train, y_train = pipeline.fit_transform(train_raw)
     X_test, y_test = pipeline.transform(test_raw, include_target=True)
     if y_test is None:
@@ -956,6 +971,7 @@ def main() -> None:
     parser.add_argument("--outdir", default=str(ROOT_DIR / "part2" / "output"))
     parser.add_argument("--target", default=DEFAULT_TARGET)
     parser.add_argument("--test-size", type=float, default=0.2)
+    parser.add_argument("--random-state", type=int, default=RANDOM_STATE)
     parser.add_argument("--skip-plots", action="store_true")
     args = parser.parse_args()
 
@@ -965,11 +981,13 @@ def main() -> None:
         target=args.target,
         test_size=args.test_size,
         make_plots=not args.skip_plots,
+        random_state=args.random_state,
     )
 
     print("Preprocessing completed")
     print(f"  Train: {result['X_train'].shape}, Test: {result['X_test'].shape}")
     print(f"  Target: {result['target']} -> {result['target_transformed']}")
+    print(f"  Random state: {result['metadata']['random_state']}")
     print(f"  Features: {result['feature_names']}")
     print(f"  VIF drops: {result['metadata']['vif_drop_columns']}")
     print(f"  Saved: {Path(args.outdir) / 'preprocessed.pkl'}")
