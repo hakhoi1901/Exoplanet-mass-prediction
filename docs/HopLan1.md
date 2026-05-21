@@ -982,6 +982,40 @@ def bayesian_lr_predict(model, X_new, credible_interval=0.95):
 
 ---
 
+## TÓM TẮT MÃ CÔNG VIỆC
+
+### Nhóm F - Phần 1: Lý thuyết & cài đặt OLS từ đầu
+
+| Mã | Nội dung chính | File liên quan |
+| --- | --- | --- |
+| F1 | Cài đặt `ols_fit(X, y)`: giải Normal Equations, trả về hệ số OLS, dự đoán, phần dư và phương sai nhiễu. | `part1/ols_implementation.py` |
+| F2 | Cài đặt `hat_matrix(X)`: tính ma trận Hat, kiểm tra tính đối xứng, lũy đẳng, rank và eigenvalues. | `part1/ols_implementation.py` |
+| F3 | Cài đặt `model_metrics(y, y_hat, p)`: tính RSS, TSS, MSS, R², Adj-R², F-stat, p-value, MAE, RMSE. | `part1/ols_implementation.py` |
+| F4 | Cài đặt `coef_inference(...)`: tính standard error, t-statistic, p-value và khoảng tin cậy 95% cho hệ số. | `part1/ols_implementation.py` |
+| F5 | Cài đặt `vif(X)`: tính Variance Inflation Factor để phát hiện đa cộng tuyến. | `part1/ols_implementation.py` |
+| F6 | Cài đặt `ridge_fit(X, y, lam)`: Ridge Regression bằng closed-form solution, có chuẩn hóa dữ liệu. | `part1/ridge_lasso.py` |
+| F7 | Cài đặt `lasso_fit(X, y, lam)`: Lasso Regression bằng Coordinate Descent và soft-thresholding. | `part1/ridge_lasso.py` |
+| F8 | Cài đặt `residual_plots(...)`: vẽ 4 biểu đồ chẩn đoán phần dư và trả về số liệu phân tích. | `part1/residual_analysis.py` |
+| F9 | Cài đặt `kfold_cv(...)`: chia k-fold, huấn luyện, đánh giá MSE và hỗ trợ chọn λ tối ưu. | `part1/cross_validation.py` |
+| F10 | Mô phỏng Monte Carlo minh họa Gauss-Markov: kiểm tra unbiasedness và phương sai của OLS. | `part1/gauss_markov_demo.py` |
+| F11 | Tổng hợp notebook Part 1: demo các hàm, so sánh với thư viện, vẽ biểu đồ và viết báo cáo liên quan. | `part1/part1_notebook.ipynb`, `report/report.tex` |
+
+### Nhóm T - Phần 2: Ứng dụng dữ liệu thực tế
+
+| Mã | Nội dung chính | File liên quan |
+| --- | --- | --- |
+| T1 | Chọn và load dataset thật: dữ liệu regression, có missing value, đủ số dòng và số feature theo yêu cầu. | `part2/data/`, `part2/part2_notebook.ipynb` |
+| T2 | EDA: thống kê mô tả, missing report, duplicate check, histogram, boxplot, heatmap, scatter và outlier detection. | `part2/part2_notebook.ipynb` |
+| T3 | Xây dựng `DataPipeline`: impute missing, xử lý outlier, one-hot encoding, scaling, polynomial features, tránh leakage. | `part2/data_pipeline.py` |
+| T4 | Xây dựng và đánh giá các mô hình: OLS đầy đủ, OLS chọn biến, Ridge và Lasso; so sánh trên test set. | `part2/model_comparison.py` |
+| T5 | Tổng hợp notebook Part 2, phân tích kết quả mô hình, phần dư và hoàn thiện nội dung báo cáo. | `part2/part2_notebook.ipynb`, `report/report.tex` |
+| T6 | Feature Importance: vẽ và phân tích mức độ quan trọng của các feature, thường lấy top 15 để nhận xét. | `part2/part2_notebook.ipynb` |
+| T7 | Kỹ thuật nâng cao/bonus và QA: Kernel Ridge hoặc Bayesian Linear Regression, so sánh với mô hình gốc và rà soát test. | `part2/advanced_methods.py` |
+
+> Lưu ý: Trong phần mô tả chi tiết phía trên, mục kỹ thuật nâng cao đang được ghi là T6; trong bảng phân công bên dưới, phần này được giao dưới mã T7. Bảng tóm tắt này ưu tiên theo mã đang dùng trong phần phân công để dễ theo dõi nhiệm vụ.
+
+---
+
 ## PHÂN CÔNG
 
 ### 1. Phần 1

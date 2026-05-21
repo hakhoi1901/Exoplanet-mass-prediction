@@ -4,6 +4,58 @@
 \section*{BẢNG PHÂN CÔNG CÔNG VIỆC VÀ MỨC ĐỘ ĐÓNG GÓP}
 \addcontentsline{toc}{section}{Bảng phân công công việc}
 
+\subsection*{Tóm tắt mã công việc}
+
+Các mã công việc được dùng trong bảng phân công nhằm rút gọn nhiệm vụ của từng thành viên.
+Nhóm mã F tương ứng với các nội dung cài đặt và minh họa lý thuyết ở Phần 1; nhóm mã T tương
+ứng với các nội dung xử lý dữ liệu thực tế, xây dựng mô hình và hoàn thiện báo cáo ở Phần 2.
+
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{table}[H]
+\centering
+\caption{Tóm tắt các mã công việc Phần 1}
+\label{tab:assignment_f_summary}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{|p{0.1\textwidth}|p{0.86\textwidth}|}
+\hline
+\textbf{Mã} & \textbf{Nội dung chính} \\ \hline
+F1 & Cài đặt \texttt{ols\_fit}: giải hồi quy tuyến tính OLS bằng Normal Equations, tính hệ số, dự đoán và phần dư. \\ \hline
+F2 & Cài đặt \texttt{hat\_matrix}: tính ma trận Hat và kiểm tra các tính chất đối xứng, lũy đẳng, rank, eigenvalues. \\ \hline
+F3 & Cài đặt \texttt{model\_metrics}: tính RSS, TSS, MSS, $R^2$, Adj-$R^2$, F-statistic, p-value, MAE và RMSE. \\ \hline
+F4 & Cài đặt \texttt{coef\_inference}: tính sai số chuẩn, $t$-statistic, p-value và khoảng tin cậy 95\% cho hệ số. \\ \hline
+F5 & Cài đặt \texttt{vif}: tính Variance Inflation Factor để phát hiện đa cộng tuyến giữa các biến độc lập. \\ \hline
+F6 & Cài đặt \texttt{ridge\_fit}: Ridge Regression bằng nghiệm dạng đóng, có chuẩn hóa dữ liệu và chọn tham số phạt. \\ \hline
+F7 & Cài đặt \texttt{lasso\_fit}: Lasso Regression bằng Coordinate Descent và soft-thresholding. \\ \hline
+F8 & Cài đặt \texttt{residual\_plots}: vẽ các biểu đồ chẩn đoán phần dư để kiểm tra giả định của mô hình. \\ \hline
+F9 & Cài đặt \texttt{kfold\_cv}: thực hiện k-fold cross-validation để đánh giá mô hình và chọn $\lambda$ tối ưu. \\ \hline
+F10 & Mô phỏng Monte Carlo minh họa định lý Gauss-Markov, kiểm tra tính không chệch và phương sai của OLS. \\ \hline
+F11 & Tổng hợp notebook Phần 1, minh họa các hàm, so sánh với thư viện và đưa kết quả vào báo cáo. \\ \hline
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Tóm tắt các mã công việc Phần 2}
+\label{tab:assignment_t_summary}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{|p{0.1\textwidth}|p{0.86\textwidth}|}
+\hline
+\textbf{Mã} & \textbf{Nội dung chính} \\ \hline
+T1 & Chọn và tải tập dữ liệu thực tế cho bài toán hồi quy, bảo đảm đủ số quan sát, số biến và có dữ liệu khuyết thiếu. \\ \hline
+T2 & Thực hiện EDA: thống kê mô tả, báo cáo missing value, kiểm tra trùng lặp, histogram, boxplot, heatmap và scatter plot. \\ \hline
+T3 & Xây dựng \texttt{DataPipeline}: xử lý missing value, ngoại lai, encoding, scaling, polynomial features và tránh data leakage. \\ \hline
+T4 & Huấn luyện và so sánh các mô hình OLS đầy đủ, OLS chọn biến, Ridge và Lasso trên tập dữ liệu thực tế. \\ \hline
+T5 & Phân tích kết quả mô hình, phân tích phần dư, tổng hợp bảng biểu và hoàn thiện nội dung báo cáo Phần 2. \\ \hline
+T6 & Phân tích Feature Importance, trực quan hóa các biến quan trọng và hỗ trợ tổng hợp notebook Phần 2. \\ \hline
+T7 & Cài đặt kỹ thuật nâng cao hoặc phần bonus, đồng thời rà soát chất lượng mã nguồn và unit test. \\ \hline
+\end{tabular}
+\end{adjustbox}
+\end{table}
+\endgroup
+
 \renewcommand{\arraystretch}{1.5}
 \begin{longtable}{|p{0.05\textwidth}|p{0.18\textwidth}|>{\linespread{1.3}\selectfont\arraybackslash}p{0.6\textwidth}|p{0.08\textwidth}|}
     

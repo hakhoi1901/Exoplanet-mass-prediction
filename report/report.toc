@@ -1,5 +1,5 @@
 \babel@toc {vietnamese}{}\relax 
-\contentsline {section}{Bảng phân công công việc}{7}{Doc-Start}%
+\contentsline {section}{Bảng phân công công việc}{6}{Doc-Start}%
 \contentsline {section}{\numberline {0}Tổng quan Kiến trúc Hệ thống và Các Module dùng chung}{10}{section.0}%
 \contentsline {subsection}{\numberline {0.1}Tổ chức file theo hướng Module hóa}{10}{subsection.0.1}%
 \contentsline {subsection}{\numberline {0.2}Module cấu hình toàn cục: \texttt {config.py}}{11}{subsection.0.2}%
@@ -41,46 +41,45 @@
 \contentsline {subsubsection}{\numberline {1.6.2}Tiêu Chí Lựa Chọn Mô Hình}{29}{subsubsection.1.6.2}%
 \contentsline {subsection}{\numberline {1.7}Kết Quả Cài Đặt và Kiểm Chứng}{30}{subsection.1.7}%
 \contentsline {subsubsection}{\numberline {1.7.1}Tổng Hợp Các Hàm Cài Đặt}{30}{subsubsection.1.7.1}%
-\contentsline {subsubsection}{\numberline {1.7.2}Cấu Trúc Phụ Thuộc Giữa Các Hàm}{30}{subsubsection.1.7.2}%
-\contentsline {subsubsection}{\numberline {1.7.3}Kiểm Chứng Với NumPy và Sklearn}{31}{subsubsection.1.7.3}%
-\contentsline {subsubsection}{\numberline {1.7.4}Nhận Xét Kết Quả Phần 1}{31}{subsubsection.1.7.4}%
-\contentsline {section}{\numberline {2}Phần 2: Ứng Dụng Data Fitting vào Dữ Liệu Thực Tế}{33}{section.2}%
-\contentsline {subsection}{\numberline {2.1}Giới Thiệu}{33}{subsection.2.1}%
-\contentsline {subsection}{\numberline {2.2}Hiểu Dữ Liệu (Data Understanding)}{33}{subsection.2.2}%
-\contentsline {subsubsection}{\numberline {2.2.1}Nguồn dữ liệu và mô tả bài toán}{33}{subsubsection.2.2.1}%
-\contentsline {subsubsection}{\numberline {2.2.2}Các biến trong dữ liệu}{35}{subsubsection.2.2.2}%
-\contentsline {subsubsection}{\numberline {2.2.3}Khám phá dữ liệu ban đầu}{35}{subsubsection.2.2.3}%
-\contentsline {subsubsection}{\numberline {2.2.4}Kiểm tra chất lượng dữ liệu}{37}{subsubsection.2.2.4}%
-\contentsline {paragraph}{Dữ liệu trùng lặp.}{38}{subsubsection.2.2.4}%
-\contentsline {paragraph}{Dữ liệu khuyết.}{38}{table.8}%
-\contentsline {paragraph}{Dữ liệu nhiễu và ngoại lai.}{38}{table.9}%
-\contentsline {paragraph}{Dữ liệu mâu thuẫn.}{38}{table.9}%
-\contentsline {subsection}{\numberline {2.3}Chuẩn Bị Dữ Liệu (Data Preparation)}{39}{subsection.2.3}%
-\contentsline {subsubsection}{\numberline {2.3.1}Lựa chọn biến (Select Data)}{39}{subsubsection.2.3.1}%
-\contentsline {paragraph}{Giai đoạn 1: loại bỏ siêu dữ liệu và sai số đo lường.}{39}{subsubsection.2.3.1}%
-\contentsline {paragraph}{Giai đoạn 2: tinh chỉnh bằng domain knowledge và thống kê.}{39}{subsubsection.2.3.1}%
-\contentsline {paragraph}{Phân biệt với bước VIF trong pipeline.}{44}{table.12}%
-\contentsline {subsubsection}{\numberline {2.3.2}Làm sạch dữ liệu (Clean Data)}{44}{subsubsection.2.3.2}%
-\contentsline {subsubsection}{\numberline {2.3.3}Xây dựng dữ liệu (Construct Data)}{44}{subsubsection.2.3.3}%
-\contentsline {paragraph}{Log-transform.}{44}{subsubsection.2.3.3}%
-\contentsline {paragraph}{Winsorization.}{46}{figure.9}%
-\contentsline {paragraph}{MICE imputation.}{47}{figure.10}%
-\contentsline {paragraph}{Giai đoạn 3 trong DataPipeline: loại biến bằng VIF.}{48}{figure.11}%
-\contentsline {paragraph}{Chuẩn hóa dữ liệu.}{50}{figure.12}%
-\contentsline {subsection}{\numberline {2.4}Xây Dựng Mô Hình (Modeling)}{50}{subsection.2.4}%
-\contentsline {subsubsection}{\numberline {2.4.1}OLS full và chọn biến theo p-value}{50}{subsubsection.2.4.1}%
-\contentsline {subsubsection}{\numberline {2.4.2}Chọn siêu tham số cho Ridge và Lasso}{51}{subsubsection.2.4.2}%
-\contentsline {subsection}{\numberline {2.5}Dự Báo (Prediction)}{53}{subsection.2.5}%
-\contentsline {subsection}{\numberline {2.6}Đánh Giá Mô Hình (Evaluation)}{54}{subsection.2.6}%
-\contentsline {subsubsection}{\numberline {2.6.1}So sánh mô hình tuyến tính}{54}{subsubsection.2.6.1}%
-\contentsline {subsubsection}{\numberline {2.6.2}Phân tích hệ số và feature importance}{56}{subsubsection.2.6.2}%
-\contentsline {subsubsection}{\numberline {2.6.3}Phân tích phần dư và giả định mô hình}{57}{subsubsection.2.6.3}%
-\contentsline {subsubsection}{\numberline {2.6.4}Kiểm chứng giả thuyết Giãn nở nhiệt (Thermal Expansion Hypothesis)}{58}{subsubsection.2.6.4}%
-\contentsline {paragraph}{Kiểm định tác động tương tác giữa Khối lượng và Nhiệt độ:}{58}{subsubsection.2.6.4}%
-\contentsline {paragraph}{Kết luận:}{59}{equation.43}%
-\contentsline {subsubsection}{\numberline {2.6.5}Phương pháp nâng cao: Kernel Ridge Regression}{59}{subsubsection.2.6.5}%
-\contentsline {subsection}{\numberline {2.7}Kết Luận Phần 2}{60}{subsection.2.7}%
-\contentsline {section}{\numberline {3}Kết luận}{61}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Tóm tắt kết quả đạt được}{61}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Bài học rút ra}{62}{subsection.3.2}%
-\contentsline {subsection}{\numberline {3.3}Khó khăn chuyên môn và các nghịch lý Toán học tính toán}{62}{subsection.3.3}%
+\contentsline {subsubsection}{\numberline {1.7.2}Kiểm Chứng Với NumPy và Sklearn}{30}{subsubsection.1.7.2}%
+\contentsline {subsubsection}{\numberline {1.7.3}Nhận Xét Kết Quả Phần 1}{31}{subsubsection.1.7.3}%
+\contentsline {section}{\numberline {2}Phần 2: Ứng Dụng Data Fitting vào Dữ Liệu Thực Tế}{32}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Giới Thiệu}{32}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Hiểu Dữ Liệu (Data Understanding)}{32}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Nguồn dữ liệu và mô tả bài toán}{32}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}Các biến trong dữ liệu}{34}{subsubsection.2.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.3}Khám phá dữ liệu ban đầu}{34}{subsubsection.2.2.3}%
+\contentsline {subsubsection}{\numberline {2.2.4}Kiểm tra chất lượng dữ liệu}{36}{subsubsection.2.2.4}%
+\contentsline {paragraph}{Dữ liệu trùng lặp.}{37}{subsubsection.2.2.4}%
+\contentsline {paragraph}{Dữ liệu khuyết.}{37}{table.10}%
+\contentsline {paragraph}{Dữ liệu nhiễu và ngoại lai.}{37}{table.11}%
+\contentsline {paragraph}{Dữ liệu mâu thuẫn.}{37}{table.11}%
+\contentsline {subsection}{\numberline {2.3}Chuẩn Bị Dữ Liệu (Data Preparation)}{38}{subsection.2.3}%
+\contentsline {subsubsection}{\numberline {2.3.1}Lựa chọn biến (Select Data)}{38}{subsubsection.2.3.1}%
+\contentsline {paragraph}{Giai đoạn 1: loại bỏ siêu dữ liệu và sai số đo lường.}{38}{subsubsection.2.3.1}%
+\contentsline {paragraph}{Giai đoạn 2: tinh chỉnh bằng domain knowledge và thống kê.}{38}{subsubsection.2.3.1}%
+\contentsline {paragraph}{Phân biệt với bước VIF trong pipeline.}{43}{table.14}%
+\contentsline {subsubsection}{\numberline {2.3.2}Làm sạch dữ liệu (Clean Data)}{43}{subsubsection.2.3.2}%
+\contentsline {subsubsection}{\numberline {2.3.3}Xây dựng dữ liệu (Construct Data)}{43}{subsubsection.2.3.3}%
+\contentsline {paragraph}{Log-transform.}{43}{subsubsection.2.3.3}%
+\contentsline {paragraph}{Winsorization.}{45}{figure.8}%
+\contentsline {paragraph}{MICE imputation.}{46}{figure.9}%
+\contentsline {paragraph}{Giai đoạn 3 trong DataPipeline: loại biến bằng VIF.}{47}{figure.10}%
+\contentsline {paragraph}{Chuẩn hóa dữ liệu.}{49}{figure.11}%
+\contentsline {subsection}{\numberline {2.4}Xây Dựng Mô Hình (Modeling)}{49}{subsection.2.4}%
+\contentsline {subsubsection}{\numberline {2.4.1}OLS full và chọn biến theo p-value}{49}{subsubsection.2.4.1}%
+\contentsline {subsubsection}{\numberline {2.4.2}Chọn siêu tham số cho Ridge và Lasso}{50}{subsubsection.2.4.2}%
+\contentsline {subsection}{\numberline {2.5}Dự Báo (Prediction)}{51}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}Đánh Giá Mô Hình (Evaluation)}{53}{subsection.2.6}%
+\contentsline {subsubsection}{\numberline {2.6.1}So sánh mô hình tuyến tính}{53}{subsubsection.2.6.1}%
+\contentsline {subsubsection}{\numberline {2.6.2}Phân tích hệ số và feature importance}{54}{subsubsection.2.6.2}%
+\contentsline {subsubsection}{\numberline {2.6.3}Phân tích phần dư và giả định mô hình}{55}{subsubsection.2.6.3}%
+\contentsline {subsubsection}{\numberline {2.6.4}Kiểm chứng giả thuyết Giãn nở nhiệt (Thermal Expansion Hypothesis)}{56}{subsubsection.2.6.4}%
+\contentsline {paragraph}{Kiểm định tác động tương tác giữa Khối lượng và Nhiệt độ:}{56}{subsubsection.2.6.4}%
+\contentsline {paragraph}{Kết luận:}{57}{equation.43}%
+\contentsline {subsubsection}{\numberline {2.6.5}Phương pháp nâng cao: Kernel Ridge Regression}{57}{subsubsection.2.6.5}%
+\contentsline {subsection}{\numberline {2.7}Kết Luận Phần 2}{58}{subsection.2.7}%
+\contentsline {section}{\numberline {3}Kết luận}{59}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Tóm tắt kết quả đạt được}{59}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Bài học rút ra}{60}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Khó khăn chuyên môn và các nghịch lý Toán học tính toán}{60}{subsection.3.3}%

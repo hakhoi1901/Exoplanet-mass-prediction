@@ -845,7 +845,9 @@ $\lambda \ge 0.3162$. Giá trị tốt nhất là:
 \centering
 \caption{Kết quả Lasso CV}
 \label{tab:part2_lasso_cv}
-\resizebox{\textwidth}{!}{%
+\small
+\renewcommand{\arraystretch}{1.0}
+\begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{@{}rrrr@{}}
 \hline
 \textbf{$\lambda$} & \textbf{Mean CV-MSE} & \textbf{Std CV-MSE} & \textbf{Mean CV-$R^2$} \\
@@ -864,7 +866,8 @@ $\lambda \ge 0.3162$. Giá trị tốt nhất là:
 31.623 & 0.008702 & 0.000978 & 0.434213 \\
 100.000 & 0.015532 & 0.001217 & -0.012201 \\
 \hline
-\end{tabular}}
+\end{tabular}
+\end{adjustbox}
 \end{table}
 
 Với $\lambda^* = 0.0316228$, Lasso vẫn không triệt tiêu hệ số nào: $0/11$ feature có hệ số bằng
@@ -887,7 +890,9 @@ Mô hình tuyến tính tốt nhất trên test set là Lasso. Vì target đư�
 \centering
 \caption{Một số dự báo của mô hình Lasso trên tập test}
 \label{tab:part2_prediction_sample}
-\resizebox{\textwidth}{!}{%
+\small
+\renewcommand{\arraystretch}{1.0}
+\begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{@{}rrrrrrr@{}}
 \hline
 \textbf{STT} & \textbf{Actual log} & \textbf{Pred log} & \textbf{Residual log} &
@@ -904,7 +909,8 @@ Mô hình tuyến tính tốt nhất trên test set là Lasso. Vì target đư�
 9 & 0.783902 & 0.787921 & -0.004019 & 1.190000 & 1.198819 & 0.741 \\
 10 & 0.662688 & 0.647882 & 0.014805 & 0.940000 & 0.911489 & 3.033 \\
 \hline
-\end{tabular}}
+\end{tabular}
+\end{adjustbox}
 \end{table}
 
 Trên thang bán kính gốc, Lasso đạt $R^2=0.712521$, RMSE $=0.130353$, MAE $=0.085233$ và
@@ -929,7 +935,9 @@ MAPE $=7.038\%$. Các chỉ số này không dùng để chọn mô hình chính
 \centering
 \caption{So sánh các mô hình trên tập test}
 \label{tab:part2_model_summary}
-\resizebox{\textwidth}{!}{%
+\small
+\renewcommand{\arraystretch}{1.0}
+\begin{adjustbox}{max width=\textwidth}
 \begin{tabular}{@{}lrrrrr@{}}
 \hline
 \textbf{Mô hình} & \textbf{Test $R^2$} & \textbf{Test RMSE} & \textbf{Test MAE} &
@@ -940,7 +948,8 @@ OLS full & 0.747794 & 0.056941 & 0.037952 & 0.005075 & 0.673407 \\
 Ridge & 0.747678 & 0.056954 & 0.038204 & 0.005074 & 0.673433 \\
 OLS selected & 0.743913 & 0.057378 & 0.039013 & 0.005103 & 0.671611 \\
 \hline
-\end{tabular}}
+\end{tabular}
+\end{adjustbox}
 \end{table}
 
 \begin{figure}[H]
