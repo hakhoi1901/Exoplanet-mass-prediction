@@ -12,107 +12,214 @@
     {1}{94.34059pt}\LT@entry 
     {1}{285.54922pt}\LT@entry 
     {1}{48.82034pt}}
-\@writefile{toc}{\contentsline {section}{Bảng phân công công việc}{6}{Doc-Start}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {1}{Bảng phân công công việc và mức độ đóng góp}}{6}{table.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {0}Tổng quan Kiến trúc Hệ thống và Các Module dùng chung}{9}{section.0}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {0.1}Tổ chức file theo hướng Module hóa}{9}{subsection.0.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {0.2}Module cấu hình toàn cục: \texttt  {config.py}}{10}{subsection.0.2}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}Module \texttt  {config.py} --- hằng số và hàm xử lý sai số dùng chung}{11}{lstlisting.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {0.3}Các hàm tiện ích nội bộ dùng chung: \texttt  {utils.py}}{11}{subsection.0.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Nhóm phép toán ma trận cơ bản}{11}{subsection.0.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Nhóm giải hệ tuyến tính}{12}{subsection.0.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Nhóm kiểm tra và chuẩn hóa}{12}{subsection.0.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Nhóm trực giao hóa và null space}{12}{subsection.0.3}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}Trích đoạn \texttt  {utils.py}: các hàm cốt lõi cho OLS}{13}{lstlisting.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {0.4}Module tiện ích kiểm thử dùng chung: \texttt  {test\_utils.py}}{14}{subsection.0.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Sinh dữ liệu giả lập nhất quán}{14}{subsection.0.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Hàm assert có log màu}{14}{subsection.0.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Hàm kiểm chứng với sklearn}{15}{subsection.0.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {0.5}Quy ước Import và Chạy Test}{15}{subsection.0.5}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}Lệnh chạy toàn bộ unit test từ thư mục gốc}{15}{lstlisting.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {0.6}Quản lý Sai số Dấu phẩy động: IEEE 754 và Machine Epsilon}{16}{subsection.0.6}\protected@file@percent }
-\newlabel{sec:floating_point_p2}{{0.6}{16}{Quản lý Sai số Dấu phẩy động: IEEE 754 và Machine Epsilon}{subsection.0.6}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {0.6.1}Giới hạn biểu diễn: Machine Epsilon}{16}{subsubsection.0.6.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {0.6.2}Chiến lược quản lý sai số trong dự án}{16}{subsubsection.0.6.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Lớp 1 --- Ngưỡng epsilon toàn cục (\texttt  {EPSILON = 1e-12})}{16}{subsubsection.0.6.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Lớp 2 --- Làm sạch kết quả trung gian (\texttt  {zero\_rectify})}{17}{subsubsection.0.6.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{Lớp 3 --- Chọn chốt từng phần (Partial Pivoting)}{17}{subsubsection.0.6.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {0.6.3}Ảnh hưởng của điều kiện số lên OLS}{17}{subsubsection.0.6.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {1}Phần 1: Lý Thuyết Data Fitting và Minh Họa}{18}{section.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Bài Toán Data Fitting}{18}{subsection.1.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.1.1}Phát Biểu Bài Toán Tổng Quát}{18}{subsubsection.1.1.1}\protected@file@percent }
-\newlabel{eq:linear_model}{{5}{18}{Phát Biểu Bài Toán Tổng Quát}{equation.5}{}}
-\newlabel{eq:matrix_form}{{6}{18}{Phát Biểu Bài Toán Tổng Quát}{equation.6}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.1.2}Các Giả Thiết Gauss–Markov}{18}{subsubsection.1.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Phương Pháp Ordinary Least Squares (OLS)}{19}{subsection.1.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.2.1}Hàm Mất Mát và Nghiệm OLS}{19}{subsubsection.1.2.1}\protected@file@percent }
-\newlabel{eq:rss}{{7}{19}{Hàm Mất Mát và Nghiệm OLS}{equation.7}{}}
-\newlabel{eq:ols_solution}{{8}{19}{Hàm Mất Mát và Nghiệm OLS}{equation.8}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}Hàm \texttt  {ols\_fit} - tính nghiệm OLS từ công thức Normal Equations}{19}{lstlisting.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.2.2}Ma Trận Chiếu và Hat Matrix}{20}{subsubsection.1.2.2}\protected@file@percent }
-\newlabel{eq:hat_matrix}{{10}{20}{Ma Trận Chiếu và Hat Matrix}{equation.10}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.2.3}Định Lý Gauss–Markov}{20}{subsubsection.1.2.3}\protected@file@percent }
-\newlabel{eq:var_beta}{{11}{20}{Định Lý Gauss–Markov}{equation.11}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Phân phối $\hat  {\boldsymbol  {\beta }}_{\mathrm  {OLS}}$ (xanh) và $\tilde  {\boldsymbol  {\beta }}_{\mathrm  {alt}}$ (cam) qua 1000 mô phỏng. Đường đỏ dọc là giá trị $\beta $ thực. OLS tập trung xung quanh $\beta $ thực (không chệch) với độ phân tán thấp hơn estimator thay thế (phương sai nhỏ hơn).}}{21}{figure.1}\protected@file@percent }
-\newlabel{fig:gauss_markov}{{1}{21}{Phân phối $\hat {\boldsymbol {\beta }}_{\mathrm {OLS}}$ (xanh) và $\tilde {\boldsymbol {\beta }}_{\mathrm {alt}}$ (cam) qua 1000 mô phỏng. Đường đỏ dọc là giá trị $\beta $ thực. OLS tập trung xung quanh $\beta $ thực (không chệch) với độ phân tán thấp hơn estimator thay thế (phương sai nhỏ hơn)}{figure.1}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.2.4}Ước Lượng Phương Sai Nhiễu}{21}{subsubsection.1.2.4}\protected@file@percent }
-\newlabel{eq:sigma2}{{14}{21}{Ước Lượng Phương Sai Nhiễu}{equation.14}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.3}Đánh Giá Mô Hình}{22}{subsection.1.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.3.1}Hệ Số Xác Định $R^2$ và $\bar  {R}^2$ Hiệu Chỉnh}{22}{subsubsection.1.3.1}\protected@file@percent }
-\newlabel{eq:r2}{{16}{22}{Hệ Số Xác Định $R^2$ và $\bar {R}^2$ Hiệu Chỉnh}{equation.16}{}}
-\newlabel{eq:r2_adj}{{17}{22}{Hệ Số Xác Định $R^2$ và $\bar {R}^2$ Hiệu Chỉnh}{equation.17}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.3.2}Kiểm Định Giả Thuyết}{22}{subsubsection.1.3.2}\protected@file@percent }
-\newlabel{eq:t_test}{{18}{22}{Kiểm Định Giả Thuyết}{equation.18}{}}
-\newlabel{eq:f_test}{{19}{22}{Kiểm Định Giả Thuyết}{equation.19}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}Hàm \texttt  {coef\_inference} - tính standard error, t-statistic, p-value và khoảng tin cậy 95\%}{23}{lstlisting.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.4}Các Vấn Đề Nâng Cao}{23}{subsection.1.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.4.1}Đa Cộng Tuyến và Hệ Số VIF}{23}{subsubsection.1.4.1}\protected@file@percent }
-\newlabel{eq:vif}{{20}{23}{Đa Cộng Tuyến và Hệ Số VIF}{equation.20}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {6}Hàm \texttt  {vif} - tính VIF cho từng biến, dùng F1 và F3}{23}{lstlisting.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.4.2}Hồi Quy Ridge và Lasso (Regularization)}{24}{subsubsection.1.4.2}\protected@file@percent }
-\newlabel{eq:ridge}{{21}{24}{Hồi Quy Ridge và Lasso (Regularization)}{equation.21}{}}
-\newlabel{eq:lasso}{{22}{24}{Hồi Quy Ridge và Lasso (Regularization)}{equation.22}{}}
-\newlabel{eq:soft_threshold}{{23}{24}{Hồi Quy Ridge và Lasso (Regularization)}{equation.23}{}}
-\newlabel{eq:coord_descent}{{24}{24}{Hồi Quy Ridge và Lasso (Regularization)}{equation.24}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Ridge Trace: giá trị các hệ số hồi quy theo $\lambda $ (log scale). Khi $\lambda \to 0$, các hệ số tiệm cận nghiệm OLS; khi $\lambda \to \infty $, tất cả hệ số co về 0.}}{25}{figure.2}\protected@file@percent }
-\newlabel{fig:ridge_trace}{{2}{25}{Ridge Trace: giá trị các hệ số hồi quy theo $\lambda $ (log scale). Khi $\lambda \to 0$, các hệ số tiệm cận nghiệm OLS; khi $\lambda \to \infty $, tất cả hệ số co về 0}{figure.2}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces $\lambda $ vs CV-MSE (5-fold). Đường đỏ đứt là $\lambda ^*$ tối ưu. Vùng $\lambda $ quá nhỏ: mô hình overfit (MSE cao trên validation); $\lambda $ quá lớn: underfit do shrinkage quá mạnh.}}{25}{figure.3}\protected@file@percent }
-\newlabel{fig:lambda_cv}{{3}{25}{$\lambda $ vs CV-MSE (5-fold). Đường đỏ đứt là $\lambda ^*$ tối ưu. Vùng $\lambda $ quá nhỏ: mô hình overfit (MSE cao trên validation); $\lambda $ quá lớn: underfit do shrinkage quá mạnh}{figure.3}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.5}Phân Tích Phần Dư}{25}{subsection.1.5}\protected@file@percent }
-\newlabel{eq:cooks_d}{{26}{26}{Phân Tích Phần Dư}{equation.26}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.6}Cross-Validation và Lựa Chọn Mô Hình}{26}{subsection.1.6}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.6.1}$k$-Fold Cross-Validation}{26}{subsubsection.1.6.1}\protected@file@percent }
-\newlabel{eq:cv}{{27}{26}{$k$-Fold Cross-Validation}{equation.27}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {7}Hàm \texttt  {kfold\_cv} - thực hiện k-fold cross-validation, dùng được với ols\_fit, ridge\_fit, lasso\_fit}{26}{lstlisting.7}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Bốn biểu đồ chẩn đoán phần dư. Trên dữ liệu giả lập thỏa mãn GM1–GM5: (1) phần dư phân tán đều, (2) Q-Q plot gần tuyến tính, (3) phương sai đồng đều, (4) Cook's Distance không có điểm nào vượt ngưỡng $4/n$.}}{27}{figure.4}\protected@file@percent }
-\newlabel{fig:residual_plots}{{4}{27}{Bốn biểu đồ chẩn đoán phần dư. Trên dữ liệu giả lập thỏa mãn GM1–GM5: (1) phần dư phân tán đều, (2) Q-Q plot gần tuyến tính, (3) phương sai đồng đều, (4) Cook's Distance không có điểm nào vượt ngưỡng $4/n$}{figure.4}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.6.2}Tiêu Chí Lựa Chọn Mô Hình}{28}{subsubsection.1.6.2}\protected@file@percent }
-\newlabel{eq:aic}{{28}{28}{Tiêu Chí Lựa Chọn Mô Hình}{equation.28}{}}
-\newlabel{eq:bic}{{29}{28}{Tiêu Chí Lựa Chọn Mô Hình}{equation.29}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {1.7}Kết Quả Cài Đặt và Kiểm Chứng}{28}{subsection.1.7}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.7.1}Tổng Hợp Các Hàm Cài Đặt}{28}{subsubsection.1.7.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{Bảng phân công công việc}{7}{Doc-Start}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {1}{Bảng phân công công việc và mức độ đóng góp}}{7}{table.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {0}Tổng quan Kiến trúc Hệ thống và Các Module dùng chung}{10}{section.0}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {0.1}Tổ chức file theo hướng Module hóa}{10}{subsection.0.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {0.2}Module cấu hình toàn cục: \texttt  {config.py}}{11}{subsection.0.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}Module \texttt  {config.py} --- hằng số và hàm xử lý sai số dùng chung}{12}{lstlisting.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {0.3}Các hàm tiện ích nội bộ dùng chung: \texttt  {utils.py}}{12}{subsection.0.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Nhóm phép toán ma trận cơ bản}{12}{subsection.0.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Nhóm giải hệ tuyến tính}{13}{subsection.0.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Nhóm kiểm tra và chuẩn hóa}{13}{subsection.0.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Nhóm trực giao hóa và null space}{13}{subsection.0.3}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {2}Trích đoạn \texttt  {utils.py}: các hàm cốt lõi cho OLS}{14}{lstlisting.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {0.4}Module tiện ích kiểm thử dùng chung: \texttt  {test\_utils.py}}{15}{subsection.0.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Sinh dữ liệu giả lập nhất quán}{15}{subsection.0.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Hàm assert có log màu}{15}{subsection.0.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Hàm kiểm chứng với sklearn}{16}{subsection.0.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {0.5}Quy ước Import và Chạy Test}{16}{subsection.0.5}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}Lệnh chạy toàn bộ unit test từ thư mục gốc}{16}{lstlisting.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {0.6}Quản lý Sai số Dấu phẩy động: IEEE 754 và Machine Epsilon}{17}{subsection.0.6}\protected@file@percent }
+\newlabel{sec:floating_point_p2}{{0.6}{17}{Quản lý Sai số Dấu phẩy động: IEEE 754 và Machine Epsilon}{subsection.0.6}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {0.6.1}Giới hạn biểu diễn: Machine Epsilon}{17}{subsubsection.0.6.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {0.6.2}Chiến lược quản lý sai số trong dự án}{17}{subsubsection.0.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Lớp 1 --- Ngưỡng epsilon toàn cục (\texttt  {EPSILON = 1e-12})}{17}{subsubsection.0.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Lớp 2 --- Làm sạch kết quả trung gian (\texttt  {zero\_rectify})}{18}{subsubsection.0.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Lớp 3 --- Chọn chốt từng phần (Partial Pivoting)}{18}{subsubsection.0.6.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {0.6.3}Ảnh hưởng của điều kiện số lên OLS}{18}{subsubsection.0.6.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {1}Phần 1: Lý Thuyết Data Fitting và Minh Họa}{19}{section.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.1}Bài Toán Data Fitting}{19}{subsection.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.1.1}Phát Biểu Bài Toán Tổng Quát}{19}{subsubsection.1.1.1}\protected@file@percent }
+\newlabel{eq:linear_model}{{5}{19}{Phát Biểu Bài Toán Tổng Quát}{equation.5}{}}
+\newlabel{eq:matrix_form}{{6}{19}{Phát Biểu Bài Toán Tổng Quát}{equation.6}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.1.2}Các Giả Thiết Gauss–Markov}{19}{subsubsection.1.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.2}Phương Pháp Ordinary Least Squares (OLS)}{20}{subsection.1.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.2.1}Hàm Mất Mát và Nghiệm OLS}{20}{subsubsection.1.2.1}\protected@file@percent }
+\newlabel{eq:rss}{{7}{20}{Hàm Mất Mát và Nghiệm OLS}{equation.7}{}}
+\newlabel{eq:ols_solution}{{8}{20}{Hàm Mất Mát và Nghiệm OLS}{equation.8}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}Hàm \texttt  {ols\_fit} - tính nghiệm OLS từ công thức Normal Equations}{20}{lstlisting.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.2.2}Ma Trận Chiếu và Hat Matrix}{21}{subsubsection.1.2.2}\protected@file@percent }
+\newlabel{eq:hat_matrix}{{10}{21}{Ma Trận Chiếu và Hat Matrix}{equation.10}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.2.3}Định Lý Gauss–Markov}{21}{subsubsection.1.2.3}\protected@file@percent }
+\newlabel{eq:var_beta}{{11}{21}{Định Lý Gauss–Markov}{equation.11}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Phân phối $\hat  {\boldsymbol  {\beta }}_{\mathrm  {OLS}}$ (xanh) và $\tilde  {\boldsymbol  {\beta }}_{\mathrm  {alt}}$ (cam) qua 1000 mô phỏng. Đường đỏ dọc là giá trị $\beta $ thực. OLS tập trung xung quanh $\beta $ thực (không chệch) với độ phân tán thấp hơn estimator thay thế (phương sai nhỏ hơn).}}{22}{figure.1}\protected@file@percent }
+\newlabel{fig:gauss_markov}{{1}{22}{Phân phối $\hat {\boldsymbol {\beta }}_{\mathrm {OLS}}$ (xanh) và $\tilde {\boldsymbol {\beta }}_{\mathrm {alt}}$ (cam) qua 1000 mô phỏng. Đường đỏ dọc là giá trị $\beta $ thực. OLS tập trung xung quanh $\beta $ thực (không chệch) với độ phân tán thấp hơn estimator thay thế (phương sai nhỏ hơn)}{figure.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.2.4}Ước Lượng Phương Sai Nhiễu}{23}{subsubsection.1.2.4}\protected@file@percent }
+\newlabel{eq:sigma2}{{14}{23}{Ước Lượng Phương Sai Nhiễu}{equation.14}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.3}Đánh Giá Mô Hình}{23}{subsection.1.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.3.1}Hệ Số Xác Định $R^2$ và $\bar  {R}^2$ Hiệu Chỉnh}{23}{subsubsection.1.3.1}\protected@file@percent }
+\newlabel{eq:r2}{{16}{23}{Hệ Số Xác Định $R^2$ và $\bar {R}^2$ Hiệu Chỉnh}{equation.16}{}}
+\newlabel{eq:r2_adj}{{17}{23}{Hệ Số Xác Định $R^2$ và $\bar {R}^2$ Hiệu Chỉnh}{equation.17}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.3.2}Kiểm Định Giả Thuyết}{23}{subsubsection.1.3.2}\protected@file@percent }
+\newlabel{eq:t_test}{{18}{23}{Kiểm Định Giả Thuyết}{equation.18}{}}
+\newlabel{eq:f_test}{{19}{24}{Kiểm Định Giả Thuyết}{equation.19}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}Hàm \texttt  {coef\_inference} - tính standard error, t-statistic, p-value và khoảng tin cậy 95\%}{24}{lstlisting.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.4}Các Vấn Đề Nâng Cao}{24}{subsection.1.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.4.1}Đa Cộng Tuyến và Hệ Số VIF}{24}{subsubsection.1.4.1}\protected@file@percent }
+\newlabel{eq:vif}{{20}{24}{Đa Cộng Tuyến và Hệ Số VIF}{equation.20}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {6}Hàm \texttt  {vif} - tính VIF cho từng biến, dùng F1 và F3}{25}{lstlisting.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.4.2}Hồi Quy Ridge và Lasso (Regularization)}{25}{subsubsection.1.4.2}\protected@file@percent }
+\newlabel{eq:ridge}{{21}{25}{Hồi Quy Ridge và Lasso (Regularization)}{equation.21}{}}
+\newlabel{eq:lasso}{{22}{25}{Hồi Quy Ridge và Lasso (Regularization)}{equation.22}{}}
+\newlabel{eq:soft_threshold}{{23}{25}{Hồi Quy Ridge và Lasso (Regularization)}{equation.23}{}}
+\newlabel{eq:coord_descent}{{24}{25}{Hồi Quy Ridge và Lasso (Regularization)}{equation.24}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Ridge Trace: giá trị các hệ số hồi quy theo $\lambda $ (log scale). Khi $\lambda \to 0$, các hệ số tiệm cận nghiệm OLS; khi $\lambda \to \infty $, tất cả hệ số co về 0.}}{26}{figure.2}\protected@file@percent }
+\newlabel{fig:ridge_trace}{{2}{26}{Ridge Trace: giá trị các hệ số hồi quy theo $\lambda $ (log scale). Khi $\lambda \to 0$, các hệ số tiệm cận nghiệm OLS; khi $\lambda \to \infty $, tất cả hệ số co về 0}{figure.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.5}Phân Tích Phần Dư}{26}{subsection.1.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces $\lambda $ vs CV-MSE (5-fold). Đường đỏ đứt là $\lambda ^*$ tối ưu. Vùng $\lambda $ quá nhỏ: mô hình overfit (MSE cao trên validation); $\lambda $ quá lớn: underfit do shrinkage quá mạnh.}}{27}{figure.3}\protected@file@percent }
+\newlabel{fig:lambda_cv}{{3}{27}{$\lambda $ vs CV-MSE (5-fold). Đường đỏ đứt là $\lambda ^*$ tối ưu. Vùng $\lambda $ quá nhỏ: mô hình overfit (MSE cao trên validation); $\lambda $ quá lớn: underfit do shrinkage quá mạnh}{figure.3}{}}
+\newlabel{eq:cooks_d}{{26}{27}{Phân Tích Phần Dư}{equation.26}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.6}Cross-Validation và Lựa Chọn Mô Hình}{27}{subsection.1.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.6.1}$k$-Fold Cross-Validation}{27}{subsubsection.1.6.1}\protected@file@percent }
+\newlabel{eq:cv}{{27}{27}{$k$-Fold Cross-Validation}{equation.27}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Bốn biểu đồ chẩn đoán phần dư. Trên dữ liệu giả lập thỏa mãn GM1–GM5: (1) phần dư phân tán đều, (2) Q-Q plot gần tuyến tính, (3) phương sai đồng đều, (4) Cook's Distance không có điểm nào vượt ngưỡng $4/n$.}}{28}{figure.4}\protected@file@percent }
+\newlabel{fig:residual_plots}{{4}{28}{Bốn biểu đồ chẩn đoán phần dư. Trên dữ liệu giả lập thỏa mãn GM1–GM5: (1) phần dư phân tán đều, (2) Q-Q plot gần tuyến tính, (3) phương sai đồng đều, (4) Cook's Distance không có điểm nào vượt ngưỡng $4/n$}{figure.4}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {7}Hàm \texttt  {kfold\_cv} - thực hiện k-fold cross-validation, dùng được với ols\_fit, ridge\_fit, lasso\_fit}{28}{lstlisting.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.6.2}Tiêu Chí Lựa Chọn Mô Hình}{29}{subsubsection.1.6.2}\protected@file@percent }
+\newlabel{eq:aic}{{28}{29}{Tiêu Chí Lựa Chọn Mô Hình}{equation.28}{}}
+\newlabel{eq:bic}{{29}{29}{Tiêu Chí Lựa Chọn Mô Hình}{equation.29}{}}
 \gdef \LT@ii {\LT@entry 
     {1}{28.76358pt}\LT@entry 
     {1}{112.15425pt}\LT@entry 
     {1}{103.04742pt}\LT@entry 
     {1}{134.91785pt}\LT@entry 
     {1}{78.84071pt}}
-\@writefile{lot}{\contentsline {table}{\numberline {2}{Tổng hợp các hàm đã cài đặt trong Phần 1}}{29}{table.2}\protected@file@percent }
-\newlabel{tab:functions}{{2}{29}{Tổng hợp các hàm đã cài đặt trong Phần 1}{table.2}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.7.2}Cấu Trúc Phụ Thuộc Giữa Các Hàm}{29}{subsubsection.1.7.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.7.3}Kiểm Chứng Với NumPy và Sklearn}{29}{subsubsection.1.7.3}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Sơ đồ phụ thuộc giữa các hàm Phần 1. Màu xanh là các module cơ sở (\texttt  {utils.py}, \texttt  {config.py}); mũi tên thể hiện hàm gọi/phụ thuộc vào hàm khác.}}{30}{figure.5}\protected@file@percent }
-\newlabel{fig:dependency}{{5}{30}{Sơ đồ phụ thuộc giữa các hàm Phần 1. Màu xanh là các module cơ sở (\texttt {utils.py}, \texttt {config.py}); mũi tên thể hiện hàm gọi/phụ thuộc vào hàm khác}{figure.5}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Kết quả kiểm chứng F1 và F6 với NumPy/sklearn}}{30}{table.3}\protected@file@percent }
-\newlabel{tab:verification}{{3}{30}{Kết quả kiểm chứng F1 và F6 với NumPy/sklearn}{table.3}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.7.4}Nhận Xét Kết Quả Phần 1}{30}{subsubsection.1.7.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {2}Phần 2: Phân Rã Ma Trận và Trực Quan Hóa với Manim}{32}{section.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Cơ sở lý thuyết phương pháp phân rã SVD}{32}{subsection.2.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {3}Kết luận}{33}{section.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Tóm tắt kết quả đạt được}{33}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {1.7}Kết Quả Cài Đặt và Kiểm Chứng}{30}{subsection.1.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.7.1}Tổng Hợp Các Hàm Cài Đặt}{30}{subsubsection.1.7.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {2}{Tổng hợp các hàm đã cài đặt trong Phần 1}}{30}{table.2}\protected@file@percent }
+\newlabel{tab:functions}{{2}{30}{Tổng hợp các hàm đã cài đặt trong Phần 1}{table.2}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.7.2}Cấu Trúc Phụ Thuộc Giữa Các Hàm}{30}{subsubsection.1.7.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces Sơ đồ phụ thuộc giữa các hàm Phần 1. Màu xanh là các module cơ sở (\texttt  {utils.py}, \texttt  {config.py}); mũi tên thể hiện hàm gọi/phụ thuộc vào hàm khác.}}{31}{figure.5}\protected@file@percent }
+\newlabel{fig:dependency}{{5}{31}{Sơ đồ phụ thuộc giữa các hàm Phần 1. Màu xanh là các module cơ sở (\texttt {utils.py}, \texttt {config.py}); mũi tên thể hiện hàm gọi/phụ thuộc vào hàm khác}{figure.5}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.7.3}Kiểm Chứng Với NumPy và Sklearn}{31}{subsubsection.1.7.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Kết quả kiểm chứng F1 và F6 với NumPy/sklearn}}{31}{table.3}\protected@file@percent }
+\newlabel{tab:verification}{{3}{31}{Kết quả kiểm chứng F1 và F6 với NumPy/sklearn}{table.3}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {1.7.4}Nhận Xét Kết Quả Phần 1}{31}{subsubsection.1.7.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2}Phần 2: Ứng Dụng Data Fitting vào Dữ Liệu Thực Tế}{33}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Giới Thiệu}{33}{subsection.2.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Hiểu Dữ Liệu (Data Understanding)}{33}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.1}Nguồn dữ liệu và mô tả bài toán}{33}{subsubsection.2.2.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Quy mô dữ liệu qua các bước chính}}{34}{table.4}\protected@file@percent }
+\newlabel{tab:part2_data_size}{{4}{34}{Quy mô dữ liệu qua các bước chính}{table.4}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.2}Các biến trong dữ liệu}{35}{subsubsection.2.2.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5}{\ignorespaces Nhóm biến ban đầu trong \texttt  {planet.csv}}}{35}{table.5}\protected@file@percent }
+\newlabel{tab:part2_variables}{{5}{35}{Nhóm biến ban đầu trong \texttt {planet.csv}}{table.5}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {6}{\ignorespaces Một vài dòng dữ liệu mẫu từ \texttt  {planet.csv} trước domain restriction}}{35}{table.6}\protected@file@percent }
+\newlabel{tab:part2_sample_data}{{6}{35}{Một vài dòng dữ liệu mẫu từ \texttt {planet.csv} trước domain restriction}{table.6}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.3}Khám phá dữ liệu ban đầu}{35}{subsubsection.2.2.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {7}{\ignorespaces Thống kê mô tả của một số biến số sau domain restriction}}{36}{table.7}\protected@file@percent }
+\newlabel{tab:part2_describe}{{7}{36}{Thống kê mô tả của một số biến số sau domain restriction}{table.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Histogram các biến số trước tiền xử lý. Nhiều biến có đuôi phải dài, đặc biệt là \texttt  {pl\_orbper}, \texttt  {pl\_insol}, \texttt  {pl\_trandep} và \texttt  {sy\_dist}.}}{36}{figure.6}\protected@file@percent }
+\newlabel{fig:part2_histograms}{{6}{36}{Histogram các biến số trước tiền xử lý. Nhiều biến có đuôi phải dài, đặc biệt là \texttt {pl\_orbper}, \texttt {pl\_insol}, \texttt {pl\_trandep} và \texttt {sy\_dist}}{figure.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Ma trận tương quan Pearson. Các nhóm biến quỹ đạo/năng lượng như \texttt  {pl\_orbper}, \texttt  {pl\_orbsmax}, \texttt  {pl\_eqt}, \texttt  {pl\_insol} có tương quan đáng chú ý, nên cần kiểm tra đa cộng tuyến bằng VIF.}}{37}{figure.7}\protected@file@percent }
+\newlabel{fig:part2_corr}{{7}{37}{Ma trận tương quan Pearson. Các nhóm biến quỹ đạo/năng lượng như \texttt {pl\_orbper}, \texttt {pl\_orbsmax}, \texttt {pl\_eqt}, \texttt {pl\_insol} có tương quan đáng chú ý, nên cần kiểm tra đa cộng tuyến bằng VIF}{figure.7}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Scatter plot giữa target \texttt  {pl\_rade} và các biến có tương quan cao nhất. Quan hệ giữa target và predictors có xu hướng tuyến tính cục bộ nhưng vẫn còn nhiễu và ngoại lai.}}{37}{figure.8}\protected@file@percent }
+\newlabel{fig:part2_scatter}{{8}{37}{Scatter plot giữa target \texttt {pl\_rade} và các biến có tương quan cao nhất. Quan hệ giữa target và predictors có xu hướng tuyến tính cục bộ nhưng vẫn còn nhiễu và ngoại lai}{figure.8}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.2.4}Kiểm tra chất lượng dữ liệu}{37}{subsubsection.2.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Dữ liệu trùng lặp.}{38}{subsubsection.2.2.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {8}{\ignorespaces Kiểm tra duplicate sau domain restriction}}{38}{table.8}\protected@file@percent }
+\newlabel{tab:part2_duplicates}{{8}{38}{Kiểm tra duplicate sau domain restriction}{table.8}{}}
+\@writefile{toc}{\contentsline {paragraph}{Dữ liệu khuyết.}{38}{table.8}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {9}{\ignorespaces Các cột có missing values nhiều nhất trước tiền xử lý}}{38}{table.9}\protected@file@percent }
+\newlabel{tab:part2_missing_eda}{{9}{38}{Các cột có missing values nhiều nhất trước tiền xử lý}{table.9}{}}
+\@writefile{toc}{\contentsline {paragraph}{Dữ liệu nhiễu và ngoại lai.}{38}{table.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Dữ liệu mâu thuẫn.}{38}{table.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Chuẩn Bị Dữ Liệu (Data Preparation)}{39}{subsection.2.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.3.1}Lựa chọn biến (Select Data)}{39}{subsubsection.2.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Giai đoạn 1: loại bỏ siêu dữ liệu và sai số đo lường.}{39}{subsubsection.2.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Giai đoạn 2: tinh chỉnh bằng domain knowledge và thống kê.}{39}{subsubsection.2.3.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {10}{\ignorespaces Các nhóm biến bị loại trước khi tạo \texttt  {planet.csv}}}{40}{table.10}\protected@file@percent }
+\newlabel{tab:part2_raw_to_planet_filter}{{10}{40}{Các nhóm biến bị loại trước khi tạo \texttt {planet.csv}}{table.10}{}}
+\gdef \LT@iii {\LT@entry 
+    {1}{130.46779pt}\LT@entry 
+    {1}{60.62706pt}\LT@entry 
+    {1}{230.62206pt}}
+\@writefile{lot}{\contentsline {table}{\numberline {11}{Quyết định xử lý chi tiết các nhóm cột từ \texttt  {raw.csv}}}{41}{table.11}\protected@file@percent }
+\newlabel{tab:part2_column_decisions}{{11}{41}{Quyết định xử lý chi tiết các nhóm cột từ \texttt {raw.csv}}{table.11}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {12}{\ignorespaces Các cột được giữ trong \texttt  {planet.csv} và vai trò mô hình hóa}}{43}{table.12}\protected@file@percent }
+\newlabel{tab:part2_kept_columns}{{12}{43}{Các cột được giữ trong \texttt {planet.csv} và vai trò mô hình hóa}{table.12}{}}
+\@writefile{toc}{\contentsline {paragraph}{Phân biệt với bước VIF trong pipeline.}{44}{table.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.3.2}Làm sạch dữ liệu (Clean Data)}{44}{subsubsection.2.3.2}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {8}Tách train/test trước khi fit preprocessing}{44}{lstlisting.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.3.3}Xây dựng dữ liệu (Construct Data)}{44}{subsubsection.2.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Log-transform.}{44}{subsubsection.2.3.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {13}{\ignorespaces Ảnh hưởng của log-transform lên skewness}}{45}{table.13}\protected@file@percent }
+\newlabel{tab:part2_log_transform}{{13}{45}{Ảnh hưởng của log-transform lên skewness}{table.13}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces So sánh phân phối trước và sau log-transform. Các biến có đuôi phải dài được nén thang đo rõ rệt, đặc biệt là \texttt  {pl\_orbper}, \texttt  {pl\_insol} và \texttt  {pl\_bmasse}.}}{46}{figure.9}\protected@file@percent }
+\newlabel{fig:part2_log_transform}{{9}{46}{So sánh phân phối trước và sau log-transform. Các biến có đuôi phải dài được nén thang đo rõ rệt, đặc biệt là \texttt {pl\_orbper}, \texttt {pl\_insol} và \texttt {pl\_bmasse}}{figure.9}{}}
+\@writefile{toc}{\contentsline {paragraph}{Winsorization.}{46}{figure.9}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {14}{\ignorespaces Tóm tắt Winsorization trên tập train}}{47}{table.14}\protected@file@percent }
+\newlabel{tab:part2_winsor}{{14}{47}{Tóm tắt Winsorization trên tập train}{table.14}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces Boxplot trước và sau Winsorization. Các điểm cực trị được kéo về ngưỡng fit trên train, trong khi phần trung tâm của phân phối được giữ nguyên.}}{47}{figure.10}\protected@file@percent }
+\newlabel{fig:part2_winsor}{{10}{47}{Boxplot trước và sau Winsorization. Các điểm cực trị được kéo về ngưỡng fit trên train, trong khi phần trung tâm của phân phối được giữ nguyên}{figure.10}{}}
+\@writefile{toc}{\contentsline {paragraph}{MICE imputation.}{47}{figure.10}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {15}{\ignorespaces Missing values sau log-transform trên tập train}}{47}{table.15}\protected@file@percent }
+\newlabel{tab:part2_missing_after_transform}{{15}{47}{Missing values sau log-transform trên tập train}{table.15}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {16}{\ignorespaces Tóm tắt giá trị được MICE impute trên tập train}}{48}{table.16}\protected@file@percent }
+\newlabel{tab:part2_mice}{{16}{48}{Tóm tắt giá trị được MICE impute trên tập train}{table.16}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces So sánh phân phối observed và phần được MICE impute. Giá trị impute không bị gom về một điểm trung vị duy nhất mà vẫn có độ phân tán theo quan hệ đa biến.}}{48}{figure.11}\protected@file@percent }
+\newlabel{fig:part2_mice}{{11}{48}{So sánh phân phối observed và phần được MICE impute. Giá trị impute không bị gom về một điểm trung vị duy nhất mà vẫn có độ phân tán theo quan hệ đa biến}{figure.11}{}}
+\@writefile{toc}{\contentsline {paragraph}{Giai đoạn 3 trong DataPipeline: loại biến bằng VIF.}{48}{figure.11}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {17}{\ignorespaces Lịch sử lọc VIF}}{49}{table.17}\protected@file@percent }
+\newlabel{tab:part2_vif_history}{{17}{49}{Lịch sử lọc VIF}{table.17}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {18}{\ignorespaces VIF cuối cùng của các feature còn lại}}{49}{table.18}\protected@file@percent }
+\newlabel{tab:part2_final_vif}{{18}{49}{VIF cuối cùng của các feature còn lại}{table.18}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces VIF trước và sau lọc. Việc loại \texttt  {log\_pl\_orbper} và \texttt  {log\_pl\_eqt} đưa tất cả VIF còn lại xuống dưới ngưỡng 10.}}{49}{figure.12}\protected@file@percent }
+\newlabel{fig:part2_vif}{{12}{49}{VIF trước và sau lọc. Việc loại \texttt {log\_pl\_orbper} và \texttt {log\_pl\_eqt} đưa tất cả VIF còn lại xuống dưới ngưỡng 10}{figure.12}{}}
+\@writefile{toc}{\contentsline {paragraph}{Chuẩn hóa dữ liệu.}{50}{figure.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Xây Dựng Mô Hình (Modeling)}{50}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.4.1}OLS full và chọn biến theo p-value}{50}{subsubsection.2.4.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {19}{\ignorespaces Bảng suy diễn hệ số OLS full}}{51}{table.19}\protected@file@percent }
+\newlabel{tab:part2_ols_inference}{{19}{51}{Bảng suy diễn hệ số OLS full}{table.19}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.4.2}Chọn siêu tham số cho Ridge và Lasso}{51}{subsubsection.2.4.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {20}{\ignorespaces Một số kết quả Ridge CV}}{51}{table.20}\protected@file@percent }
+\newlabel{tab:part2_ridge_cv}{{20}{51}{Một số kết quả Ridge CV}{table.20}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {21}{\ignorespaces Kết quả Lasso CV}}{52}{table.21}\protected@file@percent }
+\newlabel{tab:part2_lasso_cv}{{21}{52}{Kết quả Lasso CV}{table.21}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.5}Dự Báo (Prediction)}{53}{subsection.2.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {22}{\ignorespaces Một số dự báo của mô hình Lasso trên tập test}}{53}{table.22}\protected@file@percent }
+\newlabel{tab:part2_prediction_sample}{{22}{53}{Một số dự báo của mô hình Lasso trên tập test}{table.22}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Actual vs Predicted trên tập test của mô hình Lasso. Các điểm càng gần đường chéo thì dự báo càng sát giá trị thật.}}{54}{figure.13}\protected@file@percent }
+\newlabel{fig:part2_actual_pred}{{13}{54}{Actual vs Predicted trên tập test của mô hình Lasso. Các điểm càng gần đường chéo thì dự báo càng sát giá trị thật}{figure.13}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.6}Đánh Giá Mô Hình (Evaluation)}{54}{subsection.2.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.6.1}So sánh mô hình tuyến tính}{54}{subsubsection.2.6.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {23}{\ignorespaces So sánh các mô hình trên tập test}}{54}{table.23}\protected@file@percent }
+\newlabel{tab:part2_model_summary}{{23}{54}{So sánh các mô hình trên tập test}{table.23}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces So sánh Test $R^2$, RMSE và MAE giữa các mô hình tuyến tính. Lasso đạt Test $R^2$ cao nhất, nhưng khác biệt giữa Lasso, OLS full và Ridge rất nhỏ.}}{55}{figure.14}\protected@file@percent }
+\newlabel{fig:part2_model_comparison}{{14}{55}{So sánh Test $R^2$, RMSE và MAE giữa các mô hình tuyến tính. Lasso đạt Test $R^2$ cao nhất, nhưng khác biệt giữa Lasso, OLS full và Ridge rất nhỏ}{figure.14}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.6.2}Phân tích hệ số và feature importance}{56}{subsubsection.2.6.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces Feature importance dựa trên hệ số Ridge sau chuẩn hóa. Vì các feature đã được standardize, độ lớn hệ số có thể so sánh trực tiếp hơn.}}{56}{figure.15}\protected@file@percent }
+\newlabel{fig:part2_feature_importance}{{15}{56}{Feature importance dựa trên hệ số Ridge sau chuẩn hóa. Vì các feature đã được standardize, độ lớn hệ số có thể so sánh trực tiếp hơn}{figure.15}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.6.3}Phân tích phần dư và giả định mô hình}{57}{subsubsection.2.6.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {16}{\ignorespaces Bốn biểu đồ chẩn đoán phần dư của mô hình Lasso: Residuals vs Fitted, Normal Q-Q, Scale-Location và Cook's Distance.}}{57}{figure.16}\protected@file@percent }
+\newlabel{fig:part2_residual}{{16}{57}{Bốn biểu đồ chẩn đoán phần dư của mô hình Lasso: Residuals vs Fitted, Normal Q-Q, Scale-Location và Cook's Distance}{figure.16}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {24}{\ignorespaces Kiểm định chẩn đoán trên phần dư test của Lasso}}{58}{table.24}\protected@file@percent }
+\newlabel{tab:part2_residual_tests}{{24}{58}{Kiểm định chẩn đoán trên phần dư test của Lasso}{table.24}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.6.4}Kiểm chứng giả thuyết Giãn nở nhiệt (Thermal Expansion Hypothesis)}{58}{subsubsection.2.6.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Kiểm định tác động tương tác giữa Khối lượng và Nhiệt độ:}{58}{subsubsection.2.6.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Kết luận:}{59}{equation.43}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {2.6.5}Phương pháp nâng cao: Kernel Ridge Regression}{59}{subsubsection.2.6.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {25}{\ignorespaces Một số cấu hình Kernel Ridge theo validation RMSE}}{59}{table.25}\protected@file@percent }
+\newlabel{tab:part2_kernel_search}{{25}{59}{Một số cấu hình Kernel Ridge theo validation RMSE}{table.25}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {26}{\ignorespaces Kết quả Kernel Ridge tốt nhất trên test set}}{59}{table.26}\protected@file@percent }
+\newlabel{tab:part2_kernel_result}{{26}{59}{Kết quả Kernel Ridge tốt nhất trên test set}{table.26}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.7}Kết Luận Phần 2}{60}{subsection.2.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Kết luận}{61}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Tóm tắt kết quả đạt được}{61}{subsection.3.1}\protected@file@percent }
 \citation{ieee754}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Bài học rút ra}{34}{subsection.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Khó khăn chuyên môn và các nghịch lý Toán học tính toán}{34}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Bài học rút ra}{62}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Khó khăn chuyên môn và các nghịch lý Toán học tính toán}{62}{subsection.3.3}\protected@file@percent }
 \citation{trefethen}
 \bibcite{strang}{1}
 \bibcite{golub}{2}
@@ -125,12 +232,4 @@
 \bibcite{numpy_docs}{9}
 \bibcite{geeksforgeeks}{10}
 \bibcite{manim_docs}{11}
-\@writefile{toc}{\contentsline {section}{\numberline {A}Phụ lục}{38}{appendix.A}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.1}Link mã nguồn và Video Demo}{38}{subsection.A.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.2}Hướng dẫn cài đặt và chạy thử}{39}{subsection.A.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.3}Chi tiết Log kiểm thử thuật toán}{42}{subsection.A.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {A.4}Bảng dữ liệu đo lường hiệu năng toàn diện (Raw Benchmark Data)}{46}{subsection.A.4}\protected@file@percent }
-\newlabel{RF1}{47}
-\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Bảng dữ liệu đo lường thô trích xuất từ \texttt  {benchmark\_results.json}.}}{47}{table.4}\protected@file@percent }
-\newlabel{tab:appendix_raw_data}{{4}{47}{Bảng dữ liệu đo lường thô trích xuất từ \texttt {benchmark\_results.json}}{table.4}{}}
-\gdef \@abspage@last{48}
+\gdef \@abspage@last{66}
