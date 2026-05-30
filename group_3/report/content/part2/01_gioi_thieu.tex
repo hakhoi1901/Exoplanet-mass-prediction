@@ -1,0 +1,34 @@
+﻿\subsection{Giới Thiệu}
+
+\textbf{Mục tiêu.} Phần này minh họa toàn bộ quy trình áp dụng các phương pháp data fitting đã
+cài đặt ở Phần 1 vào một bộ dữ liệu thực tế. Nhóm không chỉ huấn luyện mô hình hồi quy mà còn xây
+dựng pipeline tiền xử lý có thể tái lập, tránh rò rỉ dữ liệu, xử lý missing values, ngoại lai và
+đa cộng tuyến trước khi đánh giá mô hình trên tập kiểm tra độc lập.
+
+\textbf{Bài toán.} Với các thông tin quan sát về quỹ đạo, transit, khối lượng hành tinh và đặc
+trưng của sao chủ, liệu có thể xây dựng mô hình toán học để dự đoán bán kính hành tinh ngoài Hệ
+Mặt Trời hay không? Biến mục tiêu được chọn là:
+\begin{equation}
+    y = \texttt{pl\_rade},
+\end{equation}
+trong đó \texttt{pl\_rade} là bán kính hành tinh theo đơn vị bán kính Trái Đất.
+
+\textbf{Quy ước.} Mức ý nghĩa dùng cho các kiểm định và chọn biến thống kê là
+$\alpha = 0.05$. Các chỉ số RMSE, MAE và $R^2$ của mô hình tuyến tính chính được tính trên thang
+$\log(1+\texttt{pl\_rade})$, vì target đã được log-transform trong pipeline. Khi cần diễn giải
+trực tiếp theo bán kính hành tinh, báo cáo có thêm bảng dự báo đã biến đổi ngược về thang gốc.
+
+Toàn bộ kết quả chính thức của Phần 2 được lưu trong thư mục \texttt{part2/real/}. Các file quan
+trọng gồm:
+\begin{itemize}
+    \item \texttt{preprocessing\_metadata.json}: thông tin log-transform, Winsorization, MICE,
+          VIF và các feature cuối cùng.
+    \item \texttt{model\_results.json}, \texttt{model\_summary.csv}: hệ số, metric train/test và
+          kết quả cross-validation của OLS, Ridge, Lasso.
+    \item \texttt{advanced\_results.json}, \texttt{kernel\_ridge\_search.csv}: kết quả Kernel
+          Ridge Regression với RBF kernel.
+    \item Các hình EDA và diagnostic trong \texttt{part2/real/eda/} và
+          \texttt{part2/real/diagnostics/}.
+\end{itemize}
+
+

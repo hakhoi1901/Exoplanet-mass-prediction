@@ -1,0 +1,80 @@
+﻿\subsection{Cross-Validation và Lựa Chọn Mô Hình}
+
+
+\subsubsection{$k$-Fold Cross-Validation}
+
+\begin{tcolorbox}[mycodebox, colback=blue!3!white, colframe=blue!40!black,
+    title={\textbf{Định nghĩa 1.5} - $k$-Fold Cross-Validation}]
+Chia tập dữ liệu thành $k$ phần (fold) bằng nhau. Mỗi lần dùng $k-1$
+fold để huấn luyện và 1 fold để đánh giá. Lặp $k$ lần và tính trung bình:
+\begin{equation}
+    \mathrm{CV}_{(k)} = \frac{1}{k}\sum_{i=1}^{k} \mathrm{MSE}_i,
+    \quad
+    \mathrm{MSE}_i = \frac{1}{|F_i|}\sum_{j \in F_i}(y_j - \hat{y}_j^{(-i)})^2,
+    \label{eq:cv}
+\end{equation}
+trong đó $\hat{y}_j^{(-i)}$ là dự đoán tại fold $i$ từ mô hình được huấn
+luyện trên $k-1$ fold còn lại.
+\end{tcolorbox}
+
+Triển khai trong \texttt{cross\_validation.py} sử dụng:
+\begin{itemize}
+    \item \textbf{Fisher-Yates shuffle} (manual, không dùng NumPy) với
+          Linear Congruential Generator (LCG) để đảm bảo tính tái lập
+          (\texttt{RANDOM\_STATE = 42}).
+    \item Giao diện linh hoạt: nhận bất kỳ hàm \texttt{model\_fn} nào
+          (F1 \texttt{ols\_fit}, F6 \texttt{ridge\_fit}, F7 \texttt{lasso\_fit}).
+\end{itemize}
+
+\textbf{Cài đặt Python - F9: \texttt{kfold\_cv}}:
+
+\begin{lstlisting}[language=Python, caption={Hàm \texttt{kfold\_cv} - thực hiện k-fold cross-validation, dùng được với ols\_fit, ridge\_fit, lasso\_fit}]
+def kfold_cv(X, y, k, model_fn, predict_fn, **model_kwargs) -> dict:
+    """F9: k-Fold CV. Tra ve mean/std MSE va R^2 tren k fold."""
+    n = len(y)
+    indices = list(range(n))
+    _manual_shuffle(indices, seed=RANDOM_STATE)  # Fisher-Yates + LCG
+    folds = _split_into_k(indices, k)
+    cv_mse, cv_r2 = [], []
+
+    for i in range(k):
+        val_idx   = folds[i]
+        train_idx = [idx for j, f in enumerate(folds)
+                     if j != i for idx in f]
+        X_train = [X[idx] for idx in train_idx]
+        y_train = [y[idx] for idx in train_idx]
+        X_val   = [X[idx] for idx in val_idx]
+        y_val   = [y[idx] for idx in val_idx]
+
+        model  = model_fn(X_train, y_train, **model_kwargs)
+        y_pred = predict_fn(X_val, model)
+
+        n_val = len(y_val)
+        mse = sum((y_val[q]-y_pred[q])**2 for q in range(n_val))/n_val
+        y_mean = sum(y_val) / n_val
+        ss_res = sum((y_val[q]-y_pred[q])**2 for q in range(n_val))
+        ss_tot = sum((y_val[q]-y_mean)**2  for q in range(n_val))
+        r2  = 1.0 - ss_res/ss_tot if abs(ss_tot) > EPSILON else 0.0
+        cv_mse.append(mse); cv_r2.append(r2)
+
+    mean_mse = sum(cv_mse) / k
+    return {"mean_cv_mse": mean_mse,
+            "std_cv_mse":  (sum((m-mean_mse)**2 for m in cv_mse)/k)**0.5,
+            "cv_mse_list": cv_mse,
+            "mean_cv_r2":  sum(cv_r2) / k,
+            "cv_r2_list":  cv_r2}
+\end{lstlisting}
+
+\subsubsection{Tiêu Chí Lựa Chọn Mô Hình}
+
+Bên cạnh CV, các tiêu chí thông tin dưới đây phạt độ phức tạp mô hình:
+\begin{align}
+    \mathrm{AIC} &= n\ln\!\left(\frac{\mathrm{RSS}}{n}\right) + 2(p+2),
+    \label{eq:aic} \\
+    \mathrm{BIC} &= n\ln\!\left(\frac{\mathrm{RSS}}{n}\right) + (p+2)\ln n.
+    \label{eq:bic}
+\end{align}
+BIC phạt nặng hơn AIC khi $n > 7$ (vì $\ln n > 2$), thường chọn mô hình
+đơn giản hơn. Cả hai đều ưu tiên mô hình có RSS nhỏ và số biến ít.
+
+

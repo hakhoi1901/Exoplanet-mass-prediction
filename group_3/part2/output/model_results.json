@@ -209,10 +209,10 @@
     ]
   },
   "plots": {
-    "model_comparison": "D:\\Code\\01_University\\2526-HK2\\TUDTK\\Project2_DataFitting\\group_3\\part2\\output\\model_comparison.png",
-    "actual_vs_predicted": "D:\\Code\\01_University\\2526-HK2\\TUDTK\\Project2_DataFitting\\group_3\\part2\\output\\actual_vs_predicted.png",
-    "feature_importance": "D:\\Code\\01_University\\2526-HK2\\TUDTK\\Project2_DataFitting\\group_3\\part2\\output\\feature_importance.png",
-    "residual_plots": "D:\\Code\\01_University\\2526-HK2\\TUDTK\\Project2_DataFitting\\group_3\\part2\\output\\residual_plots.png"
+    "model_comparison": "part2\\output\\model_comparison.png",
+    "actual_vs_predicted": "part2\\output\\actual_vs_predicted.png",
+    "feature_importance": "part2\\output\\feature_importance.png",
+    "residual_plots": "part2\\output\\residual_plots.png"
   },
   "results": {
     "OLS full": {

@@ -1,0 +1,234 @@
+﻿\subsection{Đánh Giá Mô Hình (Evaluation)}
+
+
+\subsubsection{So sánh mô hình tuyến tính}
+
+\begin{table}[H]
+\centering
+\caption{So sánh các mô hình trên tập test}
+\label{tab:part2_model_summary}
+\small
+\renewcommand{\arraystretch}{1.0}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{@{}lrrrrr@{}}
+\hline
+\textbf{Mô hình} & \textbf{Test $R^2$} & \textbf{Test RMSE} & \textbf{Test MAE} &
+\textbf{CV-MSE} & \textbf{CV-$R^2$} \\
+\hline
+Lasso & 0.748403 & 0.056872 & 0.037895 & 0.005074 & 0.673462 \\
+OLS full & 0.747794 & 0.056941 & 0.037952 & 0.005075 & 0.673407 \\
+Ridge & 0.747678 & 0.056954 & 0.038204 & 0.005074 & 0.673433 \\
+OLS selected & 0.743913 & 0.057378 & 0.039013 & 0.005103 & 0.671611 \\
+\hline
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{assets/part2/model_comparison.png}
+    \caption{So sánh Test $R^2$, RMSE và MAE giữa các mô hình tuyến tính. Lasso đạt Test $R^2$
+    cao nhất, nhưng khác biệt giữa Lasso, OLS full và Ridge rất nhỏ.}
+    \label{fig:part2_model_comparison}
+\end{figure}
+
+Nhận xét:
+\begin{itemize}
+    \item Lasso có Test $R^2$ cao nhất là 0.748403 và Test RMSE thấp nhất là 0.056872.
+    \item OLS full gần như tương đương Lasso, cho thấy quan hệ tuyến tính sau tiền xử lý đã mô tả
+          dữ liệu khá tốt.
+    \item Ridge có CV-MSE thấp nhất trong nhóm mô hình tuyến tính, phản ánh regularization giúp
+          ổn định hơn trên các fold train.
+    \item OLS selected ít biến hơn nhưng Test $R^2$ giảm nhẹ xuống 0.743913; việc rút gọn biến giúp
+          dễ diễn giải hơn nhưng có thể mất một phần thông tin dự báo.
+\end{itemize}
+
+Sự khác biệt giữa Lasso, OLS full và Ridge rất nhỏ: Test $R^2$ của ba mô hình chỉ chênh nhau ở
+chữ số thập phân thứ tư. Lý do chính là pipeline đã làm phần việc mà regularization thường hỗ trợ:
+log-transform giảm lệch phải, Winsorization giảm ảnh hưởng cực trị, và VIF filtering đã loại
+\texttt{log\_pl\_orbper}, \texttt{log\_pl\_eqt} để đưa VIF cuối cùng xuống dưới 10. Khi đa cộng
+tuyến đã được xử lý trước, Ridge không còn lợi thế ổn định hệ số quá lớn, còn Lasso với
+$\lambda^*=0.1$ vẫn không tạo nghiệm thưa. Vì vậy mô hình tuyến tính cơ bản đã gần đạt
+hiệu năng tối đa của nhóm mô hình tuyến tính trên tập feature hiện có.
+
+Mặt khác, $R^2_{\mathrm{test}}\approx0.748$ cũng có nghĩa khoảng 25.2\% phương sai của
+\texttt{log\_pl\_rade} vẫn chưa được giải thích. Phần còn lại có thể đến từ ba nguồn: quan hệ vật
+lý phi tuyến giữa khối lượng--bán kính ở từng cấu tạo hành tinh, thiếu biến mô tả thành phần bên
+trong/tuổi hệ sao/độ chính xác phép đo, và selection bias của dữ liệu quan trắc thiên văn. Do đó,
+kết quả này nên được đọc như một mô hình nội suy tuyến tính tốt cho nhóm terrestrial/Super-Earth,
+không phải một phương trình vật lý đầy đủ của quá trình hình thành hành tinh.
+
+\subsubsection{Phân tích hệ số và feature importance}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{assets/part2/feature_importance.png}
+    \caption{Feature importance dựa trên hệ số Ridge sau chuẩn hóa. Vì các feature đã được
+    standardize, độ lớn hệ số có thể so sánh trực tiếp hơn.}
+    \label{fig:part2_feature_importance}
+\end{figure}
+
+Các biến quan trọng nhất gồm \texttt{log\_pl\_bmasse}, \texttt{log\_sy\_dist} và
+\texttt{log\_pl\_trandep}. Trong đó, \texttt{log\_pl\_bmasse} là biến có ảnh hưởng dương mạnh nhất,
+phù hợp với quan hệ vật lý giữa khối lượng và bán kính hành tinh.
+\texttt{log\_sy\_dist} cũng có hệ số dương khá lớn, nhưng không nên diễn giải theo nghĩa nhân quả
+rằng hành tinh ở xa Trái Đất thì tự nhiên có bán kính lớn hơn. Cách đọc hợp lý hơn là
+\emph{selection bias}: ở khoảng cách xa, các kính thiên văn dễ phát hiện và xác nhận những hành
+tinh có tín hiệu mạnh hơn, thường là transit sâu hơn hoặc bán kính lớn hơn. Vì vậy hệ số này phản
+ánh thiên lệch quan sát của catalog nhiều hơn là một cơ chế vật lý trực tiếp.
+
+\subsubsection{Phân tích phần dư và giả định mô hình}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{assets/part2/residual_plots.png}
+    \caption{Bốn biểu đồ chẩn đoán phần dư của mô hình Lasso: Residuals vs Fitted, Normal Q-Q,
+    Scale-Location và Cook's Distance.}
+    \label{fig:part2_residual}
+\end{figure}
+
+Nhận xét từ residual plots:
+\begin{itemize}
+    \item Phần dư tập trung quanh 0, cho thấy mô hình không có thiên lệch hệ thống quá rõ trên đa
+          số quan sát.
+    \item Q-Q plot cho thấy phần giữa của phân phối phần dư tương đối gần chuẩn, nhưng hai đuôi vẫn
+          lệch khỏi đường chéo; đây là dấu hiệu dữ liệu còn ngoại lai hoặc quan hệ phi tuyến.
+    \item Cook's Distance lớn nhất được ghi nhận là 0.617979. Với $n=217$ mẫu test, ngưỡng
+          $4/n \approx 0.01843$ đánh dấu 17 điểm influential.
+\end{itemize}
+
+\begin{table}[H]
+\centering
+\caption{Kiểm định chẩn đoán trên phần dư test của Lasso}
+\label{tab:part2_residual_tests}
+\begin{tabular}{@{}lrrp{0.45\textwidth}@{}}
+\hline
+\textbf{Kiểm định} & \textbf{Statistic} & \textbf{p-value} & \textbf{Diễn giải} \\
+\hline
+Shapiro-Wilk & 0.887620 & $1.21\times10^{-11}$ &
+Bác bỏ giả thuyết phần dư phân phối chuẩn; hai đuôi còn lệch, phù hợp với Q-Q plot. \\
+Breusch-Pagan & 36.895113 & 0.000120 &
+Bác bỏ giả thuyết phương sai không đổi; vẫn còn heteroskedasticity sau log-transform và
+Winsorization. \\
+\hline
+\end{tabular}
+\end{table}
+
+Nhóm không xóa 17 điểm influential vì đây là dữ liệu thiên văn thật, không phải lỗi nhập liệu đã
+được chứng minh. Các điểm này có thể đại diện cho hệ hành tinh hiếm, sai số đo lớn, hoặc vùng biên
+của catalog. Xóa cứng sẽ làm báo cáo đẹp hơn về mặt diagnostic nhưng dễ tạo thiên lệch mẫu. Vì
+vậy nhóm giữ lại chúng, dùng log-transform/Winsorization để giảm ảnh hưởng cực trị, và ghi nhận
+đây là một giới hạn khi diễn giải hệ số.
+
+\subsubsection{Kiểm chứng giả thuyết Giãn nở nhiệt (Thermal Expansion Hypothesis)}
+
+\paragraph{Kiểm định tác động tương tác giữa Khối lượng và Nhiệt độ:}
+Từ hiện tượng đường LOWESS bị cong nhẹ ở vùng dự đoán cao trên biểu đồ chẩn đoán Residuals vs Fitted, 
+giả thuyết được đặt ra là: tác động của khối lượng (lực nén hấp dẫn) lên cấu trúc bán kính hành tinh 
+không độc lập, mà bị chi phối bởi mức độ bức xạ nhiệt (hiệu ứng giãn nở). Để kiểm chứng, mô hình hồi 
+quy được mở rộng thành một cấu trúc phi tuyến cục bộ thông qua đại lượng tương tác:
+\begin{equation}
+    Y = \beta_1 X_{\text{mass}} + \beta_2 X_{\text{heat}} + \beta_3 (X_{\text{mass}} \times X_{\text{heat}})
+\end{equation}
+
+Thực nghiệm đầu tiên tiến hành bổ sung biến tương tác giữa khối lượng hành tinh và nhiệt độ bề mặt 
+của sao chủ (\texttt{log\_pl\_bmasse} $\times$ \texttt{st\_teff}). Kết quả truy xuất cho thấy p-value 
+của biến này đạt mức 0.098, vượt ngưỡng mức ý nghĩa $\alpha = 0.05$. Sự thất bại của giả thuyết này 
+có thể lý giải bằng bản chất vật lý: nhiệt độ bề mặt sao chủ không phản ánh chính xác thông lượng 
+nhiệt (heat flux) mà hành tinh thực nhận nếu khuyết đi tham số về khoảng cách quỹ đạo.
+
+Để khắc phục, thực nghiệm thứ hai thay thế nhiệt độ sao bằng thông lượng bức xạ thực nhận (\texttt{log\_pl\_insol} 
+tạo thành biến tương tác (\texttt{log\_pl\_bmasse} $\times$ \texttt{log\_pl\_insol}). Kết quả ghi 
+nhận p-value $\approx 0$, khẳng định sự tồn tại của cơ chế tương tác nhiệt - khối lượng trên tập 
+huấn luyện. Tuy nhiên, nghịch lý xuất hiện khi kiểm định hiệu năng: hệ số xác định trên tập kiểm thử 
+($R^2_{\text{Test}}$) lại sụt giảm từ 0.747 xuống 0.741, đồng thời RMSE tăng.
+
+Bản chất của hiện tượng này là minh chứng kinh điển cho bài toán \emph{Sự đánh đổi giữa Độ chệch và 
+Phương sai (Bias-Variance Tradeoff)}. Biến tương tác đã vô tình kích hoạt hiện tượng Đa cộng tuyến 
+cấu trúc (Structural Multicollinearity). Mặt phẳng OLS bị ép phải vặn xoắn (giảm Bias) nhằm cố gắng 
+nội suy khít với các biến thiên cục bộ sinh ra từ hiệu ứng giãn nở nhiệt trong tập huấn luyện, từ đó 
+đánh mất khả năng khái quát hóa quy luật (tăng Variance) khi tiếp xúc với dữ liệu kiểm thử.
+
+\paragraph{Kết luận:}
+Nỗ lực triệt tiêu sai số phần dư cục bộ bằng các biến tương tác đã dẫn đến hiện tượng quá khớp (Overfitting). 
+Hệ quả này củng cố tính đúng đắn của nguyên lý tinh giản Occam's Razor trong thiết kế Machine Learning: 
+cấu trúc OLS thuần túy hiện tại (không chứa đại lượng tương tác) là điểm cân bằng toàn cục tối ưu nhất 
+giữa năng lực giải thích hiện tượng và sức mạnh ngoại suy định lượng.
+
+\subsubsection{Phương pháp nâng cao: Kernel Ridge Regression}
+
+Ngoài các mô hình tuyến tính chính, nhóm thử Kernel Ridge Regression với RBF kernel:
+\begin{equation}
+    k(\mathbf{x},\mathbf{x}')
+    = \exp\left(-\gamma\|\mathbf{x}-\mathbf{x}'\|^2\right).
+\end{equation}
+
+Do Kernel Ridge cần ma trận Gram kích thước $n\times n$, chi phí huấn luyện tăng nhanh hơn
+các mô hình tuyến tính. Với lần chạy cuối cùng trên Kaggle, nhóm dùng toàn bộ 867 mẫu train sau
+tiền xử lý để fit Kernel Ridge. Hyperparameters được chọn trên validation tách từ train, sau đó
+mới đánh giá một lần trên test.
+
+\begin{table}[H]
+\centering
+\caption{Một số cấu hình Kernel Ridge theo validation RMSE}
+\label{tab:part2_kernel_search}
+\begin{tabular}{@{}rrr@{}}
+\hline
+\textbf{Alpha} & \textbf{Gamma} & \textbf{Validation RMSE} \\
+\hline
+0.010 & 0.010 & 0.037282 \\
+0.001 & 0.001 & 0.037780 \\
+0.100 & 0.010 & 0.038428 \\
+0.001 & 0.010 & 0.040044 \\
+0.010 & 0.050 & 0.043404 \\
+0.010 & 0.001 & 0.044958 \\
+0.100 & 0.050 & 0.045358 \\
+1.000 & 0.010 & 0.046950 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Kết quả Kernel Ridge tốt nhất trên test set}
+\label{tab:part2_kernel_result}
+\begin{tabular}{@{}lrrrrr@{}}
+\hline
+\textbf{Mô hình} & \textbf{Alpha} & \textbf{Gamma} & \textbf{Test $R^2$} & \textbf{RMSE} & \textbf{MAE} \\
+\hline
+Kernel Ridge (RBF) & 0.01 & 0.01 & 0.855688 & 0.043072 & 0.029685 \\
+\hline
+\end{tabular}
+\end{table}
+
+So với mô hình tuyến tính tốt nhất là Lasso trong Bảng~\ref{tab:part2_model_summary},
+Kernel Ridge cải thiện rõ rệt trên cùng test set: Test $R^2$ tăng từ 0.748403 lên 0.855688
+(tăng 0.107285 điểm tuyệt đối), RMSE giảm từ 0.056872 xuống 0.043072, và MAE giảm từ
+0.037895 xuống 0.029685. Nếu nhìn theo phần phương sai chưa giải thích được, Lasso còn
+$1-0.748403=0.251597$, trong khi Kernel Ridge còn $1-0.855688=0.144312$; tức phần sai lệch
+chưa giải thích giảm khoảng 42.6\%. Đây là mức chênh lệch lớn hơn nhiều so với khác biệt rất
+nhỏ giữa OLS full, Ridge và Lasso, nên kết quả này không chỉ là dao động ngẫu nhiên giữa các
+mô hình tuyến tính.
+
+Nguyên nhân hợp lý là RBF kernel không ép dữ liệu nằm trên một mặt phẳng tuyến tính duy nhất.
+Sau log-transform và VIF filtering, OLS/Ridge/Lasso đã xử lý tốt phần quan hệ gần tuyến tính,
+nhưng các đặc trưng thiên văn như khối lượng hành tinh, chu kỳ quỹ đạo, nhiệt độ sao mẹ và khoảng
+cách hệ sao vẫn có thể tương tác theo dạng cong cục bộ. Kernel Ridge đo độ giống nhau giữa các
+hành tinh trong không gian feature đã chuẩn hóa, từ đó nội suy bán kính dựa trên các mẫu lân cận
+phi tuyến. Việc cấu hình tốt nhất có $\gamma=0.01$ cũng cho thấy mô hình không chọn một kernel quá
+hẹp để ghi nhớ từng điểm riêng lẻ, mà dùng một mức làm trơn vừa phải trên toàn bộ tập train.
+
+Tuy nhiên, kết quả Kernel Ridge không làm mất vai trò của các mô hình tuyến tính chính. Thứ nhất,
+OLS/Ridge/Lasso cho phép đọc trực tiếp hệ số, kiểm định giả thuyết, phân tích residuals, Cook's
+Distance và selection bias; đây là các phần quan trọng của yêu cầu data fitting. Kernel Ridge cho
+kết quả dự báo tốt hơn nhưng khó quy đổi thành ảnh hưởng riêng lẻ của từng biến. Thứ hai, mô hình
+phải lưu ma trận Gram $n\times n$ và giải hệ tuyến tính kích thước $n$, làm chi phí bộ nhớ tăng
+xấp xỉ $O(n^2)$ và chi phí giải hệ tăng xấp xỉ $O(n^3)$. Với 867 mẫu train hiện tại, việc chạy trên
+Kaggle vẫn khả thi; nhưng nếu mở rộng về toàn bộ archive hoặc thêm nhiều đặc trưng hơn, chi phí này
+sẽ tăng nhanh hơn nhiều so với nhóm mô hình tuyến tính. Vì vậy, nhóm xem Kernel Ridge là bằng chứng
+bổ sung rằng dữ liệu có thành phần phi tuyến đáng kể, còn OLS/Ridge/Lasso vẫn là trục phân tích
+chính vì minh bạch, nhẹ tài nguyên và phù hợp hơn cho phần diễn giải thống kê.
+
+\FloatBarrier
+
+

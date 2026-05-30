@@ -29,11 +29,13 @@ from residual_analysis import residual_plots
 
 
 def _log(message: str, verbose: bool = True) -> None:
+    """In log của bước so sánh mô hình khi verbose được bật."""
     if verbose:
         print(f"[ModelComparison] {message}", flush=True)
 
 
 def _log_table(title: str, table: pd.DataFrame, verbose: bool = True, max_rows: int | None = None) -> None:
+    """In bảng tóm tắt kết quả ra console nếu cần."""
     if not verbose or table.empty:
         return
     shown = table if max_rows is None else table.head(max_rows)
@@ -42,27 +44,33 @@ def _log_table(title: str, table: pd.DataFrame, verbose: bool = True, max_rows: 
 
 
 def _as_list_frame(df: pd.DataFrame) -> list[list[float]]:
+    """Chuyển DataFrame sang ma trận list float cho code Part 1."""
     return df.astype(float).values.tolist()
 
 
 def _as_list_series(series: pd.Series) -> list[float]:
+    """Chuyển Series sang danh sách float cho code Part 1."""
     return series.astype(float).tolist()
 
 
 def ols_predict(X: list[list[float]], model: dict) -> list[float]:
+    """Dự đoán bằng mô hình OLS tự cài từ beta_hat."""
     beta = model["beta_hat"]
     return [beta[0] + sum(row[j] * beta[j + 1] for j in range(len(row))) for row in X]
 
 
 def _ridge_predict_adapter(X_val: list[list[float]], model: dict) -> list[float]:
+    """Hàm chuyển tiếp để gọi dự đoán Ridge của Part 1 trong Part 2."""
     return ridge_predict(X_val, model["beta_hat"], model["mean_X"], model["std_X"])
 
 
 def _lasso_predict_adapter(X_val: list[list[float]], model: dict) -> list[float]:
+    """Hàm chuyển tiếp để gọi dự đoán Lasso của Part 1 trong Part 2."""
     return lasso_predict(X_val, model["beta_hat"], model["mean_X"], model["std_X"])
 
 
 def regression_scores(y_true: list[float], y_pred: list[float], p: int) -> dict[str, float]:
+    """Tính các chỉ số hồi quy chính, gồm cả R2 hiệu chỉnh."""
     metrics = model_metrics(y_true, y_pred, p=min(p, max(1, len(y_true) - 2)))
     return {
         "MAE": metrics["MAE"],
@@ -86,6 +94,7 @@ def evaluate_model(
     verbose: bool = False,
     **fit_kwargs,
 ) -> dict:
+    """Fit, cross-validation và đánh giá một mô hình trên train/test."""
     start = time.perf_counter()
     _log(f"Fitting {name}: features={len(feature_names)}, cv_k={cv_k}, params={fit_kwargs or '{}'}", verbose)
     model = fit_fn(X_train, y_train, **fit_kwargs)
@@ -135,6 +144,7 @@ def lambda_search(
     verbose: bool = False,
     label: str = "model",
 ) -> dict:
+    """Quét lưới lambda bằng k-fold CV và chọn giá trị có CV-MSE nhỏ nhất."""
     extra_kwargs = extra_kwargs or {}
     rows = []
     _log(f"Lambda search for {label}: candidates={lambdas}, k={k}", verbose)
@@ -171,6 +181,7 @@ def select_features_by_pvalue(
     feature_names: list[str],
     alpha: float = 0.05,
 ) -> tuple[list[int], pd.DataFrame]:
+    """Chọn feature cho OLS selected dựa trên p-value của hệ số."""
     full = ols_fit(X_train, y_train)
     inference = coef_inference(X_train, y_train, full["beta_hat"], full["sigma2_hat"])
     table = pd.DataFrame(
@@ -204,10 +215,12 @@ def select_features_by_pvalue(
 
 
 def _subset_columns(X: list[list[float]], indices: list[int]) -> list[list[float]]:
+    """Lấy một tập cột con từ ma trận list theo chỉ số."""
     return [[row[i] for i in indices] for row in X]
 
 
 def _serializable_result(result: dict) -> dict:
+    """Rút gọn kết quả mô hình thành dict có thể ghi JSON."""
     model = result["model"]
     beta = model.get("beta_hat")
     return {
@@ -224,6 +237,7 @@ def _serializable_result(result: dict) -> dict:
 
 
 def plot_model_comparison(results: dict[str, dict], output_dir: Path) -> str:
+    """Vẽ biểu đồ so sánh R2, RMSE và MAE giữa các mô hình."""
     output_dir.mkdir(parents=True, exist_ok=True)
     names = list(results.keys())
     r2 = [results[name]["test_metrics"]["R2"] for name in names]
@@ -247,6 +261,7 @@ def plot_model_comparison(results: dict[str, dict], output_dir: Path) -> str:
 
 
 def plot_feature_importance(result: dict, output_dir: Path) -> str | None:
+    """Vẽ feature importance dựa trên hệ số hồi quy đã chuẩn hóa."""
     beta = result["model"].get("beta_hat")
     if beta is None or len(beta) <= 1:
         return None
@@ -266,6 +281,7 @@ def plot_feature_importance(result: dict, output_dir: Path) -> str | None:
 
 
 def plot_actual_vs_predicted(y_true: list[float], y_pred: list[float], name: str, output_dir: Path) -> str:
+    """Vẽ scatter plot giá trị thật so với giá trị dự đoán."""
     fig, ax = plt.subplots(figsize=(6, 6))
     ax.scatter(y_true, y_pred, s=16, alpha=0.45, color="#2563eb")
     low = min(min(y_true), min(y_pred))
@@ -282,6 +298,7 @@ def plot_actual_vs_predicted(y_true: list[float], y_pred: list[float], name: str
 
 
 def _target_summary(y_train: pd.Series, y_test: pd.Series) -> pd.DataFrame:
+    """Tạo bảng thống kê mô tả target trên train và test."""
     rows = []
     for split, y in [("train", y_train), ("test", y_test)]:
         rows.append(
@@ -301,6 +318,7 @@ def _target_summary(y_train: pd.Series, y_test: pd.Series) -> pd.DataFrame:
 
 
 def _feature_matrix_summary(X_train: pd.DataFrame, X_test: pd.DataFrame) -> pd.DataFrame:
+    """Tạo bảng kiểm tra kích thước, missing và chuẩn hóa feature matrix."""
     return pd.DataFrame(
         [
             {
@@ -326,6 +344,7 @@ def _feature_matrix_summary(X_train: pd.DataFrame, X_test: pd.DataFrame) -> pd.D
 
 
 def _coef_table(result: dict) -> pd.DataFrame:
+    """Tạo bảng hệ số hồi quy đã sắp theo độ lớn tuyệt đối."""
     beta = result["model"].get("beta_hat")
     if beta is None or len(beta) <= 1:
         return pd.DataFrame()
@@ -335,13 +354,16 @@ def _coef_table(result: dict) -> pd.DataFrame:
 
 
 def _prediction_summary(y_true: list[float], y_pred: list[float]) -> pd.DataFrame:
+    """Tóm tắt phân phối dự đoán và phần dư trên tập test."""
     residual = [float(actual) - float(predicted) for actual, predicted in zip(y_true, y_pred)]
     pred = [float(value) for value in y_pred]
 
     def mean(values: list[float]) -> float:
+        """Tính trung bình, trả 0 nếu danh sách rỗng."""
         return sum(values) / len(values) if values else 0.0
 
     def std(values: list[float]) -> float:
+        """Tính độ lệch chuẩn tổng thể, trả 0 nếu danh sách rỗng."""
         avg = mean(values)
         return math.sqrt(sum((value - avg) ** 2 for value in values) / len(values)) if values else 0.0
 
@@ -367,6 +389,7 @@ def run_model_comparison(
     include_lasso: bool = True,
     verbose: bool = True,
 ) -> dict:
+    """Chạy toàn bộ phần so sánh OLS, Ridge, Lasso và lưu artifacts."""
     start = time.perf_counter()
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -559,6 +582,7 @@ def run_model_comparison(
 
 
 def main() -> None:
+    """Đọc tham số dòng lệnh và chạy so sánh mô hình."""
     parser = argparse.ArgumentParser(description="Part 2 model comparison using part1 implementations")
     parser.add_argument("--preprocessed", default=str(ROOT_DIR / "part2" / "output" / "preprocessed.pkl"))
     parser.add_argument("--outdir", default=str(ROOT_DIR / "part2" / "output"))

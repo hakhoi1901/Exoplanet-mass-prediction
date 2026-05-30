@@ -1,0 +1,49 @@
+﻿\subsection{Dự Báo (Prediction)}
+
+
+Mô hình tuyến tính tốt nhất trên test set là Lasso. Vì target được huấn luyện trên thang
+\texttt{log\_pl\_rade}, dự báo được biến đổi ngược bằng:
+\begin{equation}
+    \widehat{\texttt{pl\_rade}} = \exp(\hat{y}) - 1.
+\end{equation}
+
+\begin{table}[H]
+\centering
+\caption{Một số dự báo của mô hình Lasso trên tập test}
+\label{tab:part2_prediction_sample}
+\small
+\renewcommand{\arraystretch}{1.0}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{@{}rrrrrrr@{}}
+\hline
+\textbf{STT} & \textbf{Actual log} & \textbf{Pred log} & \textbf{Residual log} &
+\textbf{Actual radius} & \textbf{Pred radius} & \textbf{APE (\%)} \\
+\hline
+1 & 0.703098 & 0.673777 & 0.029321 & 1.020000 & 0.961632 & 5.722 \\
+2 & 0.774727 & 0.788721 & -0.013994 & 1.170000 & 1.200580 & 2.614 \\
+3 & 0.904218 & 0.850350 & 0.053868 & 1.470000 & 1.340466 & 8.812 \\
+4 & 0.751416 & 0.762646 & -0.011230 & 1.120000 & 1.143943 & 2.138 \\
+5 & 0.797507 & 0.796628 & 0.000879 & 1.220000 & 1.218050 & 0.160 \\
+6 & 0.548121 & 0.601630 & -0.053509 & 0.730000 & 0.825091 & 13.026 \\
+7 & 0.581098 & 0.616143 & -0.035045 & 0.788000 & 0.851771 & 8.093 \\
+8 & 0.943906 & 0.879109 & 0.064797 & 1.570000 & 1.408753 & 10.271 \\
+9 & 0.783902 & 0.787691 & -0.003789 & 1.190000 & 1.198314 & 0.699 \\
+10 & 0.662688 & 0.647853 & 0.014835 & 0.940000 & 0.911433 & 3.039 \\
+\hline
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+Trên thang bán kính gốc, Lasso đạt $R^2=0.712850$, RMSE $=0.130278$, MAE $=0.085171$ và
+MAPE $=7.032\%$. Các chỉ số này không dùng để chọn mô hình chính, nhưng giúp diễn giải sai số theo
+đơn vị bán kính Trái Đất.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.82\textwidth]{assets/part2/actual_vs_predicted.png}
+    \caption{Actual vs Predicted trên tập test của mô hình Lasso. Các điểm càng gần đường chéo
+    thì dự báo càng sát giá trị thật.}
+    \label{fig:part2_actual_pred}
+\end{figure}
+
+

@@ -1,0 +1,210 @@
+﻿\subsection{Phương Pháp Ordinary Least Squares (OLS)}
+
+
+\subsubsection{Hàm Mất Mát và Nghiệm OLS}
+
+OLS tìm $\hat{\boldsymbol{\beta}}$ tối thiểu hóa \emph{Tổng Bình Phương Phần
+Dư} (Residual Sum of Squares - RSS):
+\begin{equation}
+    \mathrm{RSS}(\boldsymbol{\beta})
+    = \|\mathbf{y} - \mathbf{X}\boldsymbol{\beta}\|_2^2
+    = \sum_{i=1}^n (y_i - \mathbf{x}_i^T\boldsymbol{\beta})^2.
+    \label{eq:rss}
+\end{equation}
+
+\begin{tcolorbox}[mycodebox, colback=blue!3!white, colframe=blue!40!black,
+    title={\textbf{Định lý 1.1} - Nghiệm OLS (Normal Equations)}]
+Nếu $\mathbf{X}^T\mathbf{X}$ khả nghịch, nghiệm OLS duy nhất là:
+\begin{equation}
+    \hat{\boldsymbol{\beta}}_{\mathrm{OLS}}
+    = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}.
+    \label{eq:ols_solution}
+\end{equation}
+\end{tcolorbox}
+
+\textbf{Chứng minh.} Lấy đạo hàm của RSS theo $\boldsymbol{\beta}$:
+\begin{align}
+    \nabla_{\boldsymbol{\beta}}\,\mathrm{RSS}
+    &= \nabla_{\boldsymbol{\beta}}
+       \bigl[(\mathbf{y} - \mathbf{X}\boldsymbol{\beta})^T
+             (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})\bigr] \notag \\
+    &= -2\,\mathbf{X}^T(\mathbf{y} - \mathbf{X}\boldsymbol{\beta}).
+\end{align}
+Cho đạo hàm bằng $\mathbf{0}$:
+$\mathbf{X}^T\mathbf{X}\boldsymbol{\beta} = \mathbf{X}^T\mathbf{y}$
+(phương trình pháp tuyến - \emph{Normal Equations}).
+Vì $\mathbf{X}^T\mathbf{X}$ khả nghịch (theo GM2), suy ra
+$\hat{\boldsymbol{\beta}} = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}$.
+Để kiểm tra đây là cực tiểu (không phải cực đại), ta kiểm tra đạo hàm bậc 2:
+$\nabla^2_{\boldsymbol{\beta}}\,\mathrm{RSS} = 2\mathbf{X}^T\mathbf{X}$
+là ma trận xác định dương (positive definite) vì $\rank(\mathbf{X}) = p+1$.
+$\hfill\square$
+
+\textbf{Cài đặt Python - F1: \texttt{ols\_fit}:}
+
+\begin{lstlisting}[language=Python, caption={Hàm \texttt{ols\_fit} - tính nghiệm OLS từ công thức Normal Equations}]
+def ols_fit(X: list[list[float]], y: list[float]) -> dict:
+    """F1: Tinh beta_hat = (X^T X)^{-1} X^T y va sigma2_hat."""
+    n, p = len(X), len(X[0])
+    X_b  = add_bias(X)                        # them cot 1 (intercept)
+    Xt   = transpose(X_b)                     # utils.py
+    XtX  = matmul(Xt, X_b)                    # utils.py
+    Xty  = matvec(Xt, y)                      # utils.py
+    beta_hat  = solve_system(XtX, Xty)        # utils.py (Gauss elim.)
+    y_hat     = matvec(X_b, beta_hat)
+    residuals = [y[i] - y_hat[i] for i in range(n)]
+    rss       = sum(r * r for r in residuals)
+    sigma2    = rss / max(n - p - 1, 1)       # ung luong khong chech
+    return {"beta_hat": beta_hat, "sigma2_hat": sigma2,
+            "y_hat": y_hat, "residuals": residuals}
+\end{lstlisting}
+
+Hàm \texttt{solve\_system} trong \texttt{utils.py} giải hệ $\mathbf{A}\mathbf{x}
+= \mathbf{b}$ bằng phép khử Gauss với partial pivoting, tránh sử dụng
+\texttt{numpy.linalg.solve} đúng theo yêu cầu đề bài.
+
+\subsubsection{Ma Trận Chiếu và Hat Matrix}
+
+\begin{tcolorbox}[mycodebox, colback=blue!3!white, colframe=blue!40!black,
+    title={\textbf{Định nghĩa 1.2} - Hat Matrix}]
+Ma trận chiếu (projection matrix) hay \emph{Hat Matrix} được định nghĩa:
+\begin{equation}
+    \mathbf{H} = \mathbf{X}(\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T
+    \in \mathbb{R}^{n \times n}.
+    \label{eq:hat_matrix}
+\end{equation}
+\end{tcolorbox}
+
+Tên ``Hat Matrix'' xuất phát từ tính chất $\hat{\mathbf{y}} = \mathbf{H}\mathbf{y}$
+- ma trận ``đội mũ'' lên $\mathbf{y}$ để tạo ra giá trị dự đoán $\hat{\mathbf{y}}$.
+
+\begin{tcolorbox}[mycodebox, colback=green!3!white, colframe=green!40!black,
+    title={\textbf{Mệnh đề 1.1} - Tính Chất của $\mathbf{H}$}]
+\begin{enumerate}[label=(\roman*)]
+    \item $\mathbf{H}^2 = \mathbf{H}$ \hfill (idempotent - lũy đẳng)
+    \item $\mathbf{H}^T = \mathbf{H}$ \hfill (đối xứng)
+    \item Giá trị riêng của $\mathbf{H}$: chỉ là $0$ hoặc $1$
+    \item $\rank(\mathbf{H}) = \mathrm{tr}(\mathbf{H}) = p+1$
+    \item $\hat{\mathbf{y}} = \mathbf{H}\mathbf{y}$;\quad
+          $\hat{\boldsymbol{\varepsilon}} = (\mathbf{I} - \mathbf{H})\mathbf{y}$
+    \item $(\mathbf{I}-\mathbf{H})$ cũng idempotent và đối xứng
+\end{enumerate}
+\end{tcolorbox}
+
+\textbf{Chứng minh các tính chất.}
+\begin{itemize}
+    \item \textit{(i) Idempotent:}
+    $\mathbf{H}^2 = \mathbf{X}(\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T
+                   \mathbf{X}(\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T
+               = \mathbf{X}(\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T = \mathbf{H}$.
+    \item \textit{(ii) Đối xứng:}
+    $\mathbf{H}^T = \bigl[\mathbf{X}(\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\bigr]^T
+               = \mathbf{X}\bigl[(\mathbf{X}^T\mathbf{X})^{-1}\bigr]^T\mathbf{X}^T
+               = \mathbf{X}(\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T = \mathbf{H}$
+    (vì $(\mathbf{X}^T\mathbf{X})$ đối xứng nên nghịch đảo cũng đối xứng).
+    \item \textit{(iii) Giá trị riêng:} Nếu $\lambda$ là giá trị riêng của $\mathbf{H}$,
+    từ $\mathbf{H}^2 = \mathbf{H}$ suy ra $\lambda^2 = \lambda$, tức $\lambda \in \{0, 1\}$.
+    \item \textit{(iv) Rank:} Vì $\mathbf{H}$ idempotent,
+    $\rank(\mathbf{H}) = \mathrm{tr}(\mathbf{H})
+    = \mathrm{tr}\bigl[\mathbf{X}(\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\bigr]
+    = \mathrm{tr}\bigl[(\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{X}\bigr]
+    = \mathrm{tr}(\mathbf{I}_{p+1}) = p+1$.
+\end{itemize}
+
+\subsubsection{Định Lý Gauss-Markov}
+
+\begin{tcolorbox}[mycodebox, colback=blue!3!white, colframe=blue!40!black,
+    title={\textbf{Định lý 1.2} - Gauss-Markov (BLUE)}]
+Dưới các giả thiết GM1-GM4, ước lượng OLS
+$\hat{\boldsymbol{\beta}}_{\mathrm{OLS}}$ là ước lượng tuyến tính không
+chệch tốt nhất (\emph{Best Linear Unbiased Estimator} - \textbf{BLUE}):
+\begin{enumerate}[label=(\roman*)]
+    \item \textbf{Không chệch (Unbiased):}
+          $E[\hat{\boldsymbol{\beta}}_{\mathrm{OLS}}] = \boldsymbol{\beta}$.
+    \item \textbf{Tốt nhất (Best):} Với mọi ước lượng tuyến tính không chệch
+          $\tilde{\boldsymbol{\beta}}$ khác,
+          $\mathrm{Var}(\tilde{\beta}_j) \geq \mathrm{Var}(\hat{\beta}_j^{\mathrm{OLS}})$
+          với mọi $j$.
+\end{enumerate}
+Ma trận hiệp phương sai của $\hat{\boldsymbol{\beta}}_{\mathrm{OLS}}$:
+\begin{equation}
+    \mathrm{Var}(\hat{\boldsymbol{\beta}}_{\mathrm{OLS}} \mid \mathbf{X})
+    = \sigma^2(\mathbf{X}^T\mathbf{X})^{-1}.
+    \label{eq:var_beta}
+\end{equation}
+\end{tcolorbox}
+
+\textbf{Chứng minh tính không chệch.}
+\begin{align}
+    E[\hat{\boldsymbol{\beta}}_{\mathrm{OLS}}]
+    &= E\bigl[(\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}\bigr] \notag \\
+    &= (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T
+       E[\mathbf{X}\boldsymbol{\beta} + \boldsymbol{\varepsilon}] \notag \\
+    &= (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{X}\boldsymbol{\beta}
+       + (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T
+         \underbrace{E[\boldsymbol{\varepsilon} \mid \mathbf{X}]}_{=\mathbf{0}\text{ (GM3)}}
+    = \boldsymbol{\beta}. \quad \square
+\end{align}
+
+\textbf{Chứng minh ma trận hiệp phương sai.}
+\begin{align}
+    \mathrm{Var}(\hat{\boldsymbol{\beta}})
+    &= \mathrm{Var}\bigl[(\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}\bigr]
+     = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T
+       \underbrace{\mathrm{Var}(\mathbf{y})}_{=\sigma^2\mathbf{I}_n}
+       \mathbf{X}(\mathbf{X}^T\mathbf{X})^{-1}
+     = \sigma^2(\mathbf{X}^T\mathbf{X})^{-1}. \quad \square
+\end{align}
+
+\textbf{Minh họa Monte Carlo - Định lý Gauss-Markov (F10):}
+
+Để kiểm chứng định lý bằng mô phỏng, ta thực hiện $N_{\mathrm{sim}} = 1000$
+lần với cùng ma trận $\mathbf{X}$ cố định, mỗi lần sinh ngẫu nhiên
+$\boldsymbol{\varepsilon} \sim \mathcal{N}(\mathbf{0}, \sigma^2\mathbf{I})$
+và tính $\hat{\boldsymbol{\beta}}_{\mathrm{OLS}}$. Bên cạnh đó, xây dựng
+estimator thay thế $\tilde{\boldsymbol{\beta}} = \hat{\boldsymbol{\beta}} +
+c\,\mathbf{e}_0 (\mathbf{v}^T\mathbf{y})$ với
+$\mathbf{v} \in \mathrm{Null}(\mathbf{X}^T)$
+(vẫn là ước lượng không chệch nhưng có phương sai lớn hơn).
+
+Trước khi quay lại phần cài đặt, Hình~\ref{fig:gauss_markov} đóng vai trò như một kiểm chứng
+thực nghiệm cho phần chứng minh ở trên: nếu các giả định Gauss--Markov được giữ, OLS không chỉ
+không chệch mà còn có phương sai nhỏ nhất trong lớp ước lượng tuyến tính không chệch được thử.
+Kết quả mô phỏng xác nhận:
+\begin{itemize}
+    \item $E[\hat{\boldsymbol{\beta}}_{\mathrm{OLS}}] \approx \boldsymbol{\beta}$
+          (sai số trung bình $< 0.01$).
+    \item $\mathrm{Var}(\hat{\beta}_j^{\mathrm{OLS}}) \leq
+          \mathrm{Var}(\tilde{\beta}_j)$ với mọi $j$.
+\end{itemize}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.92\textwidth]{assets/part1/gauss_markov_histograms.png}
+    \caption{Phân phối $\hat{\boldsymbol{\beta}}_{\mathrm{OLS}}$ (xanh) và
+             $\tilde{\boldsymbol{\beta}}_{\mathrm{alt}}$ (cam) qua 1000 mô phỏng.
+             Đường đỏ dọc là giá trị $\beta$ thực.
+             OLS tập trung xung quanh $\beta$ thực (không chệch) với độ phân
+             tán thấp hơn estimator thay thế (phương sai nhỏ hơn).}
+    \label{fig:gauss_markov}
+\end{figure}
+
+\subsubsection{Ước Lượng Phương Sai Nhiễu}
+
+\begin{tcolorbox}[mycodebox, colback=green!3!white, colframe=green!40!black,
+    title={\textbf{Định lý 1.3} - Ước Lượng Không Chệch của $\sigma^2$}]
+\begin{equation}
+    \hat{\sigma}^2
+    = \frac{\mathrm{RSS}}{n - p - 1}
+    = \frac{\|\mathbf{y} - \mathbf{X}\hat{\boldsymbol{\beta}}\|^2}{n - p - 1},
+    \label{eq:sigma2}
+\end{equation}
+với $n - p - 1$ là bậc tự do còn lại sau khi ước lượng $p+1$ tham số.
+Ta có $E[\hat{\sigma}^2] = \sigma^2$.
+\end{tcolorbox}
+
+\textbf{Lưu ý triển khai:} Hàm \texttt{ols\_fit} tính $\hat{\sigma}^2$
+sử dụng \texttt{n - p - 1} bậc tự do (không phải $n - 2$),
+đảm bảo tính đúng khi số biến $p > 1$.
+
+

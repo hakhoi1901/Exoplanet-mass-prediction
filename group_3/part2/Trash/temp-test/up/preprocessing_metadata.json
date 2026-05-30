@@ -1,0 +1,324 @@
+{
+  "target": "pl_rade",
+  "target_transformed": "log_pl_rade",
+  "feature_names": [
+    "pl_orbeccen",
+    "pl_imppar",
+    "st_met",
+    "log_pl_orbsmax",
+    "log_pl_trandep",
+    "log_pl_insol",
+    "log_pl_bmasse",
+    "log_sy_dist",
+    "log_pl_trandur",
+    "log_st_rad"
+  ],
+  "log_columns": [
+    "pl_orbper",
+    "pl_orbsmax",
+    "pl_trandep",
+    "pl_insol",
+    "pl_bmasse",
+    "pl_eqt",
+    "sy_dist",
+    "pl_rade",
+    "pl_trandur",
+    "st_rad"
+  ],
+  "winsor_bounds": {
+    "pl_orbeccen": [
+      0.0,
+      0.29940000000000055
+    ],
+    "pl_imppar": [
+      0.004,
+      0.9395
+    ]
+  },
+  "log_transform_report": [
+    {
+      "source": "pl_orbper",
+      "created": "log_pl_orbper",
+      "missing": 0,
+      "min_before": 0.176891,
+      "max_before": 199.66876,
+      "skew_before": 6.861484,
+      "skew_after": 0.490095
+    },
+    {
+      "source": "pl_orbsmax",
+      "created": "log_pl_orbsmax",
+      "missing": 73,
+      "min_before": 0.005,
+      "max_before": 0.6193,
+      "skew_before": 3.231263,
+      "skew_after": 2.594798
+    },
+    {
+      "source": "pl_trandep",
+      "created": "log_pl_trandep",
+      "missing": 40,
+      "min_before": 0.00122,
+      "max_before": 1.6536,
+      "skew_before": 10.180175,
+      "skew_after": 6.95223
+    },
+    {
+      "source": "pl_insol",
+      "created": "log_pl_insol",
+      "missing": 83,
+      "min_before": 0.144,
+      "max_before": 8385.9,
+      "skew_before": 3.959605,
+      "skew_after": -0.381478
+    },
+    {
+      "source": "pl_bmasse",
+      "created": "log_pl_bmasse",
+      "missing": 0,
+      "min_before": 0.0364,
+      "max_before": 10.0,
+      "skew_before": 1.769409,
+      "skew_after": -0.27163
+    },
+    {
+      "source": "pl_eqt",
+      "created": "log_pl_eqt",
+      "missing": 67,
+      "min_before": 171.7,
+      "max_before": 3186.0,
+      "skew_before": 0.87881,
+      "skew_after": -0.476649
+    },
+    {
+      "source": "sy_dist",
+      "created": "log_sy_dist",
+      "missing": 6,
+      "min_before": 6.86929,
+      "max_before": 2712.58,
+      "skew_before": 1.182893,
+      "skew_after": -1.150935
+    },
+    {
+      "source": "pl_rade",
+      "created": "log_pl_rade",
+      "missing": 0,
+      "min_before": 0.3098,
+      "max_before": 1.6,
+      "skew_before": -0.692968,
+      "skew_after": -0.99184
+    },
+    {
+      "source": "pl_trandur",
+      "created": "log_pl_trandur",
+      "missing": 18,
+      "min_before": 0.313,
+      "max_before": 15.722,
+      "skew_before": 2.174439,
+      "skew_after": 0.414858
+    },
+    {
+      "source": "st_rad",
+      "created": "log_st_rad",
+      "missing": 0,
+      "min_before": 0.1192,
+      "max_before": 2.55,
+      "skew_before": 0.653809,
+      "skew_after": -0.113883
+    }
+  ],
+  "winsor_report": [
+    {
+      "column": "pl_orbeccen",
+      "p01": 0.0,
+      "p99": 0.2994,
+      "below_p01": 0,
+      "above_p99": 8,
+      "clipped_total": 8,
+      "clipped_%": 1.061
+    },
+    {
+      "column": "pl_imppar",
+      "p01": 0.004,
+      "p99": 0.9395,
+      "below_p01": 9,
+      "above_p99": 9,
+      "clipped_total": 18,
+      "clipped_%": 2.179
+    }
+  ],
+  "initial_drop_columns": [
+    "st_mass",
+    "st_logg",
+    "rowid"
+  ],
+  "vif_threshold": 10.0,
+  "vif_drop_columns": [
+    "log_pl_orbper",
+    "log_pl_eqt",
+    "st_teff"
+  ],
+  "vif_history": [
+    {
+      "feature": "log_pl_orbper",
+      "vif": 47.1586880739237
+    },
+    {
+      "feature": "log_pl_eqt",
+      "vif": 21.1997118138176
+    },
+    {
+      "feature": "st_teff",
+      "vif": 10.109896720027795
+    },
+    {
+      "feature": "log_pl_insol",
+      "vif": 5.11497559024149
+    }
+  ],
+  "final_vif": {
+    "pl_orbeccen": 1.2694196797366437,
+    "pl_imppar": 1.0731745220210014,
+    "st_met": 1.155363967675955,
+    "log_pl_orbsmax": 3.829581791437705,
+    "log_pl_trandep": 1.8993459863112674,
+    "log_pl_insol": 5.11497559024149,
+    "log_pl_bmasse": 1.0614099883850865,
+    "log_sy_dist": 2.4756111786550017,
+    "log_pl_trandur": 3.565508107763364,
+    "log_st_rad": 4.856747991486172
+  },
+  "imputation_method": "mice",
+  "initial_impute_values": {
+    "pl_orbeccen": 0.0,
+    "pl_imppar": 0.28469999999999995,
+    "st_teff": 5345.0,
+    "st_met": 0.0,
+    "log_pl_orbper": 1.7614016344400125,
+    "log_pl_orbsmax": 0.05221287144693424,
+    "log_pl_trandep": 0.0204984635773248,
+    "log_pl_insol": 5.207544334400033,
+    "log_pl_bmasse": 1.1662709371419244,
+    "log_pl_eqt": 6.856986916700647,
+    "log_sy_dist": 6.10439359900076,
+    "log_pl_trandur": 1.215506040139609,
+    "log_st_rad": 0.6081338062329886
+  },
+  "imputation_report": [
+    {
+      "column": "pl_orbeccen",
+      "missing": 113,
+      "missing_%": 13.033,
+      "initial_median": 0.0,
+      "observed_mean": 0.013696,
+      "imputed_mean": 0.033391,
+      "imputed_std": 0.021304,
+      "imputed_min": -0.017979,
+      "imputed_max": 0.09066
+    },
+    {
+      "column": "log_pl_insol",
+      "missing": 83,
+      "missing_%": 9.573,
+      "initial_median": 5.207544,
+      "observed_mean": 5.036231,
+      "imputed_mean": 5.344336,
+      "imputed_std": 1.555446,
+      "imputed_min": 1.947675,
+      "imputed_max": 8.002407
+    },
+    {
+      "column": "log_pl_orbsmax",
+      "missing": 73,
+      "missing_%": 8.42,
+      "initial_median": 0.052213,
+      "observed_mean": 0.064713,
+      "imputed_mean": 0.044337,
+      "imputed_std": 0.040516,
+      "imputed_min": -0.023996,
+      "imputed_max": 0.15873
+    },
+    {
+      "column": "log_pl_eqt",
+      "missing": 67,
+      "missing_%": 7.728,
+      "initial_median": 6.856987,
+      "observed_mean": 6.806412,
+      "imputed_mean": 6.806281,
+      "imputed_std": 0.458407,
+      "imputed_min": 5.736562,
+      "imputed_max": 7.567788
+    },
+    {
+      "column": "pl_imppar",
+      "missing": 41,
+      "missing_%": 4.729,
+      "initial_median": 0.2847,
+      "observed_mean": 0.346475,
+      "imputed_mean": 0.395266,
+      "imputed_std": 0.059192,
+      "imputed_min": 0.273106,
+      "imputed_max": 0.574635
+    },
+    {
+      "column": "log_pl_trandep",
+      "missing": 40,
+      "missing_%": 4.614,
+      "initial_median": 0.020498,
+      "observed_mean": 0.036569,
+      "imputed_mean": 0.047544,
+      "imputed_std": 0.039893,
+      "imputed_min": -0.005377,
+      "imputed_max": 0.156102
+    },
+    {
+      "column": "st_met",
+      "missing": 24,
+      "missing_%": 2.768,
+      "initial_median": 0.0,
+      "observed_mean": -0.025205,
+      "imputed_mean": -0.101482,
+      "imputed_std": 0.042574,
+      "imputed_min": -0.179135,
+      "imputed_max": -0.014216
+    },
+    {
+      "column": "log_pl_trandur",
+      "missing": 18,
+      "missing_%": 2.076,
+      "initial_median": 1.215506,
+      "observed_mean": 1.237751,
+      "imputed_mean": 1.08765,
+      "imputed_std": 0.280268,
+      "imputed_min": 0.604429,
+      "imputed_max": 1.700748
+    },
+    {
+      "column": "log_sy_dist",
+      "missing": 6,
+      "missing_%": 0.692,
+      "initial_median": 6.104394,
+      "observed_mean": 5.830641,
+      "imputed_mean": 5.154781,
+      "imputed_std": 0.948645,
+      "imputed_min": 3.219446,
+      "imputed_max": 5.978098
+    }
+  ],
+  "mice_imputations": 5,
+  "mice_iterations": 5,
+  "mice_regularization": 0.001,
+  "mice_noise_scale": 0.15,
+  "mice_missing_columns": [
+    "pl_orbeccen",
+    "pl_imppar",
+    "st_met",
+    "log_pl_orbsmax",
+    "log_pl_trandep",
+    "log_pl_insol",
+    "log_pl_eqt",
+    "log_sy_dist",
+    "log_pl_trandur"
+  ],
+  "standardize": true
+}

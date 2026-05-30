@@ -14,6 +14,10 @@ from config import RANDOM_STATE
 from utils import matvec
 
 
+# ---------------------------------------------------------------------------
+# F8: Residual Analysis - 4 biểu đồ chẩn đoán phần dư
+# ---------------------------------------------------------------------------
+
 def residual_plots(
     X_or_y,
     y_or_y_hat,
@@ -24,19 +28,32 @@ def residual_plots(
     show_plot: bool = False,
 ) -> dict:
     """
-    Draw the four residual diagnostic plots required by Project 2.
-
-    Preferred Project-2 signature:
+    F8: Vẽ bốn biểu đồ chẩn đoán phần dư cho mô hình hồi quy.
         residual_plots(X, y, beta_hat)
-
-    Backward-compatible signatures kept for existing notebooks/scripts:
         residual_plots(y, y_hat, X=X)
         residual_plots(y, y_hat, X)
+
+    Tham số:
+        X_or_y     : Ma trận feature X hoặc vector y, tùy cách gọi.
+        y_or_y_hat : Vector target y hoặc vector dự đoán y_hat.
+        beta_hat   : Hệ số hồi quy [intercept, beta_1, ..., beta_p] nếu truyền X và y.
+        X          : Ma trận feature tùy chọn khi đã có sẵn y_hat.
+        save_dir   : Thư mục lưu ảnh residual_plots.png.
+        show_plot  : Có hiển thị biểu đồ sau khi lưu hay không.
+
+    Trả về dict:
+        fig           : Figure Matplotlib.
+        out_path      : Đường dẫn ảnh đã lưu.
+        residuals     : Phần dư y - y_hat.
+        std_residuals : Phần dư chuẩn hóa.
+        cooks_d       : Cook's Distance hoặc fallback theo độ lớn phần dư.
+        y_hat         : Giá trị dự đoán dùng trong biểu đồ.
     """
     X_features, y, y_hat = _resolve_inputs(X_or_y, y_or_y_hat, beta_hat, X)
     os.makedirs(save_dir, exist_ok=True)
     n = len(y)
 
+    # Tính phần dư và phần dư chuẩn hóa.
     residuals = [y[i] - y_hat[i] for i in range(n)]
     rss = sum(r * r for r in residuals)
     p_feat = len(X_features[0]) if X_features is not None else 1
@@ -45,7 +62,8 @@ def residual_plots(
     std_residuals = [r / sigma_hat for r in residuals]
 
     if X_features is not None:
-        from ols_implementation import hat_matrix as compute_hat_matrix
+        # Nếu có X, dùng leverage từ Hat Matrix để tính Cook's Distance đúng công thức.
+        from part1.ols_implementation import hat_matrix as compute_hat_matrix
 
         hat_res = compute_hat_matrix(X_features)
         H = hat_res["H"]
@@ -58,11 +76,13 @@ def residual_plots(
                 denom = 1e-12
             cooks_d.append((residuals[i] ** 2 * h[i]) / denom)
     else:
+        # Fallback cho cách gọi chỉ truyền y và y_hat: dùng độ lớn phần dư để vẫn vẽ được panel thứ tư.
         cooks_d = [abs(r) for r in residuals]
 
     sqrt_abs_std = [math.sqrt(abs(s)) for s in std_residuals]
     qq_x, qq_y, qq_slope, qq_intercept = _qq_line(residuals)
 
+    # Bốn panel chẩn đoán: Residuals vs Fitted, Q-Q, Scale-Location, Cook's Distance.
     fig, axes = plt.subplots(2, 2, figsize=(13, 10))
     fig.suptitle("Residual Diagnostic Plots", fontsize=14, y=1.01)
 
@@ -129,6 +149,7 @@ def residual_plots(
 
 
 def _resolve_inputs(X_or_y, y_or_y_hat, beta_hat, legacy_X):
+    """Chuẩn hóa các cách gọi khác nhau về bộ ba X_features, y và y_hat."""
     if beta_hat is not None and _is_matrix(beta_hat) and legacy_X is None and not _is_matrix(X_or_y):
         legacy_X = beta_hat
         beta_hat = None
@@ -155,6 +176,7 @@ def _resolve_inputs(X_or_y, y_or_y_hat, beta_hat, legacy_X):
 
 
 def _is_matrix(value) -> bool:
+    """Kiểm tra nhanh một object có dạng ma trận 2 chiều hay không."""
     try:
         if value is None or len(value) == 0:
             return False
@@ -165,6 +187,7 @@ def _is_matrix(value) -> bool:
 
 
 def _to_vector(values, *, name: str) -> list[float]:
+    """Ép một sequence 1 chiều sang list float và kiểm tra rỗng."""
     if values is None:
         raise ValueError(f"{name} must not be None")
     try:
@@ -177,6 +200,7 @@ def _to_vector(values, *, name: str) -> list[float]:
 
 
 def _to_matrix(values, *, name: str) -> list[list[float]]:
+    """Ép một sequence 2 chiều sang ma trận float và kiểm tra số cột nhất quán."""
     if not _is_matrix(values):
         raise ValueError(f"{name} must be a non-empty matrix")
     matrix = [[float(v) for v in row] for row in values]
@@ -190,6 +214,7 @@ def _to_matrix(values, *, name: str) -> list[list[float]]:
 
 
 def _qq_line(residuals: list[float]) -> tuple[list[float], list[float], float, float]:
+    """Tạo dữ liệu cho biểu đồ Normal Q-Q và đường tham chiếu tuyến tính."""
     n = len(residuals)
     y_sorted = sorted(residuals)
     x_theoretical = [_normal_ppf((i + 0.5) / n) for i in range(n)]
@@ -204,6 +229,7 @@ def _qq_line(residuals: list[float]) -> tuple[list[float], list[float], float, f
 
 
 def _normal_ppf(p: float) -> float:
+    """Xấp xỉ inverse CDF của phân phối chuẩn chuẩn hóa."""
     if not 0.0 < p < 1.0:
         raise ValueError("p must be in (0, 1)")
 
@@ -238,6 +264,7 @@ def _normal_ppf(p: float) -> float:
 
 
 def _smooth_line(ax, x, y, n_bins: int = 20, **kwargs):
+    """Vẽ đường xu hướng bằng trung bình theo các bin của trục x."""
     pairs = sorted((float(xi), float(yi)) for xi, yi in zip(x, y))
     if not pairs:
         return
@@ -323,10 +350,11 @@ def test_residual_plots_fallback_without_x() -> bool:
 
 
 def _generate_demo_plot() -> None:
+    """Sinh ảnh residual_plots.png demo để dùng trong báo cáo."""
     from test_utils import TestLogger, make_linear_data
 
     try:
-        from ols_implementation import ols_fit
+        from part1.ols_implementation import ols_fit
     except ImportError:
         TestLogger.print_warn("Could not import ols_fit to generate demo residual plot")
         return
@@ -338,6 +366,7 @@ def _generate_demo_plot() -> None:
 
 
 def run_tests() -> tuple[int, int]:
+    """Chạy toàn bộ unit tests của F8 và trả về số test pass/tổng số test."""
     from test_utils import TestLogger
 
     TestLogger.print_suite_header("F8 - Residual Analysis")

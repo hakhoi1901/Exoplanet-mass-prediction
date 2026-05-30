@@ -3,13 +3,13 @@ import math
 import sys
 import os
 
-# Thêm thư mục gốc vào path để import utils và config
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from utils import transpose, matmul, matvec, dot_product, inverse, solve_system, identity_matrix, add_bias
 from config import RANDOM_STATE, EPSILON
 
 PART1_OUTPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "output"))
+
 
 def _validate_xy(X: list[list[float]], y: list[float], *, need_df: bool = True) -> tuple[int, int]:
     if not X or not isinstance(X, list):
@@ -144,8 +144,8 @@ def ols_fit(
     F1: Giải Normal Equations để tính nghiệm OLS từ đầu.
 
     Công thức:
-        β̂ = (X^TX)^-1X^Ty
-        σ̂² = RSS / (n - p - 1)
+        beta_hat = (X^T X)^-1 X^T y
+        sigma2_hat = RSS / (n - p - 1)
 
     X nhận vào CHƯA có cột bias - hàm tự thêm cột 1 bên trong.
 
@@ -154,33 +154,33 @@ def ols_fit(
         y : list[float]       - Vector target, shape (n,).
 
     Trả về dict:
-        beta_hat   : list[float] - [intercept, β₁, …, βₚ], shape (p+1,).
+        beta_hat   : list[float] - [intercept, beta_1, ..., beta_p], shape (p+1,).
         sigma2_hat : float       - Ước lượng phương sai nhiễu RSS/(n-p-1).
         y_hat      : list[float] - Giá trị dự đoán, shape (n,).
-        residuals  : list[float] - Phần dư y - ŷ, shape (n,).
+        residuals  : list[float] - Phần dư y - y_hat, shape (n,).
     """
     n, p = _validate_xy(X, y)
 
-    # Bước 1: Thêm cột bias (cột 1) vào đầu → X_bias shape (n, p+1)
+    # Bước 1: Thêm cột bias (cột 1) vào đầu -> X_bias shape (n, p+1)
     X_bias = [[1.0] + row for row in X]
 
-    # Bước 2: Tính XᵀX → (p+1, p+1)
+    # Bước 2: Tính X^T X -> (p+1, p+1)
     Xt = transpose(X_bias)
     XtX = matmul(Xt, X_bias)
 
-    # Bước 3: Tính Xᵀy → (p+1,)
+    # Bước 3: Tính X^T y -> (p+1,)
     Xty = [dot_product(Xt[i], y) for i in range(p + 1)]
 
-    # Bước 4: Giải hệ 
+    # Bước 4: Giải hệ (X^T X) beta = X^T y
     beta_hat = solve_system(XtX, Xty)
 
-    # Bước 5: Tính y = X_bias @ β
+    # Bước 5: Tính y_hat = X_bias @ beta_hat
     y_hat = matvec(X_bias, beta_hat)
 
-    # Bước 6: Tính residuals = y - y
+    # Bước 6: Tính residuals = y - y_hat
     residuals = [y[i] - y_hat[i] for i in range(n)]
 
-    # Bước 7-8: RSS và σ^2
+    # Bước 7-8: RSS và sigma2_hat
     rss = sum(r * r for r in residuals)
     sigma2_hat = rss / (n - p - 1)
 
@@ -198,7 +198,7 @@ def ols_fit(
 
 def hat_matrix(X: list[list[float]]) -> dict:
     """
-    F2: Tính Hat Matrix H và kiểm tra các tính chất.
+    F2: Tính Hat Matrix H = X(X^T X)^-1 X^T và kiểm tra các tính chất.
 
     X nhận vào CHƯA có cột bias - hàm tự thêm cột 1 bên trong.
 
@@ -207,8 +207,8 @@ def hat_matrix(X: list[list[float]]) -> dict:
 
     Trả về dict:
         H             : list[list[float]] - Hat matrix (n x n).
-        is_idempotent : bool              - H² ≈ H (sai số < 1e-8).
-        is_symmetric  : bool              - Hᵀ ≈ H (sai số < 1e-8).
+        is_idempotent : bool              - H^2 ~= H (sai số < 1e-8).
+        is_symmetric  : bool              - H^T ~= H (sai số < 1e-8).
         rank          : int               - rank(H) = p+1.
         eigenvalues   : list[float]       - Giá trị riêng (chỉ 0 hoặc 1).
     """
@@ -227,16 +227,17 @@ def hat_matrix(X: list[list[float]]) -> dict:
     # Bước 1: Thêm cột bias
     X_bias = [[1.0] + row for row in X]
 
-    # Bước 2-3: Tính (X^TX)^-1
+    # Bước 2-3: Tính (X^T X)^-1
     Xt = transpose(X_bias)
     XtX = matmul(Xt, X_bias)
     XtX_inv = inverse(XtX)
 
-    # Bước 4: H = X_bias @ (X^TX)^-1 @ X^T
+    # Bước 4: H = X_bias @ (X^T X)^-1 @ X^T
+    #         = X_bias @ temp,  với temp = (X^T X)^-1 @ X^T
     temp = matmul(XtX_inv, Xt)   # (p+1, n)
     H = matmul(X_bias, temp)     # (n, n)
 
-    # Bước 5: Kiểm tra idempotent - H² ≈ H
+    # Bước 5: Kiểm tra idempotent - H^2 ~= H
     H2 = matmul(H, H)
     is_idempotent = True
     for i in range(n):
@@ -247,7 +248,7 @@ def hat_matrix(X: list[list[float]]) -> dict:
         if not is_idempotent:
             break
 
-    # Bước 6: Kiểm tra symmetric - H^T = H
+    # Bước 6: Kiểm tra symmetric - H^T ~= H
     Ht = transpose(H)
     is_symmetric = True
     for i in range(n):
@@ -263,11 +264,6 @@ def hat_matrix(X: list[list[float]]) -> dict:
     rank = round(trace_H)
 
     # Bước 8: Eigenvalues - Với ma trận chiếu idempotent,
-    # eigenvalues lý thuyết chỉ gồm 0 và 1.
-    # Số eigenvalue = 1 chính bằng rank (= p+1).
-    # KNOWN LIMITATION: eigenvalues được tính theo lý thuyết (hardcode [1]*rank + [0]*(n-rank))
-    # thay vì tính thực từ ma trận bằng QR iteration - vượt scope dự án.
-    # Giá trị này chính xác về mặt lý thuyết cho projection matrix idempotent.
     eigenvalues = [1.0] * rank + [0.0] * (n - rank)
 
     return {
@@ -366,15 +362,15 @@ def model_metrics(
         p     : int         - Số features (không tính intercept).
 
     Trả về dict:
-        RSS      : float - Residual Sum of Squares = Σ(yᵢ - ŷᵢ)².
-        TSS      : float - Total Sum of Squares    = Σ(yᵢ - ȳ)².
+        RSS      : float - Residual Sum of Squares = sum((y_i - y_hat_i)^2).
+        TSS      : float - Total Sum of Squares    = sum((y_i - y_bar)^2).
         MSS      : float - Model Sum of Squares    = TSS - RSS.
         R2       : float - Hệ số xác định          = 1 - RSS/TSS.
-        R2_adj   : float - R² hiệu chỉnh           = 1 - (n-1)/(n-p-1)*(1-R²).
+        R2_adj   : float - R2 hiệu chỉnh           = 1 - (n-1)/(n-p-1)*(1-R2).
         F_stat   : float - F-statistic             = (MSS/p) / (RSS/(n-p-1)).
         F_pvalue : float - p-value của F-test.
-        MAE      : float - Mean Absolute Error      = mean(|y - ŷ|).
-        RMSE     : float - Root Mean Squared Error   = sqrt(mean((y - ŷ)²)).
+        MAE      : float - Mean Absolute Error      = mean(|y - y_hat|).
+        RMSE     : float - Root Mean Squared Error   = sqrt(mean((y - y_hat)^2)).
     """
     n = len(y)
     if len(y_hat) != n:
@@ -390,9 +386,9 @@ def model_metrics(
     tss = sum((y[i] - y_bar) ** 2 for i in range(n))
     mss = tss - rss
 
-    # R² và Adjusted R²
+    # R2 và Adjusted R2
     if abs(tss) < EPSILON:
-        # y hằng số → R² = 1 nếu dự đoán chính xác, 0 nếu không
+        # y hằng số -> R2 = 1 nếu dự đoán chính xác, 0 nếu không
         r2 = 1.0 if abs(rss) < EPSILON else 0.0
     else:
         r2 = 1.0 - rss / tss
@@ -430,7 +426,6 @@ def model_metrics(
 
 # ---------------------------------------------------------------------------
 # F4: Coefficient Inference - SE, t-stat, p-value, CI
-# Liên kết: Nhận output từ F1 (beta_hat, sigma2_hat)
 # ---------------------------------------------------------------------------
 
 def coef_inference(
@@ -444,19 +439,19 @@ def coef_inference(
 
     Liên kết: Sử dụng beta_hat và sigma2_hat trực tiếp từ ols_fit (F1).
     Công thức:
-        Cov(β̂) = σ² · (XᵀX)⁻¹
-        SE(β̂ⱼ) = sqrt(Cov(β̂)[j,j])
-        t_j = β̂ⱼ / SE(β̂ⱼ)
-        p-value = 2 · P(T > |t_j|)  với  T ~ t(n - p - 1)
+        Cov(beta_hat) = sigma^2 * (X^T X)^-1
+        SE(beta_hat_j) = sqrt(Cov(beta_hat)[j,j])
+        t_j = beta_hat_j / SE(beta_hat_j)
+        p-value = 2 * P(T > |t_j|)  với  T ~ t(n - p - 1)
 
     Tham số:
         X        : Ma trận features (n x p), chưa có bias.
         y        : Vector target (n,).
-        beta_hat : list[float] - [intercept, β₁, …, βₚ] từ ols_fit.
-        sigma2   : float - σ̂² từ ols_fit.
+        beta_hat : list[float] - [intercept, beta_1, ..., beta_p] từ ols_fit.
+        sigma2   : float - sigma2_hat từ ols_fit.
 
-    Trả về dict (không phải DataFrame - dùng pandas.DataFrame(coef_inference(...)) nếu cần hiển thị bảng):
-        coef     : list[float] - Hệ số β̂.
+    Trả về dict:
+        coef     : list[float] - Hệ số beta_hat.
         std_err  : list[float] - Standard errors.
         t_stat   : list[float] - t-statistics.
         p_value  : list[float] - p-values (two-sided).
@@ -473,22 +468,22 @@ def coef_inference(
     # Thêm cột bias
     X_bias = [[1.0] + row for row in X]
 
-    # Tính (XᵀX)⁻¹
+    # Tính (X^T X)^-1
     Xt = transpose(X_bias)
     XtX = matmul(Xt, X_bias)
     XtX_inv = inverse(XtX)
 
-    # Cov(β̂) = σ² · (XᵀX)⁻¹
+    # Cov(beta_hat) = sigma^2 * (X^T X)^-1
     p1 = p + 1
     df = n - p1
 
-    # Standard errors = sqrt(diag(σ² · (XᵀX)⁻¹))
+    # Standard errors = sqrt(diag(sigma^2 * (X^T X)^-1))
     std_err = []
     for j in range(p1):
         var_j = sigma2 * XtX_inv[j][j]
         std_err.append(math.sqrt(max(var_j, 0.0)))
 
-    # t-statistics = β̂ⱼ / SE(β̂ⱼ)
+    # t-statistics = beta_hat_j / SE(beta_hat_j)
     t_stat = []
     for j in range(p1):
         if std_err[j] > EPSILON:
@@ -519,23 +514,22 @@ def coef_inference(
 
 # ---------------------------------------------------------------------------
 # F5: VIF - Variance Inflation Factor
-# Gọi F1 (ols_fit) và F3 (model_metrics) cho mỗi sub-regression
 # ---------------------------------------------------------------------------
 
 def vif(X: list[list[float]]) -> dict[str, float]:
     """
-    F5: Tính VIF cho mỗi feature bằng cách hồi quy xⱼ theo các feature còn lại.
+    F5: Tính VIF cho mỗi feature bằng cách hồi quy x_j theo các feature còn lại.
 
     Liên kết:
-        - Gọi ols_fit (F1) để fit sub-regression xⱼ ~ X_others.
-        - Gọi model_metrics (F3) để tính R²ⱼ.
-        - VIFⱼ = 1 / (1 - R²ⱼ)
+        - Gọi ols_fit (F1) để fit sub-regression x_j ~ X_others.
+        - Gọi model_metrics (F3) để tính R2_j.
+        - VIF_j = 1 / (1 - R2_j)
 
     Tham số:
         X : list[list[float]] - Ma trận features (n x p), chưa có bias.
 
     Trả về:
-        dict[str, float] - {"x1": VIF₁, "x2": VIF₂, ...}
+        dict[str, float] - {"x1": VIF_1, "x2": VIF_2, ...}
     """
     if not X or not isinstance(X, list):
         raise ValueError("X must be a non-empty list of rows")
@@ -559,11 +553,11 @@ def vif(X: list[list[float]]) -> dict[str, float]:
         # Dùng F1 để fit sub-regression
         sub_res = ols_fit(X_others, x_j)
 
-        # Dùng F3 để tính R²
+        # Dùng F3 để tính R2
         sub_met = model_metrics(x_j, sub_res["y_hat"], p=p - 1)
         r2_j = sub_met["R2"]
 
-        # VIF = 1 / (1 - R²)
+        # VIF = 1 / (1 - R2)
         if abs(1.0 - r2_j) < EPSILON:
             vifs[f"x{j + 1}"] = float("inf")
         else:

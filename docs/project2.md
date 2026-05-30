@@ -7,7 +7,7 @@
 
 **Môn học:** Toán Ứng Dụng và Thống Kê  
 **Mã môn:** MTH00051  
-**Học kỳ:** Học kỳ 2, 2025–2026
+**Học kỳ:** Học kỳ 2, 2025-2026
 
 **GV Thực hành:** ThS. Võ Nam Thục Đoan, ThS. Lê Nhựt Nam  
 **E-mail:** {vntdoan, lnnam}@fit.hcmus.edu.vn
@@ -49,7 +49,7 @@
 
 Sau khi hoàn thành đồ án, sinh viên có khả năng:
 
-- Giải thích và chứng minh các tính chất cốt lõi của OLS (unbiasedness, BLUE, Gauss–Markov).
+- Giải thích và chứng minh các tính chất cốt lõi của OLS (unbiasedness, BLUE, Gauss-Markov).
 - Cài đặt pipeline data fitting hoàn chỉnh từ đầu bằng Python, có thể so sánh được với `sklearn.LinearRegression`.
 - Phân tích và xử lý bộ dữ liệu thực có missing values, outliers và các vấn đề thực tiễn.
 - Đánh giá mô hình một cách toàn diện (hệ số R², residual analysis, cross-validation).
@@ -85,7 +85,7 @@ với $\beta = (\beta_0, \beta_1, \ldots, \beta_p)^T \in \mathbb{R}^{p+1}$ là v
 
 $$\mathbf{y} = X\beta + \varepsilon \tag{2}$$
 
-#### 1.1.2 Các Giả Thiết Gauss–Markov
+#### 1.1.2 Các Giả Thiết Gauss-Markov
 
 | Ký hiệu | Nội dung |
 |---------|----------|
@@ -129,9 +129,9 @@ $$H = X(X^T X)^{-1} X^T \in \mathbb{R}^{n \times n} \tag{5}$$
 (iv) $\text{rank}(H) = p + 1$  
 (v) Giá trị fitted: $\hat{\mathbf{y}} = H\mathbf{y}$; phần dư: $\hat{\varepsilon} = (I - H)\mathbf{y}$
 
-#### 1.2.3 Định Lý Gauss–Markov
+#### 1.2.3 Định Lý Gauss-Markov
 
-**Định lý 1.2** *(Gauss–Markov).* Dưới các giả thiết GM1–GM4, ước lượng OLS $\hat{\beta}_{\text{OLS}}$ là ước lượng tuyến tính không chệch tốt nhất (**Best Linear Unbiased Estimator - BLUE**):
+**Định lý 1.2** *(Gauss-Markov).* Dưới các giả thiết GM1-GM4, ước lượng OLS $\hat{\beta}_{\text{OLS}}$ là ước lượng tuyến tính không chệch tốt nhất (**Best Linear Unbiased Estimator - BLUE**):
 
 (i) **Không chệch:** $E[\hat{\beta}_{\text{OLS}}] = \beta$  
 (ii) **Tốt nhất (phương sai nhỏ nhất):** Với mọi ước lượng tuyến tính không chệch $\tilde{\beta}$ khác, ta có $\text{Var}(\tilde{\beta}_j) \geq \text{Var}(\hat{\beta}_j^{\text{OLS}})$ với mọi $j$.
@@ -231,7 +231,7 @@ Với mỗi mục dưới đây, sinh viên phải: **(a)** trình bày công th
 6. `ridge_fit(X, y, lam)` - Cài đặt Ridge Regression, vẽ ridge trace.
 7. `residual_plots(X, y, beta_hat)` - Vẽ 4 biểu đồ phân tích phần dư.
 8. `kfold_cv(X, y, k)` - Cài đặt k-fold cross-validation, tính CV score.
-9. **Minh họa định lý Gauss–Markov**: Mô phỏng Monte Carlo để kiểm chứng $E[\hat{\beta}] = \beta$ và OLS có phương sai nhỏ nhất.
+9. **Minh họa định lý Gauss-Markov**: Mô phỏng Monte Carlo để kiểm chứng $E[\hat{\beta}] = \beta$ và OLS có phương sai nhỏ nhất.
 
 ---
 
@@ -246,7 +246,7 @@ Với mỗi mục dưới đây, sinh viên phải: **(a)** trình bày công th
 | Regularization (Ridge/Lasso) | Cài đặt, vẽ ridge trace | 1.0 |
 | Phân tích phần dư | 4 biểu đồ đầy đủ, nhận xét | 0.5 |
 | Cross-validation | Cài k-fold CV, so sánh mô hình | 0.5 |
-| Minh họa Gauss–Markov | Monte Carlo rõ ràng, nhận xét | 0.5 |
+| Minh họa Gauss-Markov | Monte Carlo rõ ràng, nhận xét | 0.5 |
 | Trình bày Notebook | Rõ ràng, có markdown giải thích | 0.5 |
 | **Tổng Phần 1** | | **6.0** |
 

@@ -66,6 +66,7 @@ DEFAULT_DROP_COLUMNS = ("st_mass", "st_logg")
 
 
 def load_dataset(path: str | Path) -> pd.DataFrame:
+    """Đọc file dữ liệu CSV/TSV và chuẩn hóa tên cột đầu vào."""
     path = Path(path)
     with path.open("r", encoding="utf-8", errors="replace") as f:
         first_line = f.readline()
@@ -80,6 +81,7 @@ def select_model_columns(
     target: str = DEFAULT_TARGET,
     model_columns: Iterable[str] = DEFAULT_MODEL_COLUMNS,
 ) -> pd.DataFrame:
+    """Giữ lại các cột vật lý dùng cho mô hình và ép kiểu số."""
     requested = list(dict.fromkeys(model_columns))
     if target not in requested:
         requested.append(target)
@@ -99,6 +101,7 @@ def train_test_split_frame(
     test_size: float = 0.2,
     random_state: int = RANDOM_STATE,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Chia DataFrame thành train/test bằng hoán vị ngẫu nhiên có seed."""
     if not 0 < test_size < 1:
         raise ValueError("test_size must be in (0, 1)")
     rng = np.random.default_rng(random_state)
@@ -111,6 +114,7 @@ def train_test_split_frame(
 
 
 def _safe_log1p(series: pd.Series) -> pd.Series:
+    """Tính log1p"""
     numeric = pd.to_numeric(series, errors="coerce")
     if numeric.dropna().empty:
         return numeric
@@ -122,6 +126,7 @@ def _safe_log1p(series: pd.Series) -> pd.Series:
 
 
 def _to_float_frame(df: pd.DataFrame) -> pd.DataFrame:
+    """Ép toàn bộ các cột trong DataFrame sang kiểu float."""
     out = df.copy()
     for col in out.columns:
         out[col] = pd.to_numeric(out[col], errors="coerce")
@@ -129,10 +134,12 @@ def _to_float_frame(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _replace_non_finite(df: pd.DataFrame) -> pd.DataFrame:
+    """Thay các giá trị vô cực bằng NaN để các bước sau xử lý được."""
     return df.replace([math.inf, -math.inf], math.nan)
 
 
 def _flatten_axes(axes) -> list:
+    """Làm phẳng cấu trúc axes của Matplotlib thành một danh sách."""
     if isinstance(axes, (list, tuple)):
         flattened = []
         for item in axes:
@@ -144,12 +151,14 @@ def _flatten_axes(axes) -> list:
 
 
 def _axes_grid(axes, rows: int, cols: int) -> list[list]:
+    """Chuyển axes đã làm phẳng thành lưới theo số dòng và cột."""
     flattened = _flatten_axes(axes)
     return [flattened[row * cols : (row + 1) * cols] for row in range(rows)]
 
 
 @dataclass
 class DataPipeline:
+    """Tiền xử lý dữ liệu Part 2 theo chuẩn học trên train, áp dụng trên test."""
     target: str = DEFAULT_TARGET
     log_columns: Iterable[str] = DEFAULT_LOG_COLUMNS
     winsor_columns: Iterable[str] = DEFAULT_WINSOR_COLUMNS
@@ -185,10 +194,12 @@ class DataPipeline:
     missing_report_: pd.DataFrame | None = None
 
     def _log(self, message: str) -> None:
+        """In log của pipeline khi chế độ verbose được bật."""
         if self.verbose:
             print(f"[DataPipeline] {message}", flush=True)
 
     def _log_table(self, title: str, table: pd.DataFrame, max_rows: int | None = None) -> None:
+        """In bảng tóm tắt ngắn trong quá trình chạy pipeline."""
         if not self.verbose or table.empty:
             return
         shown = table if max_rows is None else table.head(max_rows)
@@ -197,10 +208,12 @@ class DataPipeline:
 
     @staticmethod
     def _safe_skew(series: pd.Series) -> float:
+        """Tính skewness nếu cột có đủ dữ liệu quan sát."""
         values = pd.to_numeric(series, errors="coerce").dropna()
         return float(values.skew()) if len(values) >= 3 else float("nan")
 
     def _feature_missing_table(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Tạo bảng thống kê missing value theo từng feature."""
         total = len(X)
         rows = []
         for col in X.columns:
@@ -220,6 +233,7 @@ class DataPipeline:
         return pd.DataFrame(rows).sort_values("missing_%", ascending=False) if rows else pd.DataFrame()
 
     def fit(self, df: pd.DataFrame) -> "DataPipeline":
+        """Học toàn bộ tham số tiền xử lý trên tập train."""
         start = time.perf_counter()
         target_missing = int(df[self.target].isna().sum()) if self.target in df.columns else 0
         self._log(
@@ -288,6 +302,7 @@ class DataPipeline:
         df: pd.DataFrame,
         include_target: bool = True,
     ) -> tuple[pd.DataFrame, pd.Series | None]:
+        """Áp dụng pipeline đã fit lên dữ liệu mới mà không học lại tham số."""
         if self.target_transformed_ is None:
             raise RuntimeError("DataPipeline must be fitted before transform")
 
@@ -318,6 +333,7 @@ class DataPipeline:
         return X.reset_index(drop=True), y
 
     def fit_transform(self, df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
+        """Học luồng tiền xử lý rồi áp dụng ngay trên cùng một DataFrame."""
         self.fit(df)
         X, y = self.transform(df, include_target=True)
         if y is None:
@@ -330,6 +346,7 @@ class DataPipeline:
         fitting: bool,
         include_target: bool = True,
     ) -> pd.DataFrame:
+        """Chuẩn bị frame ban đầu: log-transform, xử lý target và reset index."""
         out = df.copy()
         if include_target and self.target not in out.columns:
             raise KeyError(f"Target column '{self.target}' was not found")
@@ -369,6 +386,7 @@ class DataPipeline:
         return out.reset_index(drop=True)
 
     def _fit_categorical_encoder(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Học các mức categorical trên train và trả về frame đã encode."""
         if not self.one_hot_encode:
             self.categorical_levels_ = {}
             self._log("One-hot encoding disabled; keeping numeric columns only")
@@ -383,6 +401,7 @@ class DataPipeline:
         return self._apply_categorical_encoder(X)
 
     def _apply_categorical_encoder(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Áp dụng one-hot encoding theo các mức đã học khi fit."""
         numeric = X.select_dtypes(include="number").copy()
         if not self.one_hot_encode:
             return numeric
@@ -395,9 +414,11 @@ class DataPipeline:
         return pd.concat(encoded_parts, axis=1)
 
     def _drop_initial_columns(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Loại các cột được quyết định bỏ trước khi mô hình hóa."""
         return X.drop(columns=[c for c in self.initial_drop_columns if c in X.columns], errors="ignore")
 
     def _fit_winsor_bounds(self, X: pd.DataFrame) -> None:
+        """Học ngưỡng winsorization p01/p99 trên tập train."""
         self.winsor_bounds_ = {}
         self.winsor_report_ = []
         for col in self.winsor_columns:
@@ -422,6 +443,7 @@ class DataPipeline:
                 )
 
     def _apply_winsor_bounds(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Cắt ngoại lai theo các ngưỡng winsorization đã fit."""
         out = X.copy()
         for col, (low, high) in self.winsor_bounds_.items():
             if col in out.columns:
@@ -429,6 +451,7 @@ class DataPipeline:
         return out
 
     def _fit_imputer(self, X: pd.DataFrame) -> None:
+        """Học giá trị điền missing và fit MICE nếu được bật."""
         self.impute_values_ = {}
         for col in X.columns:
             median = X[col].median(skipna=True)
@@ -442,6 +465,7 @@ class DataPipeline:
         self._fit_mice_imputer(X)
 
     def _apply_imputer(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Điền missing bằng MICE đã fit hoặc median fallback."""
         if self.imputation_method.lower() == "mice" and self.mice_chains_:
             return self._apply_mice_imputer(X)
 
@@ -452,6 +476,7 @@ class DataPipeline:
         return out.fillna(0.0)
 
     def _build_imputation_report(self, before: pd.DataFrame, after: pd.DataFrame) -> None:
+        """Tạo báo cáo so sánh dữ liệu trước và sau khi impute."""
         self.imputation_report_ = []
         total = len(before)
         for col in before.columns:
@@ -479,12 +504,14 @@ class DataPipeline:
         self.imputation_report_.sort(key=lambda row: row["missing_%"], reverse=True)
 
     def _initial_impute(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Điền missing ban đầu bằng median để khởi tạo MICE."""
         out = X.copy()
         for col in out.columns:
             out[col] = out[col].fillna(self.impute_values_.get(col, 0.0))
         return out.fillna(0.0).astype(float)
 
     def _fit_mice_imputer(self, X: pd.DataFrame) -> None:
+        """Học chuỗi MICE bằng các mô hình Ridge phụ cho từng cột thiếu."""
         self.mice_missing_columns_ = [col for col in X.columns if X[col].isna().any()]
         self.mice_chains_ = []
         if not self.mice_missing_columns_:
@@ -544,6 +571,7 @@ class DataPipeline:
         predictors: list[str],
         observed_mask: pd.Series,
     ) -> dict:
+        """Fit một bước hồi quy phụ trong chuỗi MICE cho một cột bị thiếu."""
         y_observed = original.loc[observed_mask, target_col].astype(float)
         if len(y_observed) < max(5, len(predictors) + 2):
             return {
@@ -590,6 +618,7 @@ class DataPipeline:
 
     @staticmethod
     def _predict_mice_step(X_predictors: pd.DataFrame, step: dict) -> list[float]:
+        """Dự đoán giá trị missing cho một bước MICE đã fit."""
         if len(X_predictors) == 0:
             return []
         if step["kind"] == "constant":
@@ -604,6 +633,7 @@ class DataPipeline:
         )
 
     def _apply_mice_imputer(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Áp dụng các chuỗi MICE đã fit và lấy trung bình nhiều bản impute."""
         base = self._initial_impute(X)
         imputed_versions: list[pd.DataFrame] = []
 
@@ -634,6 +664,7 @@ class DataPipeline:
         return averaged.reindex(columns=X.columns).fillna(0.0).astype(float)
 
     def _fit_vif_filter(self, X: pd.DataFrame) -> None:
+        """Lọc đa cộng tuyến bằng VIF lặp cho đến khi đạt ngưỡng."""
         self.vif_drop_columns_ = []
         self.vif_history_ = []
         self.final_vif_ = {}
@@ -683,6 +714,7 @@ class DataPipeline:
                 self.final_vif_ = {}
 
     def _fit_scaler(self, X: pd.DataFrame) -> None:
+        """Học mean và std của từng feature trên tập train."""
         self.scale_mean_ = {}
         self.scale_std_ = {}
         for col in X.columns:
@@ -692,6 +724,7 @@ class DataPipeline:
             self.scale_std_[col] = std if std > 1e-12 else 1.0
 
     def _apply_scaler(self, X: pd.DataFrame) -> pd.DataFrame:
+        """Chuẩn hóa feature theo mean/std đã học khi fit."""
         if not self.standardize:
             return X.astype(float)
         out = X.copy().astype(float)
@@ -701,6 +734,7 @@ class DataPipeline:
 
     @staticmethod
     def _missing_report(df: pd.DataFrame) -> pd.DataFrame:
+        """Tạo bảng thống kê missing và kiểu dữ liệu của DataFrame."""
         total = len(df)
         return pd.DataFrame(
             {
@@ -712,6 +746,7 @@ class DataPipeline:
         ).sort_values("missing_percent", ascending=False)
 
     def metadata(self) -> dict:
+        """Trả về metadata mô tả toàn bộ tham số đã học của pipeline."""
         return {
             "target": self.target,
             "target_transformed": self.target_transformed_,
@@ -739,6 +774,7 @@ class DataPipeline:
 
 
 def write_eda_outputs(df: pd.DataFrame, target: str, output_dir: str | Path) -> dict[str, str]:
+    """Sinh các file EDA cơ bản gồm thống kê, missing, histogram và heatmap."""
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     numeric = df.select_dtypes(include="number")
@@ -839,6 +875,7 @@ def write_eda_outputs(df: pd.DataFrame, target: str, output_dir: str | Path) -> 
 
 
 def _vif_mapping_for_frame(X: pd.DataFrame) -> dict[str, float]:
+    """Tính VIF và ánh xạ kết quả về đúng tên cột của DataFrame."""
     if X.shape[1] < 2:
         return {}
     vif_values = part1_vif(X.values.tolist())
@@ -853,6 +890,7 @@ def write_preprocessing_diagnostic_plots(
     pipeline: DataPipeline,
     output_dir: str | Path,
 ) -> dict[str, str]:
+    """Vẽ các biểu đồ chẩn đoán cho log-transform, winsor, MICE và VIF."""
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     paths: dict[str, str] = {}
@@ -958,6 +996,7 @@ def run_pipeline(
     make_plots: bool = True,
     random_state: int = RANDOM_STATE,
 ) -> dict:
+    """Chạy toàn bộ pipeline Part 2 và lưu dữ liệu đã tiền xử lý."""
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1024,6 +1063,7 @@ def run_pipeline(
 
 
 def main() -> None:
+    """Đọc tham số dòng lệnh và chạy pipeline tiền xử lý."""
     parser = argparse.ArgumentParser(description="Part 2 data preprocessing pipeline")
     parser.add_argument("--data", default=str(DEFAULT_DATA_PATH))
     parser.add_argument("--outdir", default=str(ROOT_DIR / "part2" / "output"))

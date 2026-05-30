@@ -1,4 +1,4 @@
-\appendix
+﻿\appendix
 \section{Phụ lục}
 
 % ===========================================================
@@ -22,7 +22,7 @@ Nhằm đảm bảo tính minh bạch và cung cấp đầy đủ tài liệu ph
 
 \begin{enumerate}
 
-    % ---
+    % -
     \item \textbf{Clone dự án từ kho lưu trữ GitHub}
 
     Sử dụng \texttt{git} để tải toàn bộ mã nguồn về máy cục bộ:
@@ -33,7 +33,7 @@ cd "Singular Value Decomposition"
 \end{verbatim}
 \end{tcolorbox}
 
-    % ---
+    % -
     \item \textbf{Tạo và kích hoạt môi trường ảo}
 
 \begin{tcolorbox}[mycodebox]
@@ -48,7 +48,7 @@ source venv/bin/activate
 \end{verbatim}
 \end{tcolorbox}
 
-    % ---
+    % -
     \item \textbf{Cài đặt các thư viện phụ thuộc}
 
     Toàn bộ thư viện yêu cầu (bao gồm \texttt{numpy}, \texttt{manim}, \texttt{matplotlib}, \texttt{jupyter}) đã được
@@ -63,7 +63,7 @@ pip install -r requirements.txt
     và cung cấp dữ liệu đầu vào cho Manim. Toàn bộ thuật toán lõi (khử Gauss, tính trị riêng, phân rã SVD)
     được cài đặt bằng Python thuần, không phụ thuộc vào bất kỳ hàm phân rã nào của NumPy/SciPy.
 
-    % ---
+    % -
     \item \textbf{Kiểm thử từng module đơn lẻ (Unit Tests)}
 
     Mỗi module trong từng phần đều có hàm kiểm thử riêng. Chạy trực tiếp file Python tương ứng
@@ -97,7 +97,7 @@ python part2/diagonalization.py
 \end{verbatim}
 \end{tcolorbox}
 
-    % ---
+    % -
     \item \textbf{Chạy toàn bộ hệ thống kiểm thử tự động (Part 1)}
 
     File \texttt{run\_all\_tests.py} trong thư mục \texttt{part1/} tự động thu gom và chạy
@@ -111,7 +111,7 @@ python run_all_tests.py
 \end{verbatim}
 \end{tcolorbox}
 
-    % ---
+    % -
     \item \textbf{Khởi chạy kịch bản Benchmark và xuất dữ liệu JSON (Part 3)}
 
     Script \texttt{time\_benchmark.py} thực hiện đo lường hiệu năng thời gian thực thi
@@ -132,7 +132,7 @@ jupyter notebook
 \end{verbatim}
 \end{tcolorbox}
 
-    % ---
+    % -
     \item \textbf{Render video trực quan hóa Manim (tùy chọn)}
 
     Scene Manim trong \texttt{part2/manim\_scene.py} trực quan hóa ý nghĩa hình học của phép
@@ -153,7 +153,7 @@ manim -pql --format=gif part2/manim_scene.py Scene1_AnatomyOfChaos
 
     Output video được lưu tự động tại \texttt{part2/media/videos/}.
 
-    % ---
+    % -
     \item \textbf{Biên dịch báo cáo LaTeX}
 
     Để tái tạo lại file PDF từ mã nguồn \LaTeX{}, chạy \texttt{pdflatex} hai lần
@@ -200,7 +200,7 @@ Không có pivot tại cột 2
     (với t_i là các tham số tự do thuộc R)
 
  Ma trận suy biến                              PASSED
----------------------------------------------------------------------------
+-
  TỔNG KẾT: 7/7 PASSED
 \end{verbatim}
 \end{tcolorbox}
@@ -221,7 +221,7 @@ TEST SUITE: THẾ NGƯỢC (BACK SUBSTITUTION)
  c sai do dai                                  PASSED  (Bắt đúng lỗi: Vector c)
  U khong vuong (hang lech)                     PASSED  (Bắt đúng lỗi: Matrix U)
  Ma tran rong                                  PASSED
----------------------------------------------------------------------------
+-
  TỔNG KẾT: 9/9 PASSED
 \end{verbatim}
 \end{tcolorbox}
@@ -245,7 +245,7 @@ TEST SUITE: ĐỊNH THỨC (DETERMINANT)
  Hang lap - rank 1                             PASSED
  Ma trận 3x3 (Đã sửa lại Toán)                 PASSED
  Khong vuong                                   PASSED  (Bắt lỗi: A phải vuông)
----------------------------------------------------------------------------
+-
  TỔNG KẾT: 13/13 PASSED
 \end{verbatim}
 \end{tcolorbox}
@@ -266,7 +266,7 @@ TEST SUITE: TÌM MA TRẬN NGHỊCH ĐẢO A^-1
  Ma trận số thực nhỏ (Ill-conditioned)         PASSED  (A * A^-1 = I)
  Ma trận suy biến do số cực nhỏ (< EPSILON)    PASSED  (Bắt đúng ngoại lệ)
  Ma trận không vuông 2x3                       PASSED  (Bắt đúng ngoại lệ)
----------------------------------------------------------------------------
+-
  TỔNG KẾT: 8/8 PASSED
 \end{verbatim}
 \end{tcolorbox}
@@ -285,7 +285,7 @@ TEST SUITE: TÌM HẠNG VÀ CƠ SỞ (RANK & BASIS)
  Ma trận vuông suy biến                        PASSED  
  Ma trận số thực cực nhỏ (< EPSILON)           PASSED  
  Ma trận kích thước 1x1                        PASSED  
----------------------------------------------------------------------------
+-
  TỔNG KẾT: 8/8 PASSED
 \end{verbatim}
 \end{tcolorbox}
@@ -312,7 +312,7 @@ TEST SUITE: PHÂN RÃ GIÁ TRỊ SUY BIẾN (SVD)
  Dữ liệu rỗng                                  PASSED  (Lỗi: Ma trận A không rỗng)
  Ma trận có 0 cột                              PASSED  (Lỗi: A có ít nhất 1 cột)
  Ma trận không cùng số cột                     PASSED  (Lỗi: Dòng phải cùng số cột)
----------------------------------------------------------------------------
+-
  TỔNG KẾT: 16/16 PASSED
 \end{verbatim}
 \end{tcolorbox}
@@ -336,7 +336,7 @@ TEST SUITE: CHÉO HÓA MA TRẬN
  Ma trận không vuông                           PASSED  (Lỗi: A là ma trận vuông)
  Ma trận không cùng số cột                     PASSED  (Lỗi: Các dòng không đều)
  Ma trận tam giác dưới (kiểm tra khả năng QR)  PASSED  (err = 3.20e-11)
----------------------------------------------------------------------------
+-
  TỔNG KẾT: 12/12 PASSED
 \end{verbatim}
 \end{tcolorbox}

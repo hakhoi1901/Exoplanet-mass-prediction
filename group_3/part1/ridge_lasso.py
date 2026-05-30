@@ -49,7 +49,6 @@ def _predict_original(X: list[list[float]], beta_hat: list[float]) -> list[float
 
 # ---------------------------------------------------------------------------
 # F6: Ridge Regression - Closed-form
-# Liên kết: Dùng solve_system, transpose, matmul, matvec từ utils.py
 # ---------------------------------------------------------------------------
 
 def ridge_fit(
@@ -61,8 +60,8 @@ def ridge_fit(
     F6: Ridge Regression - nghiệm closed-form.
 
     Công thức:
-        β̂_ridge = (X̃ᵀX̃ + λI*)⁻¹ X̃ᵀy
-    trong đó X̃ là ma trận design đã chuẩn hóa + bias,
+        beta_hat_ridge = (X_tilde^T X_tilde + lambda I*)^-1 X_tilde^T y
+    trong đó X_tilde là ma trận design đã chuẩn hóa + bias,
     I* là ma trận đơn vị với I*[0,0] = 0 (không penalize intercept).
 
     Liên kết: Dùng transpose, matmul, matvec, solve_system từ utils.py.
@@ -70,10 +69,10 @@ def ridge_fit(
     Tham số:
         X    : Ma trận features (n x p), CHƯA có cột bias.
         y    : Vector target (n,).
-        lam  : Hệ số regularization λ ≥ 0.
+        lam  : Hệ số regularization lambda >= 0.
 
     Trả về dict gồm:
-        beta_hat : list[float] - hệ số [intercept, β₁, …, βₚ] trên thang chuẩn hóa.
+        beta_hat : list[float] - hệ số [intercept, beta_1, ..., beta_p] trên thang chuẩn hóa.
         y_hat    : list[float] - giá trị dự đoán trên thang gốc.
         mean_X   : list[float] - mean từng cột X (dùng để transform test set).
         std_X    : list[float] - std  từng cột X.
@@ -90,15 +89,15 @@ def ridge_fit(
     I_star = [[1.0 if i == j else 0.0 for j in range(p + 1)] for i in range(p + 1)]
     I_star[0][0] = 0.0
 
-    # A = XᵀX + λI*,  rhs = Xᵀy
+    # A = X^T X + lambda I*,  rhs = X^T y
     Xt  = transpose(X_b)               # utils.py
     XtX = matmul(Xt, X_b)              # utils.py
     A   = [[XtX[i][j] + lam * I_star[i][j] for j in range(p + 1)] for i in range(p + 1)]
 
-    # Xᵀy - dùng dot_product cho từng hàng của Xᵀ
+    # X^T y - dùng dot_product cho từng hàng của X^T
     rhs = [dot_product(Xt[i], y) for i in range(p + 1)]
 
-    # Giải hệ (XᵀX + λI*)β = Xᵀy
+    # Giải hệ (X^T X + lambda I*) beta = X^T y
     beta_scaled = solve_system(A, rhs)     # utils.py
     beta_hat = _to_original_scale(beta_scaled, mean_X, std_X)
     y_hat = _predict_original(X, beta_hat)
@@ -141,12 +140,12 @@ def ridge_trace(
     show_plot: bool = False,
 ) -> dict:
     """
-    Vẽ Ridge Trace: λ vs hệ số hồi quy (không tính intercept).
+    Vẽ Ridge Trace: lambda vs hệ số hồi quy (không tính intercept).
 
     Trả về dict: {'lambdas': list, 'coefs': list[list]} để dùng trong CV.
     """
     if lambdas is None:
-        lambdas = [10 ** e for e in [x / 10 for x in range(-30, 41)]]  # 1e-3 … 1e4
+        lambdas = [10 ** e for e in [x / 10 for x in range(-30, 41)]]  # 1e-3 ... 1e4
 
     coefs = []
     for lam in lambdas:
@@ -180,11 +179,10 @@ def ridge_trace(
 
 # ---------------------------------------------------------------------------
 # F7: Lasso Regression - Coordinate Descent
-# Liên kết: Dùng soft_threshold (manual), _standardize, _add_bias, matvec
 # ---------------------------------------------------------------------------
 
 def soft_threshold(rho: float, lam: float) -> float:
-    """Hàm soft-thresholding cho Lasso: S(ρ, λ)."""
+    """Hàm soft-thresholding cho Lasso: S(rho, lambda)."""
     if rho > lam:
         return rho - lam
     elif rho < -lam:
@@ -202,18 +200,18 @@ def lasso_fit(
     """
     F7: Lasso Regression - Coordinate Descent (manual, không dùng numpy).
 
-    Tối thiểu hóa: ‖y − Xβ‖² + λ‖β‖₁
+    Tối thiểu hóa: ||y - X beta||^2 + lambda ||beta||_1
     Nghiệm không có dạng closed-form; dùng coordinate descent.
 
     Tham số:
         X        : Ma trận features (n x p), CHƯA có cột bias.
         y        : Vector target (n,).
-        lam      : Hệ số regularization λ ≥ 0.
+        lam      : Hệ số regularization lambda >= 0.
         max_iter : Số vòng lặp tối đa.
-        tol      : Ngưỡng hội tụ (max |Δβ|).
+        tol      : Ngưỡng hội tụ (max |delta beta|).
 
     Trả về dict gồm:
-        beta_hat : list[float] - [intercept, β₁, …, βₚ].
+        beta_hat : list[float] - [intercept, beta_1, ..., beta_p].
         y_hat    : list[float] - giá trị dự đoán.
         n_iter   : int         - số vòng lặp thực tế.
         mean_X   : list[float]
@@ -235,7 +233,7 @@ def lasso_fit(
     # Khởi tạo beta = 0
     beta = [0.0] * p
 
-    # Pre-compute z_j = ‖x_j‖² cho mỗi cột j
+    # Pre-compute z_j = ||x_j||^2 cho mỗi cột j
     z = [sum(X_sc[i][j] ** 2 for i in range(n)) for j in range(p)]
 
     n_iter = max_iter
@@ -243,7 +241,7 @@ def lasso_fit(
         beta_old = beta[:]
 
         for j in range(p):
-            # Tính partial residual: r_j = y_centered - Σ_{k≠j} X_sc[:,k] * beta[k]
+            # Tính partial residual: r_j = y_centered - sum_{k != j} X_sc[:,k] * beta[k]
             # = y_centered - (X_sc @ beta - X_sc[:,j] * beta[j])
             # Tối ưu: tính X_sc @ beta trước, rồi cộng lại X_sc[:,j] * beta[j]
             r_j = [0.0] * n
@@ -251,13 +249,13 @@ def lasso_fit(
                 pred_i = sum(X_sc[i][k] * beta[k] for k in range(p)) - X_sc[i][j] * beta[j]
                 r_j[i] = y_centered[i] - pred_i
 
-            # rho_j = X_sc[:,j] · r_j
+            # rho_j = X_sc[:,j] dot r_j
             rho_j = sum(X_sc[i][j] * r_j[i] for i in range(n))
 
             # Update beta[j] với soft-thresholding
             beta[j] = soft_threshold(rho_j, lam) / z[j] if abs(z[j]) > EPSILON else 0.0
 
-        # Kiểm tra hội tụ: max |Δβ|
+        # Kiểm tra hội tụ: max |delta beta|
         max_change = max(abs(beta[j] - beta_old[j]) for j in range(p))
         if max_change < tol:
             n_iter = it + 1
@@ -304,21 +302,21 @@ def lasso_trace(
     show_plot: bool = False,
 ) -> dict:
     """
-    Vẽ Lasso Path: λ vs hệ số hồi quy (không tính intercept).
+    Vẽ Lasso Path: lambda vs hệ số hồi quy.
 
     Tương tự ridge_trace nhưng dùng lasso_fit (coordinate descent).
-    Lưu ý: lasso_fit chậm hơn ridge nên dùng lưới λ thưa hơn.
+    Lưu ý: lasso_fit chậm hơn ridge nên dùng lưới lambda thưa hơn.
 
     Trả về dict: {'lambdas': list, 'coefs': list[list]} để dùng tiếp.
     """
     if lambdas is None:
-        # Lưới thưa hơn ridge để tiết kiệm thời gian (coordinate descent chậm)
-        lambdas = [10 ** e for e in [x / 5 for x in range(-10, 21)]]  # 1e-2 … 1e4
+        # Lưới thưa hơn ridge để tiết kiệm thời gian
+        lambdas = [10 ** e for e in [x / 5 for x in range(-10, 21)]]  # 1e-2 ... 1e4
 
     coefs = []
     for lam in lambdas:
         res = lasso_fit(X, y, lam)
-        coefs.append(res["beta_hat"][1:])  # bỏ intercept
+        coefs.append(res["beta_hat"][1:]) 
 
     coefs_T = list(zip(*coefs))  # (p, n_lambdas)
     p = len(coefs_T)

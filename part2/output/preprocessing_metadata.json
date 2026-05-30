@@ -324,7 +324,7 @@
     "log_sy_dist"
   ],
   "standardize": true,
-  "source_data_path": "D:\\Code\\01_University\\2526-HK2\\TUDTK\\Project2_DataFitting\\part2\\data\\data.csv",
+  "source_data_path": "part2\\data\\data.csv",
   "source_data_shape": [
     4636,
     320

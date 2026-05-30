@@ -14,18 +14,22 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 
 
 def _as_float_matrix(values) -> list[list[float]]:
+    """Chuyển dữ liệu 2 chiều thành ma trận float thuần Python."""
     return [[float(value) for value in row] for row in values]
 
 
 def _as_float_list(values) -> list[float]:
+    """Chuyển dữ liệu 1 chiều thành danh sách float thuần Python."""
     return [float(value) for value in values]
 
 
 def _squared_distance(row1: list[float], row2: list[float]) -> float:
+    """Tính bình phương khoảng cách Euclid giữa hai dòng dữ liệu."""
     return sum((a - b) ** 2 for a, b in zip(row1, row2))
 
 
 def rbf_kernel(X1: list[list[float]], X2: list[list[float]], gamma: float) -> list[list[float]]:
+    """Tạo ma trận Gram RBF giữa hai ma trận đặc trưng."""
     return [
         [math.exp(-gamma * max(_squared_distance(row1, row2), 0.0)) for row2 in X2]
         for row1 in X1
@@ -33,6 +37,7 @@ def rbf_kernel(X1: list[list[float]], X2: list[list[float]], gamma: float) -> li
 
 
 def _solve_linear_system(A: list[list[float]], b: list[float]) -> list[float]:
+    """Giải hệ Ax=b bằng khử Gauss-Jordan có chọn pivot."""
     n = len(A)
     if n == 0:
         return []
@@ -69,6 +74,7 @@ def kernel_ridge_fit(
     alpha: float = 1.0,
     gamma: float = 0.1,
 ) -> dict:
+    """Huấn luyện Kernel Ridge Regression dạng đối ngẫu với RBF kernel."""
     K = rbf_kernel(X, X, gamma=gamma)
     regularized = [
         [value + (alpha if i == j else 0.0) for j, value in enumerate(row)]
@@ -79,11 +85,13 @@ def kernel_ridge_fit(
 
 
 def kernel_ridge_predict(model: dict, X: list[list[float]]) -> list[float]:
+    """Dự đoán target cho dữ liệu mới bằng mô hình Kernel Ridge đã fit."""
     K = rbf_kernel(X, model["X_train"], gamma=model["gamma"])
     return [sum(k_value * coef for k_value, coef in zip(row, model["dual_coef"])) for row in K]
 
 
 def regression_scores(y_true: list[float], y_pred: list[float]) -> dict[str, float]:
+    """Tính MAE, RMSE và R2 cho kết quả hồi quy."""
     residual = [actual - predicted for actual, predicted in zip(y_true, y_pred)]
     mean_y = sum(y_true) / len(y_true) if y_true else 0.0
     rss = sum(value**2 for value in residual)
@@ -101,6 +109,7 @@ def run_kernel_ridge_bonus(
     output_dir: str | Path = ROOT_DIR / "part2" / "output",
     max_train: int = 800,
 ) -> dict:
+    """Chạy thí nghiệm Kernel Ridge bonus và lưu các file kết quả."""
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -175,6 +184,7 @@ def run_kernel_ridge_bonus(
 
 
 def main() -> None:
+    """Đọc tham số dòng lệnh và chạy thí nghiệm nâng cao."""
     parser = argparse.ArgumentParser(description="Part 2 bonus advanced methods")
     parser.add_argument("--preprocessed", default=str(ROOT_DIR / "part2" / "output" / "preprocessed.pkl"))
     parser.add_argument("--outdir", default=str(ROOT_DIR / "part2" / "output"))

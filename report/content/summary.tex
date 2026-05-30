@@ -61,11 +61,15 @@ trọng tâm đạt được gồm:
           các điểm influential một cách cơ học vì đây là dữ liệu quan trắc thiên văn thật; thay
           vào đó, nhóm ghi nhận chúng như một giới hạn thực nghiệm của mô hình tuyến tính.
 
-    \item \textbf{Thử nghiệm kỹ thuật nâng cao có kiểm soát phạm vi:} Kernel Ridge Regression
-          với RBF kernel được triển khai như phần mở rộng. Do chi phí ma trận Gram tăng nhanh,
-          thử nghiệm chỉ dùng tối đa 200 mẫu train; vì vậy kết quả Kernel Ridge được diễn giải
-          như một kiểm chứng bổ sung, không phải kết luận tổng quát rằng phương pháp kernel kém
-          hơn OLS/Ridge/Lasso trên toàn bộ bài toán.
+    \item \textbf{Thử nghiệm kỹ thuật nâng cao bằng Kernel Ridge Regression:} Kernel Ridge
+          Regression với RBF kernel được triển khai đúng công thức kernel trick trong đề bài.
+          Khi chạy trên toàn bộ 867 mẫu train sau tiền xử lý, mô hình đạt $R^2=0.855688$,
+          RMSE $=0.043072$ và MAE $=0.029685$ trên test set, cao hơn nhóm mô hình tuyến tính.
+          So với Lasso tốt nhất trong nhóm tuyến tính, Kernel Ridge tăng Test $R^2$ thêm
+          0.107285 điểm, giảm RMSE từ 0.056872 xuống 0.043072 và giảm phần phương sai chưa
+          giải thích được khoảng 42.6\%. Kết quả này gợi ý dữ liệu có thành phần phi tuyến
+          đáng kể, nhưng mô hình kernel vẫn được đặt ở vai trò bonus vì khó diễn giải hệ số
+          và chi phí ma trận Gram/giải hệ tăng nhanh theo kích thước mẫu.
 \end{itemize}
 
 \subsection{Bài học rút ra}

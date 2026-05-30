@@ -16,18 +16,18 @@
 \contentsline {subsection}{\numberline {0.6}Quản lý Sai số Dấu phẩy động: IEEE 754 và Machine Epsilon}{17}{subsection.0.6}%
 \contentsline {subsubsection}{\numberline {0.6.1}Giới hạn biểu diễn: Machine Epsilon}{17}{subsubsection.0.6.1}%
 \contentsline {subsubsection}{\numberline {0.6.2}Chiến lược quản lý sai số trong dự án}{17}{subsubsection.0.6.2}%
-\contentsline {paragraph}{Lớp 1 --- Ngưỡng epsilon toàn cục (\texttt {EPSILON = 1e-12})}{17}{subsubsection.0.6.2}%
-\contentsline {paragraph}{Lớp 2 --- Làm sạch kết quả trung gian (\texttt {zero\_rectify})}{18}{subsubsection.0.6.2}%
-\contentsline {paragraph}{Lớp 3 --- Chọn chốt từng phần (Partial Pivoting)}{18}{subsubsection.0.6.2}%
+\contentsline {paragraph}{Lớp 1 - Ngưỡng epsilon toàn cục (\texttt {EPSILON = 1e-12})}{17}{subsubsection.0.6.2}%
+\contentsline {paragraph}{Lớp 2 - Làm sạch kết quả trung gian (\texttt {zero\_rectify})}{18}{subsubsection.0.6.2}%
+\contentsline {paragraph}{Lớp 3 - Chọn chốt từng phần (Partial Pivoting)}{18}{subsubsection.0.6.2}%
 \contentsline {subsubsection}{\numberline {0.6.3}Ảnh hưởng của điều kiện số lên OLS}{18}{subsubsection.0.6.3}%
 \contentsline {section}{\numberline {1}Phần 1: Lý Thuyết Data Fitting và Minh Họa}{19}{section.1}%
 \contentsline {subsection}{\numberline {1.1}Bài Toán Data Fitting}{19}{subsection.1.1}%
 \contentsline {subsubsection}{\numberline {1.1.1}Phát Biểu Bài Toán Tổng Quát}{19}{subsubsection.1.1.1}%
-\contentsline {subsubsection}{\numberline {1.1.2}Các Giả Thiết Gauss–Markov}{19}{subsubsection.1.1.2}%
+\contentsline {subsubsection}{\numberline {1.1.2}Các Giả Thiết Gauss-Markov}{19}{subsubsection.1.1.2}%
 \contentsline {subsection}{\numberline {1.2}Phương Pháp Ordinary Least Squares (OLS)}{20}{subsection.1.2}%
 \contentsline {subsubsection}{\numberline {1.2.1}Hàm Mất Mát và Nghiệm OLS}{20}{subsubsection.1.2.1}%
 \contentsline {subsubsection}{\numberline {1.2.2}Ma Trận Chiếu và Hat Matrix}{21}{subsubsection.1.2.2}%
-\contentsline {subsubsection}{\numberline {1.2.3}Định Lý Gauss–Markov}{21}{subsubsection.1.2.3}%
+\contentsline {subsubsection}{\numberline {1.2.3}Định Lý Gauss-Markov}{21}{subsubsection.1.2.3}%
 \contentsline {subsubsection}{\numberline {1.2.4}Ước Lượng Phương Sai Nhiễu}{23}{subsubsection.1.2.4}%
 \contentsline {subsection}{\numberline {1.3}Đánh Giá Mô Hình}{23}{subsection.1.3}%
 \contentsline {subsubsection}{\numberline {1.3.1}Hệ Số Xác Định $R^2$ và $\bar {R}^2$ Hiệu Chỉnh}{23}{subsubsection.1.3.1}%
@@ -41,7 +41,7 @@
 \contentsline {subsubsection}{\numberline {1.6.2}Tiêu Chí Lựa Chọn Mô Hình}{29}{subsubsection.1.6.2}%
 \contentsline {subsection}{\numberline {1.7}Kết Quả Cài Đặt và Kiểm Chứng}{30}{subsection.1.7}%
 \contentsline {subsubsection}{\numberline {1.7.1}Tổng Hợp Các Hàm Cài Đặt}{30}{subsubsection.1.7.1}%
-\contentsline {subsubsection}{\numberline {1.7.2}Kiểm Chứng Với NumPy và Sklearn}{31}{subsubsection.1.7.2}%
+\contentsline {subsubsection}{\numberline {1.7.2}Kiểm Chứng Với NumPy và Sklearn}{30}{subsubsection.1.7.2}%
 \contentsline {subsubsection}{\numberline {1.7.3}Nhận Xét Kết Quả Phần 1}{31}{subsubsection.1.7.3}%
 \contentsline {section}{\numberline {2}Phần 2: Ứng Dụng Data Fitting vào Dữ Liệu Thực Tế}{32}{section.2}%
 \contentsline {subsection}{\numberline {2.1}Giới Thiệu}{32}{subsection.2.1}%
@@ -78,7 +78,7 @@
 \contentsline {paragraph}{Kết luận:}{57}{equation.43}%
 \contentsline {subsubsection}{\numberline {2.6.5}Phương pháp nâng cao: Kernel Ridge Regression}{57}{subsubsection.2.6.5}%
 \contentsline {subsection}{\numberline {2.7}Kết Luận Phần 2}{58}{subsection.2.7}%
-\contentsline {section}{\numberline {3}Kết luận}{59}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Tóm tắt kết quả đạt được}{59}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Bài học rút ra}{60}{subsection.3.2}%
-\contentsline {subsection}{\numberline {3.3}Khó khăn và hướng mở rộng}{61}{subsection.3.3}%
+\contentsline {section}{\numberline {3}Kết luận}{60}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Tóm tắt kết quả đạt được}{60}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Bài học rút ra}{61}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Khó khăn và hướng mở rộng}{62}{subsection.3.3}%

@@ -1,0 +1,20 @@
+﻿\subsection{Kết Luận Phần 2}
+
+
+Phần 2 đã hoàn thành một pipeline data fitting đầy đủ cho dữ liệu thực tế:
+\begin{itemize}
+    \item Dữ liệu được chọn từ NASA Exoplanet Archive, sau đó giới hạn vào nhóm hành tinh đá và
+          Super-Earth với 1084 mẫu.
+    \item Báo cáo đã kiểm tra duplicate, missing values, ngoại lai/nhiễu và các khả năng conflict
+          trong dữ liệu quan trắc.
+    \item Pipeline tiền xử lý gồm log-transform, Winsorization, MICE imputation, VIF filtering và
+          standardization; các tham số đều fit trên train để tránh data leakage.
+    \item Các mô hình chính tái sử dụng code tự cài ở Phần 1: OLS, Ridge, Lasso, k-fold
+          cross-validation và residual analysis.
+    \item Trên test set, Lasso là mô hình tuyến tính tốt nhất với Test $R^2=0.748403$,
+          RMSE $=0.056872$ và MAE $=0.037895$ trên thang log target.
+    \item Khi biến đổi ngược về bán kính gốc, Lasso đạt RMSE $=0.130278$, MAE $=0.085171$ và
+          MAPE $=7.032\%$, cho thấy sai số dự báo có thể diễn giải được theo đơn vị bán kính
+          Trái Đất.
+\end{itemize}
+

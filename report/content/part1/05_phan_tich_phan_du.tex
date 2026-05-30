@@ -1,0 +1,50 @@
+﻿\subsection{Phân Tích Phần Dư}
+
+
+Phân tích phần dư (Residual Analysis) là bước kiểm tra xem mô hình có
+thỏa mãn các giả thiết Gauss-Markov hay không, từ đó phát hiện vi phạm và
+cải thiện mô hình.
+
+\textbf{Cài đặt Python - F8: \texttt{residual\_plots}} tạo ra 4 biểu đồ
+chẩn đoán chuẩn:
+
+\begin{enumerate}
+    \item \textbf{Residuals vs Fitted:} Kiểm tra tính tuyến tính (GM1) và
+          đồng phương sai (GM4). Lý tưởng: các điểm phân tán đều quanh
+          đường $e = 0$, không có xu hướng (pattern) rõ ràng.
+
+    \item \textbf{Normal Q-Q Plot:} So sánh quantile của phần dư với
+          quantile của phân phối chuẩn lý thuyết (GM5). Lý tưởng: các điểm
+          nằm trên đường chéo.
+
+    \item \textbf{Scale-Location} ($\sqrt{|e_{\mathrm{std}}|}$ vs Fitted):
+          Kiểm tra homoscedasticity (GM4). Lý tưởng: đường LOWESS nằm ngang.
+
+    \item \textbf{Cook's Distance:} Phát hiện các quan sát có ảnh hưởng
+          lớn (influential points) dựa trên leverage $h_{ii}$ và phần dư:
+          \begin{equation}
+              D_i = \frac{e_i^2\, h_{ii}}{(p+1)\hat{\sigma}^2(1 - h_{ii})^2}.
+              \label{eq:cooks_d}
+          \end{equation}
+          Quy tắc: quan sát $i$ được coi là influential nếu $D_i > 4/n$.
+\end{enumerate}
+
+\begin{tcolorbox}[mycodebox, title={\textbf{Lưu ý triển khai}}]
+Hàm \texttt{residual\_plots} gọi \texttt{hat\_matrix} (F2) để tính
+leverage $h_{ii} = H_{ii}$ khi \texttt{X} được truyền vào, đảm bảo
+Cook's Distance được tính chính xác với đúng số bậc tự do $n - p - 1$.
+Khi \texttt{X=None}, hàm fallback sang $|e_i|$ (đủ cho hình 1, 2, 3 nhưng
+hình 4 sẽ kém chính xác).
+\end{tcolorbox}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{assets/part1/residual_plots.png}
+    \caption{Bốn biểu đồ chẩn đoán phần dư. Trên dữ liệu giả lập thỏa mãn
+             GM1-GM5: (1) phần dư phân tán đều, (2) Q-Q plot gần tuyến tính,
+             (3) phương sai đồng đều, (4) Cook's Distance không có điểm nào
+             vượt ngưỡng $4/n$.}
+    \label{fig:residual_plots}
+\end{figure}
+
+

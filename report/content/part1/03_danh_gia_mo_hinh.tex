@@ -1,0 +1,81 @@
+﻿\subsection{Đánh Giá Mô Hình}
+
+
+\subsubsection{Hệ Số Xác Định $R^2$ và $\bar{R}^2$ Hiệu Chỉnh}
+
+Phân rã tổng bình phương (ANOVA decomposition):
+\begin{equation}
+    \underbrace{\sum_i (y_i - \bar{y})^2}_{\mathrm{TSS}}
+    = \underbrace{\sum_i (\hat{y}_i - \bar{y})^2}_{\mathrm{MSS}}
+    + \underbrace{\sum_i (y_i - \hat{y}_i)^2}_{\mathrm{RSS}},
+\end{equation}
+với TSS (Total Sum of Squares), MSS (Model Sum of Squares) và RSS
+(Residual Sum of Squares).
+
+\begin{tcolorbox}[mycodebox, colback=blue!3!white, colframe=blue!40!black,
+    title={\textbf{Định nghĩa 1.3} - Hệ Số Xác Định}]
+\begin{align}
+    R^2 &= 1 - \frac{\mathrm{RSS}}{\mathrm{TSS}}
+         = \frac{\mathrm{MSS}}{\mathrm{TSS}} \in [0, 1],
+    \label{eq:r2} \\
+    \bar{R}^2 &= 1 - \frac{n-1}{n-p-1}(1 - R^2)
+               = 1 - \frac{\mathrm{RSS}/(n-p-1)}{\mathrm{TSS}/(n-1)}.
+    \label{eq:r2_adj}
+\end{align}
+\end{tcolorbox}
+
+$R^2$ đo tỉ lệ phương sai của $y$ được giải thích bởi mô hình. Tuy nhiên,
+$R^2$ luôn tăng khi thêm biến (kể cả biến không có ý nghĩa), do đó ta dùng
+$\bar{R}^2$ để so sánh các mô hình có số biến khác nhau - $\bar{R}^2$ phạt
+thêm biến thông qua hệ số $(n-1)/(n-p-1) > 1$.
+
+\subsubsection{Kiểm Định Giả Thuyết}
+
+Dưới giả thiết chuẩn GM5, ta có
+$\hat{\boldsymbol{\beta}} \sim \mathcal{N}(\boldsymbol{\beta},\,
+\sigma^2(\mathbf{X}^T\mathbf{X})^{-1})$.
+
+\medskip
+\noindent\textbf{Kiểm Định Student ($t$-test)} - kiểm định ý nghĩa của
+từng hệ số $\beta_j$:
+\begin{equation}
+    t_j = \frac{\hat{\beta}_j}{\hat{\sigma}\sqrt{[(\mathbf{X}^T\mathbf{X})^{-1}]_{jj}}}
+        \sim t_{n-p-1}
+    \quad (H_0 : \beta_j = 0).
+    \label{eq:t_test}
+\end{equation}
+Nếu $|t_j| > t_{n-p-1, \alpha/2}$ hoặc p-value $< \alpha$, ta bác bỏ $H_0$.
+
+\medskip
+\noindent\textbf{Kiểm Định F} - kiểm định ý nghĩa tổng thể của mô hình:
+\begin{equation}
+    F = \frac{\mathrm{MSS}/p}{\mathrm{RSS}/(n-p-1)}
+      \sim F_{p,\, n-p-1}
+    \quad (H_0 : \beta_1 = \cdots = \beta_p = 0).
+    \label{eq:f_test}
+\end{equation}
+
+\textbf{Cài đặt Python - F4: \texttt{coef\_inference}:}
+
+\begin{lstlisting}[language=Python, caption={Hàm \texttt{coef\_inference} - tính standard error, t-statistic, p-value và khoảng tin cậy 95\%}]
+def coef_inference(X, y, beta_hat, sigma2) -> dict:
+    """F4: SE, t-stat, p-value, CI 95% cho tung he so."""
+    import math
+    n, p = len(X), len(X[0])
+    X_b  = add_bias(X)
+    XtX_inv = inverse(matmul(transpose(X_b), X_b))  # utils.py
+    se   = [math.sqrt(sigma2 * XtX_inv[j][j]) for j in range(p + 1)]
+    t_stats = [beta_hat[j] / se[j] if se[j] > EPSILON else 0.0
+               for j in range(p + 1)]
+    # p-value (two-tailed) tu phan phoi t_{n-p-1}
+    df   = n - p - 1
+    p_values = [2 * (1 - t_cdf(abs(t), df)) for t in t_stats]
+    # Khoang tin cay 95%
+    t_crit = t_quantile(0.975, df)
+    ci_lower = [beta_hat[j] - t_crit * se[j] for j in range(p + 1)]
+    ci_upper = [beta_hat[j] + t_crit * se[j] for j in range(p + 1)]
+    return {"se": se, "t_stats": t_stats, "p_values": p_values,
+            "ci_lower": ci_lower, "ci_upper": ci_upper}
+\end{lstlisting}
+
+

@@ -1,0 +1,120 @@
+﻿\subsection{Xây Dựng Mô Hình (Modeling)}
+
+
+Bốn mô hình tuyến tính chính được so sánh:
+\begin{enumerate}
+    \item \textbf{OLS full}: dùng toàn bộ 11 feature sau tiền xử lý.
+    \item \textbf{OLS selected}: chọn feature có p-value nhỏ hơn 0.05 từ OLS full.
+    \item \textbf{Ridge}: dùng hàm \texttt{ridge\_fit} ở Phần 1 và chọn $\lambda$ bằng 5-fold CV.
+    \item \textbf{Lasso}: dùng hàm \texttt{lasso\_fit} ở Phần 1 và chọn $\lambda$ bằng 5-fold CV.
+\end{enumerate}
+
+\subsubsection{OLS full và chọn biến theo p-value}
+
+OLS full có $R^2_{\mathrm{train}} = 0.681784$ và
+$R^2_{\mathrm{adj,train}} = 0.677690$. Các biến có ý nghĩa thống kê ở mức 0.05 được giữ lại cho
+OLS selected:
+\begin{center}
+\texttt{pl\_trandur}, \texttt{pl\_imppar}, \texttt{st\_teff},
+\texttt{log\_pl\_trandep}, \texttt{log\_pl\_bmasse}, \texttt{log\_sy\_dist}.
+\end{center}
+
+\begin{table}[H]
+\centering
+\caption{Bảng suy diễn hệ số OLS full}
+\label{tab:part2_ols_inference}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lrrrrrr@{}}
+\hline
+\textbf{Feature} & \textbf{Coef} & \textbf{Std.Err.} & \textbf{t-stat} & \textbf{p-value} &
+\textbf{CI lower} & \textbf{CI upper} \\
+\hline
+\texttt{pl\_orbeccen} & -0.004508 & 0.002704 & -1.6673 & 0.095816 & -0.009815 & 0.000799 \\
+\texttt{pl\_trandur} & -0.011414 & 0.004214 & -2.7088 & 0.006888 & -0.019684 & -0.003144 \\
+\texttt{pl\_imppar} & 0.005751 & 0.002482 & 2.3169 & 0.020743 & 0.000879 & 0.010622 \\
+\texttt{st\_teff} & -0.014611 & 0.007290 & -2.0043 & 0.045348 & -0.028918 & -0.000303 \\
+\texttt{st\_rad} & 0.009279 & 0.005864 & 1.5822 & 0.113964 & -0.002231 & 0.020790 \\
+\texttt{st\_met} & 0.000139 & 0.002609 & 0.0533 & 0.957505 & -0.004982 & 0.005260 \\
+\texttt{log\_pl\_orbsmax} & 0.007766 & 0.005142 & 1.5104 & 0.131315 & -0.002326 & 0.017857 \\
+\texttt{log\_pl\_trandep} & 0.013692 & 0.003279 & 4.1757 & $3.28\times10^{-5}$ & 0.007256 & 0.020128 \\
+\texttt{log\_pl\_insol} & -0.005905 & 0.005809 & -1.0165 & 0.309668 & -0.017305 & 0.005496 \\
+\texttt{log\_pl\_bmasse} & 0.095317 & 0.002466 & 38.6447 & $8.78\times10^{-190}$ & 0.090476 & 0.100158 \\
+\texttt{log\_sy\_dist} & 0.034443 & 0.004020 & 8.5689 & $4.84\times10^{-17}$ & 0.026554 & 0.042332 \\
+\hline
+\end{tabular}}
+\end{table}
+
+Biến \texttt{log\_pl\_bmasse} có hệ số dương lớn nhất và p-value cực nhỏ, phù hợp với trực giác
+vật lý: hành tinh có khối lượng lớn thường có bán kính lớn hơn.
+
+\subsubsection{Chọn siêu tham số cho Ridge và Lasso}
+
+Ridge quét lưới $\lambda$ từ $10^{-3}$ đến $10^3$ theo thang log. Giá trị tốt nhất theo CV-MSE là:
+\begin{equation}
+    \lambda^*_{\mathrm{Ridge}} = 10.
+\end{equation}
+
+\begin{table}[H]
+\centering
+\caption{Một số kết quả Ridge CV}
+\label{tab:part2_ridge_cv}
+\begin{tabular}{@{}rrrr@{}}
+\hline
+\textbf{$\lambda$} & \textbf{Mean CV-MSE} & \textbf{Std CV-MSE} & \textbf{Mean CV-$R^2$} \\
+\hline
+0.0010 & 0.005075 & 0.001660 & 0.673407 \\
+0.1000 & 0.005075 & 0.001659 & 0.673410 \\
+1.0000 & 0.005075 & 0.001656 & 0.673433 \\
+3.1623 & 0.005074 & 0.001650 & 0.673469 \\
+10.0000 & 0.005074 & 0.001629 & 0.673433 \\
+31.6228 & 0.005090 & 0.001571 & 0.672223 \\
+100.0000 & 0.005240 & 0.001432 & 0.661976 \\
+1000.0000 & 0.008594 & 0.001069 & 0.441426 \\
+\hline
+\end{tabular}
+\end{table}
+
+Sau khi mở rộng lưới, Lasso quét 13 giá trị
+$\lambda \in [10^{-4}, 10^2]$ theo thang log bằng 5-fold CV. Lưới mới cho thấy vùng
+regularization tốt khá phẳng ở các $\lambda$ nhỏ, sau đó CV-MSE bắt đầu tăng rõ khi
+$\lambda \ge 0.3162$. Giá trị tốt nhất là:
+\begin{equation}
+    \lambda^*_{\mathrm{Lasso}} = 0.1.
+\end{equation}
+
+\begin{table}[H]
+\centering
+\caption{Kết quả Lasso CV}
+\label{tab:part2_lasso_cv}
+\small
+\renewcommand{\arraystretch}{1.0}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{@{}rrrr@{}}
+\hline
+\textbf{$\lambda$} & \textbf{Mean CV-MSE} & \textbf{Std CV-MSE} & \textbf{Mean CV-$R^2$} \\
+\hline
+0.0001 & 0.005075 & 0.001659 & 0.673409 \\
+0.0003 & 0.005075 & 0.001659 & 0.673409 \\
+0.001 & 0.005075 & 0.001659 & 0.673410 \\
+0.003 & 0.005075 & 0.001659 & 0.673413 \\
+0.010 & 0.005075 & 0.001659 & 0.673421 \\
+0.032 & 0.005075 & 0.001658 & 0.673442 \\
+0.100 & 0.005074 & 0.001655 & 0.673462 \\
+0.316 & 0.005081 & 0.001648 & 0.672981 \\
+1.000 & 0.005105 & 0.001628 & 0.671292 \\
+3.162 & 0.005249 & 0.001575 & 0.661616 \\
+10.000 & 0.005782 & 0.001438 & 0.626800 \\
+31.623 & 0.007753 & 0.001154 & 0.497348 \\
+100.000 & 0.015461 & 0.001291 & -0.007357 \\
+\hline
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+Với $\lambda^* = 0.1$, Lasso vẫn không triệt tiêu hệ số nào: $0/11$ feature có hệ số bằng
+0 theo ngưỡng $10^{-10}$. Điều này cho thấy Lasso trong lần chạy này hoạt động giống một OLS được
+làm mượt nhẹ hơn là một bộ chọn biến thưa. Lưới mở rộng cũng làm rõ rằng nếu phạt mạnh hơn
+($\lambda \ge 1$), sai số CV tăng dần; do đó việc không chọn nghiệm thưa là kết quả thực nghiệm
+của dữ liệu, không phải do lưới ban đầu quá hẹp.
+
+

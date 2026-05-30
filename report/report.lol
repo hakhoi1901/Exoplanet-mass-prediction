@@ -1,4 +1,4 @@
-\contentsline {lstlisting}{\numberline {1}Module \texttt {config.py} --- hằng số và hàm xử lý sai số dùng chung}{12}{lstlisting.1}%
+\contentsline {lstlisting}{\numberline {1}Module \texttt {config.py} - hằng số và hàm xử lý sai số dùng chung}{12}{lstlisting.1}%
 \contentsline {lstlisting}{\numberline {2}Trích đoạn \texttt {utils.py}: các hàm cốt lõi cho OLS}{14}{lstlisting.2}%
 \contentsline {lstlisting}{\numberline {3}Lệnh chạy toàn bộ unit test từ thư mục gốc}{16}{lstlisting.3}%
 \contentsline {lstlisting}{\numberline {4}Hàm \texttt {ols\_fit} - tính nghiệm OLS từ công thức Normal Equations}{20}{lstlisting.4}%

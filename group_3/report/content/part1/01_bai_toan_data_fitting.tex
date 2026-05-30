@@ -1,0 +1,59 @@
+﻿\subsection{Bài Toán Data Fitting}
+
+
+\subsubsection{Phát Biểu Bài Toán Tổng Quát}
+
+\begin{tcolorbox}[mycodebox, colback=blue!3!white, colframe=blue!40!black,
+    title={\textbf{Định nghĩa 1.1} - Bài Toán Data Fitting}]
+Cho tập dữ liệu $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^n$ với
+$\mathbf{x}_i \in \mathbb{R}^p$, $y_i \in \mathbb{R}$.
+Bài toán Data Fitting là tìm hàm $f : \mathbb{R}^p \to \mathbb{R}$ trong một
+lớp hàm cho trước sao cho $f$ xấp xỉ tốt nhất ánh xạ từ $\mathbf{x}_i$ đến
+$y_i$ theo một tiêu chí đã định.
+\end{tcolorbox}
+
+Trong mô hình \textbf{hồi quy tuyến tính}, ta giả thiết quan hệ tuyến tính
+giữa các biến độc lập và biến phụ thuộc:
+\begin{equation}
+    y_i = \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i2} + \cdots + \beta_p x_{ip}
+          + \epsilon_i
+        = \mathbf{x}_i^T \boldsymbol{\beta} + \epsilon_i,
+    \label{eq:linear_model}
+\end{equation}
+với $\boldsymbol{\beta} = (\beta_0, \beta_1, \ldots, \beta_p)^T \in \mathbb{R}^{p+1}$
+là vector tham số cần ước lượng và $\epsilon_i$ là nhiễu ngẫu nhiên.
+
+Viết dưới dạng ma trận, với
+$\mathbf{X} \in \mathbb{R}^{n \times (p+1)}$ là \emph{ma trận design} (cột đầu
+toàn 1 đại diện cho intercept):
+\begin{equation}
+    \mathbf{y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\varepsilon},
+    \label{eq:matrix_form}
+\end{equation}
+trong đó $\mathbf{y} \in \mathbb{R}^n$ là vector quan sát và
+$\boldsymbol{\varepsilon} \in \mathbb{R}^n$ là vector nhiễu.
+
+\subsubsection{Các Giả Thiết Gauss-Markov}
+
+Để đảm bảo OLS có các tính chất tốt, ta cần các giả thiết Gauss-Markov
+(GM1-GM5):
+
+\begin{enumerate}[label=\textbf{GM\arabic*.}]
+    \item \textbf{Tuyến tính:} $\mathbf{y} = \mathbf{X}\boldsymbol{\beta} +
+          \boldsymbol{\varepsilon}$.
+    \item \textbf{Không hoàn hảo đa cộng tuyến:} $\rank(\mathbf{X}) = p+1$
+          (các cột của $\mathbf{X}$ độc lập tuyến tính, đảm bảo
+          $\mathbf{X}^T\mathbf{X}$ khả nghịch).
+    \item \textbf{Ngoại sinh:} $E[\boldsymbol{\varepsilon} \mid \mathbf{X}] =
+          \mathbf{0}$, tức $E[\epsilon_i \mid \mathbf{x}_i] = 0$ với mọi $i$.
+    \item \textbf{Đồng phương sai (Homoscedasticity):}
+          $\mathrm{Var}(\boldsymbol{\varepsilon} \mid \mathbf{X}) =
+          \sigma^2 \mathbf{I}_n$, tức các sai số có cùng phương sai $\sigma^2$
+          và không tương quan với nhau.
+    \item \textbf{Phân phối chuẩn (tùy chọn):}
+          $\boldsymbol{\varepsilon} \mid \mathbf{X} \sim
+          \mathcal{N}(\mathbf{0}, \sigma^2 \mathbf{I}_n)$
+          (cần cho kiểm định giả thuyết).
+\end{enumerate}
+
+

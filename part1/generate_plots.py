@@ -5,11 +5,11 @@ sys.path.insert(0, os.path.dirname(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from test_utils import make_linear_data
-from gauss_markov_demo import monte_carlo_gauss_markov, plot_beta_histograms
-from residual_analysis import residual_plots
-from ols_implementation import ols_fit
-from ridge_lasso import ridge_trace, lasso_trace, ridge_fit, ridge_predict
-from cross_validation import cv_lambda_search
+from part1.gauss_markov_demo import monte_carlo_gauss_markov, plot_beta_histograms
+from part1.residual_analysis import residual_plots
+from part1.ols_implementation import ols_fit
+from part1.ridge_lasso import ridge_trace, lasso_trace, ridge_fit, ridge_predict
+from part1.cross_validation import cv_lambda_search
 
 
 def main():

@@ -44,10 +44,12 @@ FUZZY_COLUMNS = (
 
 
 def read_raw(path: Path) -> pd.DataFrame:
+    """Đọc file raw NASA và bỏ qua các dòng metadata bắt đầu bằng dấu #."""
     return pd.read_csv(path, comment="#", low_memory=False)
 
 
 def normalized_value(value: object) -> object:
+    """Chuẩn hóa giá trị để so khớp: số được làm tròn, chuỗi được strip."""
     if pd.isna(value):
         return None
     try:
@@ -60,6 +62,7 @@ def normalized_value(value: object) -> object:
 
 
 def build_key(row: pd.Series, columns: tuple[str, ...]) -> tuple[object, ...] | None:
+    """Tạo khóa so khớp từ một dòng; trả None nếu có cột thiếu."""
     values = tuple(normalized_value(row[col]) for col in columns)
     if any(value is None for value in values):
         return None
@@ -73,6 +76,7 @@ def exact_match_stage(
     matched: dict[int, dict],
     used_bridge_indices: set[int],
 ) -> int:
+    """So khớp chính xác các dòng planet với bridge theo một nhóm cột."""
     key_to_indices: dict[tuple[object, ...], list[int]] = {}
     for bridge_index, row in bridge.iterrows():
         key = build_key(row, columns)
@@ -103,6 +107,7 @@ def exact_match_stage(
 
 
 def relative_diff(left: object, right: object) -> float | None:
+    """Tính sai khác tương đối giữa hai giá trị để phục vụ fuzzy matching."""
     if pd.isna(left) or pd.isna(right):
         return None
     try:
@@ -117,6 +122,7 @@ def relative_diff(left: object, right: object) -> float | None:
 
 
 def fuzzy_score(planet_row: pd.Series, bridge_row: pd.Series, columns: list[str]) -> tuple[float, int]:
+    """Tính điểm gần nhau giữa hai dòng dựa trên các cột chung."""
     total = 0.0
     used = 0
     for col in columns:
@@ -137,6 +143,7 @@ def fuzzy_match_remaining(
     matched: dict[int, dict],
     used_bridge_indices: set[int],
 ) -> int:
+    """So khớp các dòng còn lại bằng điểm fuzzy nearest-neighbor."""
     common = [col for col in FUZZY_COLUMNS if col in planet.columns and col in bridge.columns]
     added = 0
 
@@ -176,6 +183,7 @@ def fuzzy_match_remaining(
 
 
 def build_standard_data(raw_path: Path, planet_path: Path, bridge_path: Path, output_path: Path, report_path: Path) -> None:
+    """Sinh planet_full.csv bằng cách lấy đúng các dòng raw khớp với planet.csv."""
     raw = read_raw(raw_path)
     planet = pd.read_csv(planet_path)
     bridge = pd.read_csv(bridge_path)
@@ -238,6 +246,7 @@ def build_standard_data(raw_path: Path, planet_path: Path, bridge_path: Path, ou
 
 
 def main() -> None:
+    """Đọc tham số dòng lệnh và xây dựng file dữ liệu chuẩn full-column."""
     parser = argparse.ArgumentParser(
         description="Build a full-column raw-data subset whose rows match part2/data/planet.csv."
     )

@@ -1,0 +1,12 @@
+{
+  "method": "Kernel Ridge Regression with RBF kernel",
+  "note": "Tuning hyperparams on Validation set, evaluated once on Test set to prevent leakage.",
+  "max_train": 200,
+  "best_on_test": {
+    "alpha": 0.01,
+    "gamma": 0.01,
+    "MAE": 0.03884187471689861,
+    "RMSE": 0.062023145020285574,
+    "R2": 0.700766055071183
+  }
+}

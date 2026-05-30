@@ -227,7 +227,7 @@ Group_<ID>/
 
 ## PHẦN 1 - Lý Thuyết & Cài Đặt OLS Từ Đầu
 
-> **File:** `part1/ols_implementation.py` (F1–F5), `ridge_lasso.py` (F6–F7), `residual_analysis.py` (F8), `cross_validation.py` (F9), `gauss_markov_demo.py` (F10)
+> **File:** `part1/ols_implementation.py` (F1-F5), `ridge_lasso.py` (F6-F7), `residual_analysis.py` (F8), `cross_validation.py` (F9), `gauss_markov_demo.py` (F10)
 > 
 
 ---
@@ -649,7 +649,7 @@ lambda_opt = lambda_grid[argmin(cv_means)]
 
 ---
 
-### F10. `Monte Carlo - Minh Họa Gauss–Markov`
+### F10. `Monte Carlo - Minh Họa Gauss-Markov`
 
 **Mục đích:** Mô phỏng để chứng minh `E[β̂] = β` và OLS có phương sai nhỏ nhất (BLUE).
 
@@ -1023,10 +1023,10 @@ def bayesian_lr_predict(model, X_new, credible_interval=0.95):
 | TT | Thành viên | Nhiệm vụ | File | Chi tiết | Ngày bắt đầu | Deadline |  |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Đăng Khoa | F1 `ols_fit`, F2 `hat_matrix`, F3 `model_metrics` | `ols_implementation.py` | Normal equations, hat matrix idempotent/symmetric, RSS/TSS/R²/Adj-R²/F-stat + unit test + vẽ histogram eigenvalues của H, heatmap của H (n ≤ 20) | 2/5/2026 | 20h 7/5/2026 |  |
-| 2 | Minh Quân | F4 `coef_inference`, F5 `vif`, F10 Monte Carlo | `ols_implementation.py`, `gauss_markov_demo.py` | t-stat/p-value/CI 95%, VIF đa cộng tuyến, Gauss–Markov N_SIM=1000 + unit test + vẽ histogram β̂ mỗi chiều với đường thẳng đứng tại TRUE_BETA | 2/5/2026 | 20h 7/5/2026 |  |
+| 2 | Minh Quân | F4 `coef_inference`, F5 `vif`, F10 Monte Carlo | `ols_implementation.py`, `gauss_markov_demo.py` | t-stat/p-value/CI 95%, VIF đa cộng tuyến, Gauss-Markov N_SIM=1000 + unit test + vẽ histogram β̂ mỗi chiều với đường thẳng đứng tại TRUE_BETA | 2/5/2026 | 20h 7/5/2026 |  |
 | 3 | QA | F6 `ridge_fit`, F7 `lasso_fit`, F8 `residual_plots`, F9 `kfold_cv` | `ridge_lasso.py`, `residual_analysis.py`, `cross_validation.py` | Ridge closed-form, Lasso coordinate descent, 4 biểu đồ chẩn đoán, k-Fold CV + unit test + vẽ ridge trace (λ vs coef), vẽ λ vs CV score (log scale) | 2/5/2026 | 20h 7/5/2026 |  |
-| 4 | Đăng Khôi | F11 - Setup project + B1 Báo cáo + Notebook demo của các phần F1–F5 | `part1_notebook.ipynb` (phần đầu), `README.md`, `requirements.txt` | **Nhận output từ TT1 & TT2 sau 20h 7/5.** Với mỗi hàm: (1) cell markdown trình bày công thức + ý nghĩa lý thuyết, (2) cell code gọi hàm trên synthetic data, (3) cell hiển thị kết quả/plot. Cụ thể: `ols_fit` → in beta_hat, sigma2, so sánh với numpy; `hat_matrix` → hiển thị heatmap H + histogram eigenvalues; `model_metrics` → in bảng RSS/TSS/R²/F-stat; `coef_inference` → in DataFrame t-stat/p-value/CI; `vif` → in bảng VIF, nhận xét đa cộng tuyến | 20h 7/5/2026 | 20h 11/5/2026 |  |
-| 5 | Kiên | T8 - LaTeX setup + Notebook demo của các phần F6–F10 | `part1_notebook.ipynb` (phần sau), `report/report.tex` | **Nhận output từ TT3 sau 20h 7/5.** Khung báo cáo: bìa, mục lục, BibTeX ≥ 5 tài liệu. Với mỗi hàm: (1) cell markdown trình bày công thức + ý nghĩa lý thuyết, (2) cell code gọi hàm, (3) cell hiển thị kết quả/plot. Cụ thể: `ridge_fit` → hiển thị ridge trace (λ vs coef); `lasso_fit` → so sánh hệ số Ridge vs Lasso; `residual_plots` → hiển thị đủ 4 biểu đồ + nhận xét từng biểu đồ; `kfold_cv` → hiển thị λ vs CV score, in λ tối ưu; F10 Monte Carlo → hiển thị histogram β̂ + bảng so sánh Mean/Var OLS vs estimator khác, kết luận Gauss–Markov | 20h 7/5/2026 | 20h 11/5/2026 |  |
+| 4 | Đăng Khôi | F11 - Setup project + B1 Báo cáo + Notebook demo của các phần F1-F5 | `part1_notebook.ipynb` (phần đầu), `README.md`, `requirements.txt` | **Nhận output từ TT1 & TT2 sau 20h 7/5.** Với mỗi hàm: (1) cell markdown trình bày công thức + ý nghĩa lý thuyết, (2) cell code gọi hàm trên synthetic data, (3) cell hiển thị kết quả/plot. Cụ thể: `ols_fit` → in beta_hat, sigma2, so sánh với numpy; `hat_matrix` → hiển thị heatmap H + histogram eigenvalues; `model_metrics` → in bảng RSS/TSS/R²/F-stat; `coef_inference` → in DataFrame t-stat/p-value/CI; `vif` → in bảng VIF, nhận xét đa cộng tuyến | 20h 7/5/2026 | 20h 11/5/2026 |  |
+| 5 | Kiên | T8 - LaTeX setup + Notebook demo của các phần F6-F10 | `part1_notebook.ipynb` (phần sau), `report/report.tex` | **Nhận output từ TT3 sau 20h 7/5.** Khung báo cáo: bìa, mục lục, BibTeX ≥ 5 tài liệu. Với mỗi hàm: (1) cell markdown trình bày công thức + ý nghĩa lý thuyết, (2) cell code gọi hàm, (3) cell hiển thị kết quả/plot. Cụ thể: `ridge_fit` → hiển thị ridge trace (λ vs coef); `lasso_fit` → so sánh hệ số Ridge vs Lasso; `residual_plots` → hiển thị đủ 4 biểu đồ + nhận xét từng biểu đồ; `kfold_cv` → hiển thị λ vs CV score, in λ tối ưu; F10 Monte Carlo → hiển thị histogram β̂ + bảng so sánh Mean/Var OLS vs estimator khác, kết luận Gauss-Markov | 20h 7/5/2026 | 20h 11/5/2026 |  |
 
 ### 2. Phần 2
 
@@ -1036,7 +1036,7 @@ def bayesian_lr_predict(model, X_new, credible_interval=0.95):
 | 7 |  | T4 Train & đánh giá 4 mô hình | `model_comparison.py` | Dùng Pipeline của Số 3: train OLS đầy đủ, OLS chọn biến (p-value/VIF), Ridge & Lasso (λ qua CV); predict test set; Shapiro-Wilk, Breusch-Pagan |  |  |
 | 8 |  | T7 Nâng cao (bonus) + QA | `advanced_methods.py` | Chọn Kernel Ridge (RBF) hoặc Bayesian LR; so sánh với mô hình gốc; rà soát toàn bộ unit test, đảm bảo `RANDOM_STATE = 42` nhất quán |  |  |
 | 9 |  | T1 Dataset, T2 EDA, T6 Feature Importance, `part2_notebook.ipynb` | `part2_notebook.ipynb`, `data/` | Chọn & load dataset (≥200 obs, ≥3 features, ≥5% missing); viết `missing_report`, `detect_outliers_iqr`; vẽ histogram/boxplot/heatmap/scatter top-5; bar chart feature importance (top 15); tổng hợp toàn bộ notebook Part 2 |  |  |
-| 10 |  | T5 Phân tích kết quả + Hoàn thiện báo cáo | `report/report.tex`, `part2_notebook.ipynb` | Nhận kết quả từ Số 4: viết bảng so sánh MAE/RMSE/R², phân tích 4 biểu đồ phần dư, nhận xét Gauss–Markov; điền kết quả vào LaTeX, viết Kết luận, caption ảnh, format toàn bộ PDF |  |  |
+| 10 |  | T5 Phân tích kết quả + Hoàn thiện báo cáo | `report/report.tex`, `part2_notebook.ipynb` | Nhận kết quả từ Số 4: viết bảng so sánh MAE/RMSE/R², phân tích 4 biểu đồ phần dư, nhận xét Gauss-Markov; điền kết quả vào LaTeX, viết Kết luận, caption ảnh, format toàn bộ PDF |  |  |
 
 ### Git Branch
 

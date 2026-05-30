@@ -9,14 +9,13 @@ PART1_OUTPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "outp
 
 # Import utils và F1 ols_fit
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-sys.path.insert(0, os.path.dirname(__file__))  # cho phép import sibling modules trong part1/
+sys.path.insert(0, os.path.dirname(__file__))
 from utils import matvec, dot_product, build_null_vector
 from config import RANDOM_STATE, EPSILON
 
 
 # ---------------------------------------------------------------------------
 # F10: Gauss-Markov Monte Carlo Demo
-# Dùng F1 ols_fit để tính OLS estimates trong mỗi simulation
 # ---------------------------------------------------------------------------
 
 def monte_carlo_gauss_markov(
@@ -31,7 +30,7 @@ def monte_carlo_gauss_markov(
     F10: Monte Carlo demo cho Gauss-Markov theorem.
 
     Chứng minh bằng mô phỏng:
-    - OLS xấp xỉ unbiased: E[β̂] ≈ β
+    - OLS xấp xỉ unbiased: E[beta_hat] ~= beta
     - OLS có variance thấp hơn hoặc bằng estimator tuyến tính unbiased khác.
 
     Liên kết: Gọi F1 ols_fit cho mỗi simulation.
@@ -39,23 +38,23 @@ def monte_carlo_gauss_markov(
     Tham số:
         n_sim       : Số lần mô phỏng.
         n_obs       : Số quan sát mỗi lần.
-        true_beta   : (intercept, β₁, β₂) - beta thực.
+        true_beta   : (intercept, beta_1, beta_2) - beta thực.
         true_sigma  : Độ lệch chuẩn nhiễu.
         alt_scale   : Hệ số perturbation cho estimator thay thế.
         random_state: Random seed.
 
     Trả về dict:
         true_beta    : list[float]
-        ols_mean     : list[float] - E[β̂_OLS]
-        ols_var      : list[float] - Var(β̂_OLS)
-        alt_mean     : list[float] - E[β̂_alt]
-        alt_var      : list[float] - Var(β̂_alt)
+        ols_mean     : list[float] - E[beta_hat_OLS]
+        ols_var      : list[float] - Var(beta_hat_OLS)
+        alt_mean     : list[float] - E[beta_hat_alt]
+        alt_var      : list[float] - Var(beta_hat_alt)
         ols_bias     : list[float]
         alt_bias     : list[float]
-        beta_ols_all : list[list[float]] - tất cả β̂_OLS (n_sim x 3)
-        beta_alt_all : list[list[float]] - tất cả β̂_alt (n_sim x 3)
+        beta_ols_all : list[list[float]] - tất cả beta_hat_OLS (n_sim x 3)
+        beta_alt_all : list[list[float]] - tất cả beta_hat_alt (n_sim x 3)
     """
-    from ols_implementation import ols_fit
+    from part1.ols_implementation import ols_fit
 
     if n_sim <= 0 or n_obs <= 0:
         raise ValueError("n_sim và n_obs phải > 0")
@@ -83,10 +82,10 @@ def monte_carlo_gauss_markov(
     noise_gen = _LCGNormal(seed=random_state + 1)
 
     for sim in range(n_sim):
-        # Tạo noise ε ~ N(0, σ²)
+        # Tạo noise epsilon ~ N(0, sigma^2)
         eps = [noise_gen.next() * true_sigma for _ in range(n_obs)]
 
-        # y = X_bias @ true_beta + ε
+        # y = X_bias @ true_beta + epsilon
         y_sim = [0.0] * n_obs
         for i in range(n_obs):
             y_sim[i] = sum(X_bias_fixed[i][j] * true_beta_list[j] for j in range(n_coef)) + eps[i]
@@ -95,7 +94,7 @@ def monte_carlo_gauss_markov(
         ols_res = ols_fit(X_fixed, y_sim)
         b_ols = ols_res["beta_hat"]
 
-        # Tạo estimator thay thế: β̂_alt = β̂_OLS + alt_scale * e0 * (vᵀy)
+        # Tạo estimator thay thế: beta_hat_alt = beta_hat_OLS + alt_scale * e0 * (v^T y)
         vty = dot_product(v_null, y_sim)
         b_alt = [b_ols[j] + alt_scale * e0[j] * vty for j in range(n_coef)]
 
@@ -167,7 +166,7 @@ def plot_beta_histograms(
     save_dir: str = PART1_OUTPUT_DIR,
 ):
     """
-    Vẽ histogram phân bố β̂ cho mỗi hệ số với đường dọc tại true_beta.
+    Vẽ histogram phân bố beta_hat cho mỗi hệ số với đường dọc tại true_beta.
 
     Tham số:
         beta_ols:  list[list[float]] - (n_sim, n_coef).
