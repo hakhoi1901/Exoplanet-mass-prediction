@@ -38,21 +38,21 @@ trọng gồm:
 % ------------------------------------------------------------
 
 \subsubsection{Nguồn dữ liệu và mô tả bài toán}
-
-Bộ dữ liệu được sử dụng là dữ liệu hành tinh ngoài Hệ Mặt Trời từ NASA Exoplanet Archive. File gốc
-\texttt{raw.csv} sau khi tải về có khoảng 320 cột, bao gồm nhiều nhóm metadata, sai số đo lường,
-cờ giới hạn và các đại lượng vật lý. Từ file gốc, nhóm tạo ra file gọn hơn:
+Bộ dữ liệu được sử dụng là dữ liệu hành tinh ngoài Hệ Mặt Trời từ NASA Exoplanet Archive.
+File \texttt{planet.csv} hiện có 4636 dòng và 320 cột
 \begin{center}
     \texttt{part2/data/planet.csv}.
 \end{center}
 
-Điểm quan trọng trong flow là quá trình tạo \texttt{planet.csv} và quá trình tiền xử lý trong
-\texttt{DataPipeline} là hai bước khác nhau. Hai giai đoạn đầu tiên được thực hiện trước pipeline
-để biến \texttt{raw.csv} thành \texttt{planet.csv}; sau đó pipeline mới đọc \texttt{planet.csv},
-áp dụng domain restriction, chia train/test, xử lý missing/outlier và lọc VIF.
+Pipeline đọc trực tiếp file full-column này, sau đó thực hiện bước \emph{schema filter} ngay ở đầu
+\texttt{DataPipeline}: từ 320 cột chỉ giữ lại 16 cột ứng viên có ý nghĩa vật lý cho mô hình (giải thích chi tiết ở phần sau)
+(\texttt{pl\_orbper}, \texttt{pl\_orbsmax}, \texttt{pl\_orbeccen}, \texttt{pl\_trandur},
+\texttt{pl\_trandep}, \texttt{pl\_imppar}, \texttt{pl\_eqt}, \texttt{pl\_insol},
+\texttt{pl\_bmasse}, \texttt{st\_teff}, \texttt{st\_rad}, \texttt{st\_mass},
+\texttt{st\_met}, \texttt{st\_logg}, \texttt{sy\_dist}, \texttt{pl\_rade}) và loại 304 cột metadata/nhiễu còn lại.
 
-File \texttt{planet.csv} có 4636 dòng và 16 biến ban đầu. Sau khi áp dụng ràng buộc miền để tập
-trung vào nhóm hành tinh đá/Super-Earth:
+Sau bước schema filter, pipeline áp dụng ràng buộc miền để tập trung vào nhóm hành
+tinh đá/Super-Earth:
 \begin{equation}
     \texttt{pl\_rade} \le 1.6,\qquad \texttt{pl\_bmasse} \le 10,
 \end{equation}
@@ -64,11 +64,13 @@ Lý do của bước lọc này đến từ cơ chế vật lý của dữ liệ
 (\emph{Terrestrial}) hoặc Super-Earth. Nếu giữ nguyên toàn bộ tập dữ liệu, mặt phẳng hồi quy sẽ
 phải đồng thời mô tả nhiều chế độ vật lý khác nhau, dễ bị nhiễu bởi hiện tượng phương sai không
 đồng nhất (\emph{heteroskedasticity}) do chênh lệch quy mô quá lớn giữa các nhóm hành tinh.
-Vì vậy, nhóm tối ưu hóa khả năng nội suy cục bộ của mô hình bằng cách chỉ giữ nhóm hành tinh đá và
+Vì vậy, nhóm quyết định thực hiện trên nhóm hành tinh đá và Super-Earth, nhằm tối ưu hóa khả năng nội suy
+cục bộ của mô hình bằng cách chỉ giữ nhóm hành tinh đá và
 Super-Earth theo ngưỡng phân rã Fulton (\emph{Fulton Gap}): bán kính không vượt quá
-$1.6\,R_\oplus$ và khối lượng không vượt quá $10\,M_\oplus$. Thao tác này được thực hiện ở tầng dữ
-liệu thô của pipeline, trước MICE và trước chuẩn hóa, để bộ nội suy MICE cũng như các tham số
-mean/std chỉ học đặc trưng phân phối của riêng nhóm hành tinh này.
+$1.6\,R_\oplus$ và khối lượng không vượt quá $10\,M_\oplus$. Thao tác này được thực hiện trong
+pipeline ngay sau schema filter và trước train/test split, MICE, VIF cũng như chuẩn hóa. Nhờ đó,
+bộ nội suy MICE và các tham số mean/std chỉ học đặc trưng phân phối của riêng nhóm hành tinh đá và
+Super-Earth.
 
 \begin{table}[H]
 \centering
@@ -78,8 +80,8 @@ mean/std chỉ học đặc trưng phân phối của riêng nhóm hành tinh n�
 \hline
 \textbf{Giai đoạn} & \textbf{Số dòng} & \textbf{Số cột} & \textbf{Ghi chú} \\
 \hline
-\texttt{raw.csv} & 6610 & 320 & File tải từ NASA Exoplanet Archive, còn metadata và dòng mô tả. \\
-\texttt{planet.csv} & 4636 & 16 & Tập biến đã được chọn lọc ban đầu. \\
+\texttt{planet.csv} & 4636 & 320 & Dữ liệu chuẩn ban đầu của Phần 2 \\
+Sau schema filter & 4636 & 16 & Pipeline giữ 16 cột ứng viên vật lý và loại 304 cột metadata/sai số/tham chiếu. \\
 Sau domain restriction & 1084 & 16 & Giữ các mẫu có \texttt{pl\_rade}$\le1.6$ và \texttt{pl\_bmasse}$\le10$. \\
 Train sau tiền xử lý & 867 & 11 & Dùng để fit preprocessing và mô hình. \\
 Test sau tiền xử lý & 217 & 11 & Chỉ dùng để đánh giá cuối cùng. \\
@@ -91,7 +93,7 @@ Test sau tiền xử lý & 217 & 11 & Chỉ dùng để đánh giá cuối cùng
 
 \begin{table}[H]
 \centering
-\caption{Nhóm biến ban đầu trong \texttt{planet.csv}}
+\caption{Nhóm biến được giữ sau schema filter trong pipeline}
 \label{tab:part2_variables}
 \begin{tabular}{@{}p{0.22\textwidth}p{0.35\textwidth}p{0.34\textwidth}@{}}
 \hline
@@ -100,7 +102,7 @@ Test sau tiền xử lý & 217 & 11 & Chỉ dùng để đánh giá cuối cùng
 Quỹ đạo & \texttt{pl\_orbper}, \texttt{pl\_orbsmax}, \texttt{pl\_orbeccen}
 & Chu kỳ quỹ đạo, bán trục lớn, độ lệch tâm. \\
 Transit & \texttt{pl\_trandur}, \texttt{pl\_trandep}, \texttt{pl\_imppar}
-& Thời lượng transit, độ sâu transit, impact parameter. \\
+& Thời lượng transit, độ sâu transit và impact parameter. \\
 Năng lượng & \texttt{pl\_eqt}, \texttt{pl\_insol}
 & Nhiệt độ cân bằng và thông lượng bức xạ nhận từ sao chủ. \\
 Hành tinh & \texttt{pl\_bmasse}, \texttt{pl\_rade}
@@ -115,7 +117,7 @@ Hệ sao & \texttt{sy\_dist}
 
 \begin{table}[H]
 \centering
-\caption{Một vài dòng dữ liệu mẫu từ \texttt{planet.csv} trước domain restriction}
+\caption{Một vài dòng dữ liệu mẫu sau schema filter và trước domain restriction}
 \label{tab:part2_sample_data}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}rrrrrrrr@{}}
@@ -217,6 +219,16 @@ Số dòng duplicate & 0 \\
 Missing values xuất hiện ở nhiều nhóm biến khác nhau. Nếu xóa toàn bộ dòng chứa missing, dữ liệu sẽ
 bị giảm đáng kể và dễ lệch mẫu; vì vậy pipeline dùng MICE ở bước tiền xử lý.
 
+Lý do chọn MICE (\emph{Multiple Imputation by Chained Equations}) là dữ liệu ngoại hành tinh bị
+khuyết theo nhiều nhóm phép đo khác nhau, trong khi các biến vật lý vẫn có quan hệ cấu trúc với
+nhau. Ví dụ, bán trục lớn quỹ đạo, thông lượng bức xạ, nhiệt độ cân bằng, khối lượng hành tinh và
+đặc trưng sao chủ không độc lập hoàn toàn. Nếu thay missing bằng trung bình/median đơn giản, mô
+hình sẽ làm phẳng phương sai và bỏ qua quan hệ giữa các biến; nếu xóa dòng, tập dữ liệu còn lại dễ
+thiên lệch về những hành tinh được quan sát đầy đủ hơn. MICE phù hợp hơn vì lần lượt xem từng cột
+khuyết như một bài toán hồi quy có điều kiện trên các cột còn lại, nhờ đó giá trị điền vào giữ được
+tương quan đa biến tốt hơn. Trong pipeline, MICE chỉ được fit trên train set rồi áp dụng sang test
+set bằng các tham số đã học, nên bước điền khuyết không làm rò rỉ thông tin từ tập đánh giá.
+
 \begin{table}[H]
 \centering
 \caption{Các cột có missing values nhiều nhất trước tiền xử lý}
@@ -256,14 +268,14 @@ cứng; thay vào đó bước Winsorization sẽ giới hạn ảnh hưởng c�
 
 \subsubsection{Lựa chọn biến (Select Data)}
 
-Quy trình từ \texttt{raw.csv} sang \texttt{planet.csv} là bước chọn biến thủ công trước khi chạy
-\texttt{DataPipeline}. Mục tiêu của bước này là loại các cột không mang thông tin dự báo độc lập,
-giảm nhiễu cho ma trận thiết kế và tránh để mô hình học từ các biến rò rỉ target.
+Quy trình chọn biến được thực hiện trên tập chuẩn \texttt{planet.csv} gồm 4636 dòng và 320
+cột. Mục tiêu của bước này là loại các cột không mang thông tin dự báo độc lập, giảm nhiễu cho ma
+trận thiết kế và tránh để mô hình học từ các biến rò rỉ target.
 
 \paragraph{Giai đoạn 1: loại bỏ siêu dữ liệu và sai số đo lường.}
-Bộ dữ liệu gốc từ NASA Exoplanet Archive có hơn 200 cột thông tin. Tuy nhiên, nhiều cột trong số
-này là metadata quan sát hoặc thông tin phụ của phép đo, không phải đặc trưng vật lý trực tiếp của
-hành tinh. Ở bước lọc thô đầu tiên, nhóm loại các nhóm cột sau:
+Tập \texttt{planet.csv} vẫn giữ đầy đủ hơn 300 cột theo cấu trúc NASA Exoplanet Archive.
+Tuy nhiên, nhiều cột trong số này là metadata quan sát hoặc thông tin phụ của phép đo, không phải
+đặc trưng vật lý trực tiếp của hành tinh. Ở bước lọc thô đầu tiên, nhóm loại các nhóm cột sau:
 \begin{itemize}
     \item \textbf{Cột sai số đo lường}: các cột có hậu tố \texttt{err1}, \texttt{err2}, ví dụ
           \texttt{pl\_orbpererr1}, \texttt{pl\_radeerr2}, \texttt{st\_tefferr1}. Đây là độ bất
@@ -285,7 +297,7 @@ bước dùng kiến thức vật lý thiên văn để quyết định biến n
 
 \begin{table}[H]
 \centering
-\caption{Các nhóm biến bị loại trước khi tạo \texttt{planet.csv}}
+\caption{Các nhóm biến bị loại}
 \label{tab:part2_raw_to_planet_filter}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{@{}p{0.23\textwidth}p{0.24\textwidth}p{0.45\textwidth}@{}}
@@ -339,15 +351,15 @@ cho hầu hết các đại lượng vật lý.
 {\scriptsize
 \setlength{\tabcolsep}{3pt}
 \begin{longtable}{@{}p{0.28\textwidth}p{0.12\textwidth}p{0.50\textwidth}@{}}
-\caption{Quyết định xử lý chi tiết các nhóm cột từ \texttt{raw.csv}}
+\caption{Quyết định xử lý chi tiết các nhóm cột từ dữ liệu chuẩn 320 cột}
 \label{tab:part2_column_decisions}\\
 \hline
-\textbf{Cột / pattern trong \texttt{raw.csv}} & \textbf{Quyết định} & \textbf{Giải thích} \\
+\textbf{Cột / pattern trong dữ liệu chuẩn} & \textbf{Quyết định} & \textbf{Giải thích} \\
 \hline
 \endfirsthead
-\caption[]{Quyết định xử lý chi tiết các nhóm cột từ \texttt{raw.csv} (tiếp)}\\
+\caption[]{Quyết định xử lý chi tiết các nhóm cột từ dữ liệu chuẩn 320 cột (tiếp)}\\
 \hline
-\textbf{Cột / pattern trong \texttt{raw.csv}} & \textbf{Quyết định} & \textbf{Giải thích} \\
+\textbf{Cột / pattern trong dữ liệu chuẩn} & \textbf{Quyết định} & \textbf{Giải thích} \\
 \hline
 \endhead
 \texttt{pl\_name}, \texttt{hostname}, \texttt{pl\_letter},
@@ -494,19 +506,10 @@ Ngược lại, \texttt{planet.csv} giữ lại 16 cột có ý nghĩa vật lý
 \end{tabular}}
 \end{table}
 
-Sau hai giai đoạn này, \texttt{planet.csv} là tập dữ liệu đã được chọn lọc trước pipeline, gồm các
-biến vật lý có ý nghĩa hơn cho bài toán dự đoán \texttt{pl\_rade}. Cụ thể, file này giữ các nhóm
-biến quỹ đạo, transit, năng lượng, khối lượng hành tinh, đặc trưng sao chủ và khoảng cách hệ sao.
-
-\paragraph{Phân biệt với bước VIF trong pipeline.}
-VIF không thuộc quá trình tạo \texttt{planet.csv}. VIF chỉ được tính sau khi pipeline đã đọc
-\texttt{planet.csv}, áp dụng domain restriction, chia train/test, log-transform, Winsorization và
-MICE imputation. Nói cách khác, giai đoạn 1--2 là chọn biến trước pipeline; còn VIF là thanh lọc
-tự động bên trong pipeline trên tập train đã xử lý.
-
-Trong pipeline chính, hai biến \texttt{st\_mass} và \texttt{st\_logg} được loại ở bước đầu vì thông
-tin chồng lấp mạnh với các biến sao chủ còn lại. Sau đó VIF tiếp tục loại các biến đa cộng tuyến
-vượt ngưỡng như trình bày ở Bảng~\ref{tab:part2_vif_history}.
+Sau hai giai đoạn này, \texttt{planet.csv} là bản 16 cột được rút ra từ dữ liệu chuẩn 4636 dòng,
+trước khi chạy pipeline. Cụ thể, file này giữ các nhóm biến quỹ đạo, transit, năng lượng, khối
+lượng hành tinh, đặc trưng sao chủ và khoảng cách hệ sao để phục vụ bài toán dự đoán
+\texttt{pl\_rade}.
 
 \subsubsection{Làm sạch dữ liệu (Clean Data)}
 
@@ -765,7 +768,7 @@ Bốn mô hình tuyến tính chính được so sánh:
     \item \textbf{OLS full}: dùng toàn bộ 11 feature sau tiền xử lý.
     \item \textbf{OLS selected}: chọn feature có p-value nhỏ hơn 0.05 từ OLS full.
     \item \textbf{Ridge}: dùng hàm \texttt{ridge\_fit} ở Phần 1 và chọn $\lambda$ bằng 5-fold CV.
-    \item \textbf{Lasso}: dùng hàm \texttt{lasso\_fit} ở Phần 1 và chọn $\lambda$ bằng 3-fold CV.
+    \item \textbf{Lasso}: dùng hàm \texttt{lasso\_fit} ở Phần 1 và chọn $\lambda$ bằng 5-fold CV.
 \end{enumerate}
 
 \subsubsection{OLS full và chọn biến theo p-value}
@@ -834,11 +837,11 @@ Ridge quét lưới $\lambda$ từ $10^{-3}$ đến $10^3$ theo thang log. Giá 
 \end{table}
 
 Sau khi mở rộng lưới, Lasso quét 13 giá trị
-$\lambda \in [10^{-4}, 10^2]$ theo thang log bằng 3-fold CV. Lưới mới cho thấy vùng
+$\lambda \in [10^{-4}, 10^2]$ theo thang log bằng 5-fold CV. Lưới mới cho thấy vùng
 regularization tốt khá phẳng ở các $\lambda$ nhỏ, sau đó CV-MSE bắt đầu tăng rõ khi
 $\lambda \ge 0.3162$. Giá trị tốt nhất là:
 \begin{equation}
-    \lambda^*_{\mathrm{Lasso}} = 0.0316228.
+    \lambda^*_{\mathrm{Lasso}} = 0.1.
 \end{equation}
 
 \begin{table}[H]
@@ -852,25 +855,25 @@ $\lambda \ge 0.3162$. Giá trị tốt nhất là:
 \hline
 \textbf{$\lambda$} & \textbf{Mean CV-MSE} & \textbf{Std CV-MSE} & \textbf{Mean CV-$R^2$} \\
 \hline
-0.0001 & 0.005093 & 0.001421 & 0.672720 \\
-0.0003 & 0.005093 & 0.001421 & 0.672720 \\
-0.001 & 0.005093 & 0.001421 & 0.672720 \\
-0.003 & 0.005093 & 0.001421 & 0.672722 \\
-0.010 & 0.005093 & 0.001420 & 0.672726 \\
-0.032 & 0.005092 & 0.001420 & 0.672730 \\
-0.100 & 0.005093 & 0.001418 & 0.672675 \\
-0.316 & 0.005106 & 0.001415 & 0.671822 \\
-1.000 & 0.005140 & 0.001420 & 0.669538 \\
-3.162 & 0.005301 & 0.001387 & 0.658832 \\
-10.000 & 0.005953 & 0.001265 & 0.615589 \\
-31.623 & 0.008702 & 0.000978 & 0.434213 \\
-100.000 & 0.015532 & 0.001217 & -0.012201 \\
+0.0001 & 0.005075 & 0.001659 & 0.673409 \\
+0.0003 & 0.005075 & 0.001659 & 0.673409 \\
+0.001 & 0.005075 & 0.001659 & 0.673410 \\
+0.003 & 0.005075 & 0.001659 & 0.673413 \\
+0.010 & 0.005075 & 0.001659 & 0.673421 \\
+0.032 & 0.005075 & 0.001658 & 0.673442 \\
+0.100 & 0.005074 & 0.001655 & 0.673462 \\
+0.316 & 0.005081 & 0.001648 & 0.672981 \\
+1.000 & 0.005105 & 0.001628 & 0.671292 \\
+3.162 & 0.005249 & 0.001575 & 0.661616 \\
+10.000 & 0.005782 & 0.001438 & 0.626800 \\
+31.623 & 0.007753 & 0.001154 & 0.497348 \\
+100.000 & 0.015461 & 0.001291 & -0.007357 \\
 \hline
 \end{tabular}
 \end{adjustbox}
 \end{table}
 
-Với $\lambda^* = 0.0316228$, Lasso vẫn không triệt tiêu hệ số nào: $0/11$ feature có hệ số bằng
+Với $\lambda^* = 0.1$, Lasso vẫn không triệt tiêu hệ số nào: $0/11$ feature có hệ số bằng
 0 theo ngưỡng $10^{-10}$. Điều này cho thấy Lasso trong lần chạy này hoạt động giống một OLS được
 làm mượt nhẹ hơn là một bộ chọn biến thưa. Lưới mở rộng cũng làm rõ rằng nếu phạt mạnh hơn
 ($\lambda \ge 1$), sai số CV tăng dần; do đó việc không chọn nghiệm thưa là kết quả thực nghiệm
@@ -898,23 +901,23 @@ Mô hình tuyến tính tốt nhất trên test set là Lasso. Vì target đư�
 \textbf{STT} & \textbf{Actual log} & \textbf{Pred log} & \textbf{Residual log} &
 \textbf{Actual radius} & \textbf{Pred radius} & \textbf{APE (\%)} \\
 \hline
-1 & 0.703098 & 0.673404 & 0.029694 & 1.020000 & 0.960901 & 5.794 \\
-2 & 0.774727 & 0.788004 & -0.013276 & 1.170000 & 1.199002 & 2.479 \\
-3 & 0.904218 & 0.850695 & 0.053524 & 1.470000 & 1.341272 & 8.757 \\
-4 & 0.751416 & 0.762798 & -0.011382 & 1.120000 & 1.144267 & 2.167 \\
-5 & 0.797507 & 0.797699 & -0.000192 & 1.220000 & 1.220426 & 0.035 \\
-6 & 0.548121 & 0.601355 & -0.053234 & 0.730000 & 0.824590 & 12.958 \\
-7 & 0.581098 & 0.616384 & -0.035286 & 0.788000 & 0.852218 & 8.150 \\
-8 & 0.943906 & 0.879492 & 0.064414 & 1.570000 & 1.409674 & 10.212 \\
-9 & 0.783902 & 0.787921 & -0.004019 & 1.190000 & 1.198819 & 0.741 \\
-10 & 0.662688 & 0.647882 & 0.014805 & 0.940000 & 0.911489 & 3.033 \\
+1 & 0.703098 & 0.673777 & 0.029321 & 1.020000 & 0.961632 & 5.722 \\
+2 & 0.774727 & 0.788721 & -0.013994 & 1.170000 & 1.200580 & 2.614 \\
+3 & 0.904218 & 0.850350 & 0.053868 & 1.470000 & 1.340466 & 8.812 \\
+4 & 0.751416 & 0.762646 & -0.011230 & 1.120000 & 1.143943 & 2.138 \\
+5 & 0.797507 & 0.796628 & 0.000879 & 1.220000 & 1.218050 & 0.160 \\
+6 & 0.548121 & 0.601630 & -0.053509 & 0.730000 & 0.825091 & 13.026 \\
+7 & 0.581098 & 0.616143 & -0.035045 & 0.788000 & 0.851771 & 8.093 \\
+8 & 0.943906 & 0.879109 & 0.064797 & 1.570000 & 1.408753 & 10.271 \\
+9 & 0.783902 & 0.787691 & -0.003789 & 1.190000 & 1.198314 & 0.699 \\
+10 & 0.662688 & 0.647853 & 0.014835 & 0.940000 & 0.911433 & 3.039 \\
 \hline
 \end{tabular}
 \end{adjustbox}
 \end{table}
 
-Trên thang bán kính gốc, Lasso đạt $R^2=0.712521$, RMSE $=0.130353$, MAE $=0.085233$ và
-MAPE $=7.038\%$. Các chỉ số này không dùng để chọn mô hình chính, nhưng giúp diễn giải sai số theo
+Trên thang bán kính gốc, Lasso đạt $R^2=0.712850$, RMSE $=0.130278$, MAE $=0.085171$ và
+MAPE $=7.032\%$. Các chỉ số này không dùng để chọn mô hình chính, nhưng giúp diễn giải sai số theo
 đơn vị bán kính Trái Đất.
 
 \begin{figure}[H]
@@ -943,7 +946,7 @@ MAPE $=7.038\%$. Các chỉ số này không dùng để chọn mô hình chính
 \textbf{Mô hình} & \textbf{Test $R^2$} & \textbf{Test RMSE} & \textbf{Test MAE} &
 \textbf{CV-MSE} & \textbf{CV-$R^2$} \\
 \hline
-Lasso & 0.748011 & 0.056917 & 0.037929 & 0.005092 & 0.672730 \\
+Lasso & 0.748403 & 0.056872 & 0.037895 & 0.005074 & 0.673462 \\
 OLS full & 0.747794 & 0.056941 & 0.037952 & 0.005075 & 0.673407 \\
 Ridge & 0.747678 & 0.056954 & 0.038204 & 0.005074 & 0.673433 \\
 OLS selected & 0.743913 & 0.057378 & 0.039013 & 0.005103 & 0.671611 \\
@@ -962,7 +965,7 @@ OLS selected & 0.743913 & 0.057378 & 0.039013 & 0.005103 & 0.671611 \\
 
 Nhận xét:
 \begin{itemize}
-    \item Lasso có Test $R^2$ cao nhất là 0.748011 và Test RMSE thấp nhất là 0.056917.
+    \item Lasso có Test $R^2$ cao nhất là 0.748403 và Test RMSE thấp nhất là 0.056872.
     \item OLS full gần như tương đương Lasso, cho thấy quan hệ tuyến tính sau tiền xử lý đã mô tả
           dữ liệu khá tốt.
     \item Ridge có CV-MSE thấp nhất trong nhóm mô hình tuyến tính, phản ánh regularization giúp
@@ -976,7 +979,7 @@ chữ số thập phân thứ tư. Lý do chính là pipeline đã làm phần v
 log-transform giảm lệch phải, Winsorization giảm ảnh hưởng cực trị, và VIF filtering đã loại
 \texttt{log\_pl\_orbper}, \texttt{log\_pl\_eqt} để đưa VIF cuối cùng xuống dưới 10. Khi đa cộng
 tuyến đã được xử lý trước, Ridge không còn lợi thế ổn định hệ số quá lớn, còn Lasso với
-$\lambda^*=0.0316228$ vẫn không tạo nghiệm thưa. Vì vậy mô hình tuyến tính cơ bản đã gần đạt
+$\lambda^*=0.1$ vẫn không tạo nghiệm thưa. Vì vậy mô hình tuyến tính cơ bản đã gần đạt
 hiệu năng tối đa của nhóm mô hình tuyến tính trên tập feature hiện có.
 
 Mặt khác, $R^2_{\mathrm{test}}\approx0.748$ cũng có nghĩa khoảng 25.2\% phương sai của
@@ -1152,14 +1155,10 @@ Phần 2 đã hoàn thành một pipeline data fitting đầy đủ cho dữ li�
           standardization; các tham số đều fit trên train để tránh data leakage.
     \item Các mô hình chính tái sử dụng code tự cài ở Phần 1: OLS, Ridge, Lasso, k-fold
           cross-validation và residual analysis.
-    \item Trên test set, Lasso là mô hình tuyến tính tốt nhất với Test $R^2=0.748011$,
-          RMSE $=0.056917$ và MAE $=0.037929$ trên thang log target.
-    \item Khi biến đổi ngược về bán kính gốc, Lasso đạt RMSE $=0.130353$, MAE $=0.085233$ và
-          MAPE $=7.038\%$, cho thấy sai số dự báo có thể diễn giải được theo đơn vị bán kính
+    \item Trên test set, Lasso là mô hình tuyến tính tốt nhất với Test $R^2=0.748403$,
+          RMSE $=0.056872$ và MAE $=0.037895$ trên thang log target.
+    \item Khi biến đổi ngược về bán kính gốc, Lasso đạt RMSE $=0.130278$, MAE $=0.085171$ và
+          MAPE $=7.032\%$, cho thấy sai số dự báo có thể diễn giải được theo đơn vị bán kính
           Trái Đất.
 \end{itemize}
 
-Nhìn chung, báo cáo Part 2 đã bám sát quy trình trong ví dụ tham khảo: có phần giới thiệu bài toán,
-hiểu dữ liệu, chuẩn bị dữ liệu, xây dựng mô hình, dự báo và đánh giá mô hình. Đồng thời, so với ví
-dụ, phần này bổ sung thêm các kỹ thuật phù hợp với dữ liệu thiên văn như MICE, VIF filtering,
-regularization và phân tích feature importance.

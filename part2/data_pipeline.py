@@ -32,6 +32,25 @@ from ridge_lasso import ridge_fit, ridge_predict
 
 
 DEFAULT_TARGET = "pl_rade"
+DEFAULT_DATA_PATH = ROOT_DIR / "part2" / "data" / "data.csv"
+DEFAULT_MODEL_COLUMNS = (
+    "pl_orbper",
+    "pl_orbsmax",
+    "pl_orbeccen",
+    "pl_trandur",
+    "pl_trandep",
+    "pl_imppar",
+    "pl_eqt",
+    "pl_insol",
+    "pl_bmasse",
+    "st_teff",
+    "st_rad",
+    "st_mass",
+    "st_met",
+    "st_logg",
+    "sy_dist",
+    "pl_rade",
+)
 DEFAULT_LOG_COLUMNS = (
     "pl_orbper",
     "pl_orbsmax",
@@ -51,9 +70,28 @@ def load_dataset(path: str | Path) -> pd.DataFrame:
     with path.open("r", encoding="utf-8", errors="replace") as f:
         first_line = f.readline()
     sep = "\t" if first_line.count("\t") > first_line.count(",") else ","
-    df = pd.read_csv(path, sep=sep, encoding="utf-8", low_memory=False)
+    df = pd.read_csv(path, sep=sep, encoding="utf-8", comment="#", low_memory=False)
     df.columns = [str(col).strip().lstrip("@") for col in df.columns]
     return df
+
+
+def select_model_columns(
+    df: pd.DataFrame,
+    target: str = DEFAULT_TARGET,
+    model_columns: Iterable[str] = DEFAULT_MODEL_COLUMNS,
+) -> pd.DataFrame:
+    requested = list(dict.fromkeys(model_columns))
+    if target not in requested:
+        requested.append(target)
+    missing = [col for col in requested if col not in df.columns]
+    if target in missing:
+        raise KeyError(f"Target column '{target}' was not found")
+
+    selected = [col for col in requested if col in df.columns]
+    out = df[selected].copy()
+    for col in out.columns:
+        out[col] = pd.to_numeric(out[col], errors="coerce")
+    return out
 
 
 def train_test_split_frame(
@@ -750,10 +788,12 @@ def write_eda_outputs(df: pd.DataFrame, target: str, output_dir: str | Path) -> 
         corr.to_csv(corr_path)
         paths["correlation_matrix"] = str(corr_path)
 
+        corr_mask = np.tril(np.ones_like(corr, dtype=bool), k=-1)
         fig_size = max(9, 0.72 * len(corr.columns))
         fig, ax = plt.subplots(figsize=(fig_size, fig_size * 0.82))
         sns.heatmap(
             corr,
+            mask=corr_mask,
             cmap="RdBu",
             center=0,
             vmin=-1,
@@ -911,7 +951,7 @@ def write_preprocessing_diagnostic_plots(
 
 
 def run_pipeline(
-    data_path: str | Path = ROOT_DIR / "part2" / "data" / "planet.csv",
+    data_path: str | Path = DEFAULT_DATA_PATH,
     output_dir: str | Path = ROOT_DIR / "part2" / "output",
     target: str = DEFAULT_TARGET,
     test_size: float = 0.2,
@@ -921,7 +961,16 @@ def run_pipeline(
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    raw = load_dataset(data_path)
+    source = load_dataset(data_path)
+    raw = select_model_columns(source, target=target)
+    dropped_columns = source.shape[1] - raw.shape[1]
+    model_input_shape = raw.shape
+    schema_filter_columns = list(raw.columns)
+    print(
+        f"[Schema Filter] Source shape {source.shape} -> model columns {raw.shape}; "
+        f"dropped {dropped_columns} non-model columns",
+        flush=True,
+    )
 
     raw = raw[(raw["pl_rade"] <= 1.6) & (raw["pl_bmasse"] <= 10)]
     print(f"[Domain Restriction] Rocky/Super-Earth samples kept: {len(raw)}", flush=True)
@@ -951,12 +1000,21 @@ def run_pipeline(
         "metadata": pipeline.metadata(),
         "eda_paths": eda_paths,
     }
+    payload["metadata"].update(
+        {
+            "source_data_path": str(Path(data_path)),
+            "source_data_shape": list(source.shape),
+            "model_input_shape_before_domain_filter": list(model_input_shape),
+            "schema_filter_columns": schema_filter_columns,
+            "schema_filter_dropped_columns": int(dropped_columns),
+        }
+    )
 
     with (output_dir / "preprocessed.pkl").open("wb") as f:
         pickle.dump(payload, f)
 
     (output_dir / "preprocessing_metadata.json").write_text(
-        json.dumps(pipeline.metadata(), indent=2),
+        json.dumps(payload["metadata"], indent=2),
         encoding="utf-8",
     )
     if pipeline.missing_report_ is not None:
@@ -967,7 +1025,7 @@ def run_pipeline(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Part 2 data preprocessing pipeline")
-    parser.add_argument("--data", default=str(ROOT_DIR / "part2" / "data" / "planet.csv"))
+    parser.add_argument("--data", default=str(DEFAULT_DATA_PATH))
     parser.add_argument("--outdir", default=str(ROOT_DIR / "part2" / "output"))
     parser.add_argument("--target", default=DEFAULT_TARGET)
     parser.add_argument("--test-size", type=float, default=0.2)

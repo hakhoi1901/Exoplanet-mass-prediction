@@ -4,6 +4,8 @@ import os
 import sys
 from typing import Callable
 
+PART1_OUTPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "output"))
+
 # Import config
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.dirname(__file__))  # cho phép import sibling modules trong part1/
@@ -21,8 +23,8 @@ def kfold_cv(
     X: list[list[float]],
     y: list[float],
     k: int,
-    model_fn: Callable,
-    predict_fn: Callable,
+    model_fn: Callable | None = None,
+    predict_fn: Callable | None = None,
     **model_kwargs,
 ) -> dict:
     """
@@ -49,6 +51,18 @@ def kfold_cv(
         cv_r2_list    : list[float] - R² từng fold.
     """
     n = len(y)
+    if not X or not y:
+        raise ValueError("X and y must be non-empty")
+    if len(X) != n:
+        raise ValueError(f"X and y length mismatch: len(X)={len(X)}, len(y)={n}")
+    if k < 2 or k > n:
+        raise ValueError(f"k must satisfy 2 <= k <= n (k={k}, n={n})")
+
+    if model_fn is None:
+        from ols_implementation import ols_fit
+        model_fn = ols_fit
+    if predict_fn is None:
+        predict_fn = _ols_predict
 
     # Shuffle indices với seed cố định (RANDOM_STATE = 42)
     # Dùng Fisher-Yates shuffle manual thay vì numpy
@@ -115,7 +129,7 @@ def cv_lambda_search(
     predict_fn: Callable,
     lambdas: list[float] | None = None,
     k: int = 5,
-    save_dir: str = "output",
+    save_dir: str = PART1_OUTPUT_DIR,
 ) -> dict:
     """
     Tìm λ tối ưu qua k-fold CV và vẽ biểu đồ λ vs CV-MSE (log scale).
@@ -167,8 +181,8 @@ def cv_lambda_search(
     plt.show(block=False)
     plt.close()
     
-    print(f"[F9] λ vs CV score đã lưu tại: {out_path}")
-    print(f"[F9] λ tối ưu = {best_lam:.4g}  (CV MSE = {mean_mse_list[best_idx]:.4f})")
+    print(f"[F9] lambda vs CV score saved at: {out_path}")
+    print(f"[F9] best lambda = {best_lam:.4g}  (CV MSE = {mean_mse_list[best_idx]:.4f})")
 
     return {
         "best_lam":    best_lam,
@@ -178,6 +192,12 @@ def cv_lambda_search(
     }
 
 
+def _ols_predict(X_val: list[list[float]], model: dict) -> list[float]:
+    beta_hat = model["beta_hat"]
+    p = len(beta_hat) - 1
+    return [beta_hat[0] + sum(row[j] * beta_hat[j + 1] for j in range(p)) for row in X_val]
+
+
 # ---------------------------------------------------------------------------
 # Unit Tests - F9  (≥ 4 tests)
 # ---------------------------------------------------------------------------
@@ -185,69 +205,105 @@ def cv_lambda_search(
 
 
 
-# Adapter cho ridge (dùng trong tests)
-def _ridge_predict(X_val: list[list[float]], model: dict) -> list[float]:
-    from ridge_lasso import ridge_predict
+# Adapter cho ridge (dùng trong notebook và tests)
+def ridge_predict_for_cv(X_val: list[list[float]], model: dict) -> list[float]:
+    try:
+        from .ridge_lasso import ridge_predict
+    except ImportError:
+        from ridge_lasso import ridge_predict
     return ridge_predict(X_val, model["beta_hat"], model["mean_X"], model["std_X"])
 
 
+_ridge_predict = ridge_predict_for_cv
+
+
 def test_kfold_cv_returns_correct_keys():
-    """Kết quả phải có đủ 5 key."""
     from ridge_lasso import ridge_fit
+    from test_utils import assert_true, make_linear_data
+
     X, y = make_linear_data()
     res  = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=0.1)
-    for key in ("mean_cv_score", "std_cv_score", "cv_scores", "mean_cv_r2", "cv_r2_list"):
-        assert key in res, f"Thiếu key '{key}'"
-    print("test_kfold_cv_returns_correct_keys: PASSED")
+    keys_ok = all(key in res for key in ("mean_cv_score", "std_cv_score", "cv_scores", "mean_cv_r2", "cv_r2_list"))
+    return assert_true(keys_ok, label="kfold_cv returns required result keys")
 
 
 def test_kfold_cv_number_of_folds():
-    """cv_mse_list phải có đúng k phần tử."""
     from ridge_lasso import ridge_fit
+    from test_utils import assert_true, make_linear_data
+
     X, y = make_linear_data()
+    ok = True
     for k in (3, 5, 10):
         res = kfold_cv(X, y, k=k, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=0.1)
-        assert len(res["cv_scores"]) == k, f"k={k}: có {len(res['cv_scores'])} fold"
-    print("test_kfold_cv_number_of_folds: PASSED")
+        ok = ok and len(res["cv_scores"]) == k
+    return assert_true(ok, label="cv_scores length matches k for several k values")
 
 
 def test_kfold_cv_mse_positive():
-    """MSE từng fold phải >= 0."""
     from ridge_lasso import ridge_fit
+    from test_utils import assert_true, make_linear_data
+
     X, y = make_linear_data()
     res  = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1.0)
-    for i, mse in enumerate(res["cv_scores"]):
-        assert mse >= 0, f"Fold {i}: MSE âm ({mse})"
-    print("test_kfold_cv_mse_positive: PASSED")
+    return assert_true(all(mse >= 0 for mse in res["cv_scores"]), label="all fold MSE scores are non-negative")
 
 
 def test_kfold_cv_mean_matches_list():
-    """mean_cv_mse phải bằng trung bình cv_mse_list."""
     from ridge_lasso import ridge_fit
+    from test_utils import assert_close, make_linear_data
+
     X, y = make_linear_data()
     res  = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=0.5)
     expected_mean = sum(res["cv_scores"]) / len(res["cv_scores"])
-    assert abs(res["mean_cv_score"] - expected_mean) < 1e-9, "mean_cv_score không khớp"
-    print("test_kfold_cv_mean_matches_list: PASSED")
+    return assert_close(
+        res["mean_cv_score"],
+        expected_mean,
+        label="mean_cv_score equals average of fold scores",
+        rtol=1e-9,
+    )
 
 
 def test_kfold_cv_r2_range():
-    """R² của mô hình tốt trên dữ liệu tuyến tính phải > 0.5."""
     from ridge_lasso import ridge_fit
+    from test_utils import assert_true, make_linear_data
+
     X, y = make_linear_data(n=100, seed=RANDOM_STATE)
     res  = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1e-4)
-    assert res["mean_cv_r2"] > 0.5, f"R² quá thấp: {res['mean_cv_r2']:.3f}"
-    print(f"test_kfold_cv_r2_range: PASSED  (mean R² = {res['mean_cv_r2']:.3f})")
+    return assert_true(
+        res["mean_cv_r2"] > 0.5,
+        label="mean CV R2 is reasonable on linear data",
+        details=f"mean_cv_r2={res['mean_cv_r2']:.4f}",
+    )
 
 
 def test_kfold_cv_reproducible():
-    """Kết quả phải giống nhau khi gọi hai lần (seed cố định)."""
     from ridge_lasso import ridge_fit
+    from test_utils import assert_equal, make_linear_data
+
     X, y = make_linear_data()
     res1 = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1.0)
     res2 = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1.0)
-    assert res1["mean_cv_score"] == res2["mean_cv_score"], "Kết quả không reproducible"
-    print("test_kfold_cv_reproducible: PASSED")
+    return assert_equal(
+        res1["mean_cv_score"],
+        res2["mean_cv_score"],
+        label="kfold_cv is reproducible with fixed seed",
+    )
+
+
+def run_tests() -> tuple[int, int]:
+    from test_utils import TestLogger
+
+    TestLogger.print_suite_header("F9 - k-Fold Cross-Validation")
+    tests = [
+        test_kfold_cv_returns_correct_keys,
+        test_kfold_cv_number_of_folds,
+        test_kfold_cv_mse_positive,
+        test_kfold_cv_mean_matches_list,
+        test_kfold_cv_r2_range,
+        test_kfold_cv_reproducible,
+    ]
+    passed = sum(int(test()) for test in tests)
+    return passed, len(tests)
 
 
 # ---------------------------------------------------------------------------
@@ -258,59 +314,13 @@ if __name__ == "__main__":
     if hasattr(sys.stdout, 'reconfigure'):
         sys.stdout.reconfigure(encoding='utf-8')
         
-    from test_utils import TestLogger, assert_true, assert_equal, assert_close, make_linear_data
-    from ridge_lasso import ridge_fit, ridge_predict
+    from test_utils import TestLogger
     
     print("=" * 55)
     print("  UNIT TESTS - cross_validation.py")
     print("=" * 55)
 
-    passed = 0
-    total = 0
-
-    def run(result: bool):
-        global passed, total
-        total += 1
-        passed += int(result)
-
-    def _ridge_predict(X_val: list[list[float]], model: dict) -> list[float]:
-        return ridge_predict(X_val, model["beta_hat"], model["mean_X"], model["std_X"])
-
-    TestLogger.print_suite_header("F9 - k-Fold Cross-Validation")
-
-    # test_kfold_cv_returns_correct_keys
-    X, y = make_linear_data()
-    res  = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=0.1)
-    keys_ok = all(key in res for key in ("mean_cv_score", "std_cv_score", "cv_scores", "mean_cv_r2", "cv_r2_list"))
-    run(assert_true(keys_ok, label="kfold_cv returns correct dictionary keys"))
-
-    # test_kfold_cv_number_of_folds
-    ok_folds = True
-    for k in (3, 5, 10):
-        res2 = kfold_cv(X, y, k=k, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=0.1)
-        if len(res2["cv_scores"]) != k:
-            ok_folds = False
-    run(assert_true(ok_folds, label="cv_scores list length matches number of folds (k)"))
-
-    # test_kfold_cv_mse_positive
-    res3 = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1.0)
-    run(assert_true(all(mse >= 0 for mse in res3["cv_scores"]), label="all cv_scores (MSE) are non-negative"))
-
-    # test_kfold_cv_mean_matches_list
-    res4 = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=0.5)
-    expected_mean = sum(res4["cv_scores"]) / len(res4["cv_scores"])
-    run(assert_close(res4["mean_cv_score"], expected_mean, label="mean_cv_score matches exact average of cv_scores list", rtol=1e-9))
-
-    # test_kfold_cv_r2_range
-    X2, y2 = make_linear_data(n=100, seed=RANDOM_STATE)
-    res5 = kfold_cv(X2, y2, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1e-4)
-    run(assert_true(res5["mean_cv_r2"] > 0.5, label="CV R2 score is within expected valid range"))
-
-    # test_kfold_cv_reproducible
-    res6_1 = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1.0)
-    res6_2 = kfold_cv(X, y, k=5, model_fn=ridge_fit, predict_fn=_ridge_predict, lam=1.0)
-    run(assert_equal(res6_1["mean_cv_score"], res6_2["mean_cv_score"], label="kfold_cv results are completely reproducible given same seed"))
-
+    passed, total = run_tests()
     TestLogger.print_summary(passed, total)
 
 

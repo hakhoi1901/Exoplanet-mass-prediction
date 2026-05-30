@@ -1,0 +1,114 @@
+\section{Kết luận}
+
+\subsection{Tóm tắt kết quả đạt được}
+
+Trong khuôn khổ đồ án, nhóm đã hoàn thành quy trình Data Fitting theo đúng yêu cầu:
+từ nền tảng lý thuyết OLS, cài đặt các thuật toán hồi quy từ công thức, đến xây dựng
+pipeline tiền xử lý và so sánh mô hình trên dữ liệu ngoại hành tinh thực tế. Các kết quả
+trọng tâm đạt được gồm:
+
+\begin{itemize}[itemsep=0.15cm, topsep=0.1cm]
+    \item \textbf{Hoàn thiện nền tảng Data Fitting và OLS:} Nhóm đã trình bày bài toán hồi quy
+          tuyến tính, hàm mất mát RSS, nghiệm OLS, Hat Matrix, định lý Gauss--Markov, kiểm định
+          hệ số, $R^2$, $R^2$ hiệu chỉnh và phân tích phần dư. Các nội dung lý thuyết được minh
+          họa bằng dữ liệu giả lập và kiểm chứng với NumPy/sklearn để đảm bảo phần cài đặt từ
+          đầu cho kết quả nhất quán.
+
+    \item \textbf{Cài đặt đầy đủ các công cụ mô hình hóa cần thiết:} Các hàm OLS, Ridge, Lasso,
+          VIF, k-fold cross-validation, kiểm định hệ số, residual diagnostics và model metrics
+          đã được hiện thực bằng Python. Phần cài đặt này không chỉ phục vụ minh họa lý thuyết
+          ở Phần 1 mà còn được tái sử dụng trực tiếp trong Phần 2 để huấn luyện và đánh giá mô
+          hình trên dữ liệu thật.
+
+    \item \textbf{Chuẩn hóa bộ dữ liệu ngoại hành tinh cho bài toán hồi quy:} Dữ liệu chuẩn
+          được đưa vào từ \texttt{part2/data/data.csv} với 4636 dòng và 320 cột gốc của NASA
+          Exoplanet Archive. Từ tập này, nhóm áp dụng schema filter để giữ 16 biến vật lý phù
+          hợp với bài toán dự đoán bán kính hành tinh, sau đó giới hạn miền nghiên cứu theo
+          Fulton Gap: \texttt{pl\_rade}$\le1.6$ và \texttt{pl\_bmasse}$\le10$. Tập mô hình hóa
+          cuối cùng còn 1084 mẫu thuộc nhóm hành tinh đá/Super-Earth.
+
+    \item \textbf{Xây dựng pipeline tiền xử lý có kiểm soát leakage:} Pipeline gồm
+          log-transform, Winsorization, MICE imputation, VIF filtering và standardization. Các
+          tham số tiền xử lý chỉ được fit trên train rồi mới áp dụng cho test, giúp tránh rò rỉ
+          dữ liệu đánh giá. Việc dùng MICE thay cho xóa dòng hoặc điền trung bình giúp giữ lại
+          cấu trúc tương quan giữa các nhóm biến thiên văn trong bối cảnh dữ liệu thiếu không
+          đồng đều.
+
+    \item \textbf{Thanh lọc đặc trưng bằng kết hợp kiến thức vật lý và thống kê:} Trước pipeline,
+          nhóm loại các cột metadata, sai số đo lường, biến gây rò rỉ khái niệm, đại lượng dẫn
+          xuất và các biến trùng thông tin. Trong pipeline, VIF tiếp tục loại
+          \texttt{log\_pl\_orbper} và \texttt{log\_pl\_eqt}, đưa ma trận thiết kế cuối cùng về
+          11 feature. Cách chọn biến này giúp mô hình tránh đa cộng tuyến nhưng vẫn giữ các tín
+          hiệu vật lý chính của hệ hành tinh--sao chủ.
+
+    \item \textbf{So sánh có hệ thống các mô hình hồi quy:} Nhóm đã huấn luyện và đánh giá
+          OLS full, OLS selected, Ridge và Lasso bằng train/test split cùng 5-fold
+          cross-validation để chọn siêu tham số. Trong lần chạy chính thức, Lasso là mô hình
+          tuyến tính tốt nhất trên test set với $R^2=0.748403$, RMSE $=0.056872$ và
+          MAE $=0.037895$ trên thang log target. Khi biến đổi ngược về đơn vị bán kính Trái Đất,
+          Lasso đạt $R^2=0.712850$, RMSE $=0.130278$, MAE $=0.085171$ và MAPE $=7.032\%$.
+
+    \item \textbf{Giải thích kết quả mô hình thay vì chỉ báo cáo số liệu:} Sự khác biệt giữa
+          Lasso, OLS full và Ridge rất nhỏ vì log-transform, Winsorization và VIF filtering đã
+          xử lý phần lớn lệch phân phối và đa cộng tuyến trước khi mô hình học. Với
+          $\lambda^*_{\mathrm{Lasso}}=0.1$, Lasso không triệt tiêu feature nào ($0/11$ hệ số
+          bằng 0), cho thấy regularization chủ yếu đóng vai trò co nhẹ hệ số hơn là chọn biến
+          thưa trong bộ dữ liệu sau tiền xử lý.
+
+    \item \textbf{Hoàn thành đánh giá chẩn đoán và thảo luận giới hạn:} Báo cáo đã bổ sung
+          residual plots, Shapiro-Wilk, Breusch-Pagan, Cook's Distance, phân tích các điểm
+          influential và thảo luận selection bias của \texttt{log\_sy\_dist}. Nhóm không xóa
+          các điểm influential một cách cơ học vì đây là dữ liệu quan trắc thiên văn thật; thay
+          vào đó, nhóm ghi nhận chúng như một giới hạn thực nghiệm của mô hình tuyến tính.
+
+    \item \textbf{Thử nghiệm kỹ thuật nâng cao có kiểm soát phạm vi:} Kernel Ridge Regression
+          với RBF kernel được triển khai như phần mở rộng. Do chi phí ma trận Gram tăng nhanh,
+          thử nghiệm chỉ dùng tối đa 200 mẫu train; vì vậy kết quả Kernel Ridge được diễn giải
+          như một kiểm chứng bổ sung, không phải kết luận tổng quát rằng phương pháp kernel kém
+          hơn OLS/Ridge/Lasso trên toàn bộ bài toán.
+\end{itemize}
+
+\subsection{Bài học rút ra}
+
+Quá trình thực hiện đồ án giúp nhóm rút ra một số bài học quan trọng về xây dựng mô hình hồi quy
+trên dữ liệu thực:
+
+\begin{itemize}[itemsep=0.15cm]
+    \item \textbf{Mô hình tốt bắt đầu từ dữ liệu đúng:} Với dữ liệu ngoại hành tinh, việc chọn
+          đúng miền vật lý quan trọng không kém thuật toán. Nếu trộn hành tinh khí khổng lồ với
+          hành tinh đá, mô hình tuyến tính phải học nhiều cơ chế vật lý khác nhau và dễ sinh sai
+          lệch phương sai.
+
+    \item \textbf{Tiền xử lý phải được fit đúng quy trình:} Log-transform, Winsorization, MICE,
+          VIF và standardization đều cần tách rõ train/test. Chỉ một bước fit nhầm trên toàn bộ
+          dữ liệu cũng có thể làm test set mất ý nghĩa đánh giá độc lập.
+
+    \item \textbf{Regularization không phải lúc nào cũng tạo cải thiện lớn:} Ridge và Lasso phát
+          huy mạnh khi dữ liệu còn đa cộng tuyến hoặc nhiều biến nhiễu. Sau khi đã lọc VIF và
+          loại các biến rò rỉ/dẫn xuất, lợi thế của regularization giảm đi, nên kết quả gần OLS
+          là hợp lý.
+
+    \item \textbf{Chỉ số đánh giá cần đi kèm diễn giải ngữ cảnh:} $R^2_{\mathrm{test}}\approx
+          0.748$ cho thấy mô hình giải thích được phần lớn phương sai trên thang log, nhưng vẫn
+          còn khoảng 25\% phương sai chưa giải thích được. Phần còn lại có thể đến từ quan hệ
+          phi tuyến, sai số quan trắc, selection bias và các biến vật lý chưa có trong dữ liệu.
+
+    \item \textbf{Không xử lý ngoại lai một cách máy móc:} Cook's Distance giúp phát hiện điểm có
+          ảnh hưởng lớn, nhưng trong dữ liệu khoa học thật, điểm lạ không nhất thiết là lỗi. Vì
+          vậy nhóm ưu tiên giảm ảnh hưởng bằng log-transform/Winsorization và thảo luận minh bạch
+          thay vì xóa dữ liệu tùy tiện.
+\end{itemize}
+
+\subsection{Khó khăn và hướng mở rộng}
+
+Khó khăn lớn nhất của đồ án nằm ở việc cân bằng giữa yêu cầu toán học của mô hình tuyến tính và
+bản chất phức tạp của dữ liệu thiên văn. Dữ liệu có nhiều missing values, nhiều cột là metadata
+hoặc đại lượng dẫn xuất, đồng thời các biến vật lý thường liên hệ với nhau theo quy luật hàm mũ,
+hàm lũy thừa hoặc cơ chế quan trắc không đồng đều. Vì vậy, nhóm phải kết hợp kiến thức miền với
+các công cụ thống kê như VIF, residual analysis và cross-validation để đưa ra quyết định có căn cứ.
+
+Trong các hướng mở rộng tiếp theo, nhóm có thể thử các mô hình phi tuyến trên toàn bộ tập train
+với chiến lược tối ưu bộ nhớ tốt hơn, chẳng hạn Kernel Ridge theo mini-batch/approximate kernel,
+Gaussian Process xấp xỉ hoặc các mô hình cây tăng cường. Ngoài ra, có thể tách riêng các nhóm
+hành tinh theo miền vật lý nhỏ hơn, bổ sung uncertainty-aware modeling cho sai số đo lường, và
+kiểm tra độ ổn định của kết quả qua nhiều seed train/test split.

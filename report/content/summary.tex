@@ -1,78 +1,114 @@
 \section{Kết luận}
 
 \subsection{Tóm tắt kết quả đạt được}
-Kết thúc quá trình thực hiện đồ án, nhóm đã hoàn thành toàn diện 100\% các mục tiêu đề ra ban đầu, bao gồm cả yêu cầu cốt lõi lẫn các phần mở rộng (điểm cộng). Các kết quả chính yếu bao gồm:
+
+Trong khuôn khổ đồ án, nhóm đã hoàn thành quy trình Data Fitting theo đúng yêu cầu:
+từ nền tảng lý thuyết OLS, cài đặt các thuật toán hồi quy từ công thức, đến xây dựng
+pipeline tiền xử lý và so sánh mô hình trên dữ liệu ngoại hành tinh thực tế. Các kết quả
+trọng tâm đạt được gồm:
 
 \begin{itemize}[itemsep=0.15cm, topsep=0.1cm]
-    \item \textbf{Cài đặt thành công Phép khử Gauss với độ ổn định cao:} Xây dựng thuật toán từ đầu (from scratch) bằng Python, áp dụng triệt để kỹ thuật Partial Pivoting. Thuật toán xử lý thành công mọi dạng ma trận (vuông, chữ nhật, suy biến) và đã được kiểm chứng tính ổn định số học tương đương với thư viện \texttt{numpy.linalg} thông qua việc triệt tiêu hiện tượng Swamping.
-    
-    \item \textbf{Phát triển hệ thống phân rã và chéo hóa ma trận (SVD):} Hoàn thiện thuật toán phân rã giá trị suy biến (Singular Value Decomposition) dựa trên nền tảng toán học của trị riêng và vector riêng. Thuật toán có khả năng phân rã và trích xuất đúng các ma trận $U, \Sigma, V^T$.
-    
-    \item \textbf{Xây dựng bộ công cụ phân tích hiệu năng (Benchmarking Suite):} Thiết lập thành công kịch bản đo lường tự động (\texttt{benchmark.py}) và hệ thống sinh dữ liệu (\texttt{data\_gen.py}) để thu thập hàng ngàn điểm dữ liệu về thời gian thực thi và sai số tương đối (Residual Norm) trên đa dạng kích thước ma trận ($n \in \{50, 100, 200, 500, 1000\}$).
-    
-    \item \textbf{Phân tích sâu sắc tính bất ổn định số học:} Sử dụng thành công ma trận Hilbert $H_n$ (hệ điều kiện kém) và ma trận SPD để bộc lộ hiện tượng khuếch đại sai số ở chuẩn dấu phẩy động IEEE 754. Qua đó, minh chứng rõ ràng mối liên hệ giữa Số điều kiện $\kappa_2(A)$ và mức độ ''trôi dạt'' của vector nghiệm.
-    
-    \item \textbf{Trực quan hóa Toán học sinh động bằng Manim:} Chuyển hóa các phương trình đại số tuyến tính khô khan thành Video hoạt hình (Animation) chất lượng cao. Video mô phỏng trực quan các phép biến đổi hình học của ma trận trong không gian, giúp giải thích trực diện bản chất của quá trình phân rã.
-    
-    \item \textbf{Quy trình phát triển phần mềm chuyên nghiệp:} Ứng dụng triệt để Git/GitHub trong quản lý mã nguồn nhóm, cấu trúc thư mục module hóa (\texttt{solvers}, \texttt{config}), kết hợp Jupyter Notebook và \LaTeX{} để xuất bản báo cáo học thuật đạt chuẩn.
+    \item \textbf{Hoàn thiện nền tảng Data Fitting và OLS:} Nhóm đã trình bày bài toán hồi quy
+          tuyến tính, hàm mất mát RSS, nghiệm OLS, Hat Matrix, định lý Gauss--Markov, kiểm định
+          hệ số, $R^2$, $R^2$ hiệu chỉnh và phân tích phần dư. Các nội dung lý thuyết được minh
+          họa bằng dữ liệu giả lập và kiểm chứng với NumPy/sklearn để đảm bảo phần cài đặt từ
+          đầu cho kết quả nhất quán.
 
-    \item Cài đặt thêm phương pháp lặp \textbf{Gauss-Seidel} với cơ chế tự động kiểm tra điều kiện hội tụ (ma trận chéo trội chặt hàng).
-    
-    \item Xây dựng kịch bản \texttt{benchmark} để đo lường thời gian thực thi trên các kích thước ma trận lớn ($n \in \{50, 100, 200, 500, 1000\}$). Vẽ đồ thị \textit{log-log} so sánh và chứng minh thực nghiệm chi phí tính toán của các phương pháp trực tiếp hoàn toàn bám sát đường lý thuyết $O(n^3)$.
+    \item \textbf{Cài đặt đầy đủ các công cụ mô hình hóa cần thiết:} Các hàm OLS, Ridge, Lasso,
+          VIF, k-fold cross-validation, kiểm định hệ số, residual diagnostics và model metrics
+          đã được hiện thực bằng Python. Phần cài đặt này không chỉ phục vụ minh họa lý thuyết
+          ở Phần 1 mà còn được tái sử dụng trực tiếp trong Phần 2 để huấn luyện và đánh giá mô
+          hình trên dữ liệu thật.
 
-    \item Nghiên cứu thành công sự bất ổn định số học: Sử dụng \textbf{Số điều kiện $\kappa_2(A)$} kết hợp đối chiếu giữa ma trận Hilbert $H_n$ (ill-conditioned) và ma trận SPD ngẫu nhiên để bộc lộ hiện tượng khuếch đại sai số, giải thích sâu sắc giới hạn của hệ thống dấu phẩy động IEEE 754.
+    \item \textbf{Chuẩn hóa bộ dữ liệu ngoại hành tinh cho bài toán hồi quy:} Dữ liệu chuẩn
+          được đưa vào từ \texttt{part2/data/data.csv} với 4636 dòng và 320 cột gốc của NASA
+          Exoplanet Archive. Từ tập này, nhóm áp dụng schema filter để giữ 16 biến vật lý phù
+          hợp với bài toán dự đoán bán kính hành tinh, sau đó giới hạn miền nghiên cứu theo
+          Fulton Gap: \texttt{pl\_rade}$\le1.6$ và \texttt{pl\_bmasse}$\le10$. Tập mô hình hóa
+          cuối cùng còn 1084 mẫu thuộc nhóm hành tinh đá/Super-Earth.
+
+    \item \textbf{Xây dựng pipeline tiền xử lý có kiểm soát leakage:} Pipeline gồm
+          log-transform, Winsorization, MICE imputation, VIF filtering và standardization. Các
+          tham số tiền xử lý chỉ được fit trên train rồi mới áp dụng cho test, giúp tránh rò rỉ
+          dữ liệu đánh giá. Việc dùng MICE thay cho xóa dòng hoặc điền trung bình giúp giữ lại
+          cấu trúc tương quan giữa các nhóm biến thiên văn trong bối cảnh dữ liệu thiếu không
+          đồng đều.
+
+    \item \textbf{Thanh lọc đặc trưng bằng kết hợp kiến thức vật lý và thống kê:} Trước pipeline,
+          nhóm loại các cột metadata, sai số đo lường, biến gây rò rỉ khái niệm, đại lượng dẫn
+          xuất và các biến trùng thông tin. Trong pipeline, VIF tiếp tục loại
+          \texttt{log\_pl\_orbper} và \texttt{log\_pl\_eqt}, đưa ma trận thiết kế cuối cùng về
+          11 feature. Cách chọn biến này giúp mô hình tránh đa cộng tuyến nhưng vẫn giữ các tín
+          hiệu vật lý chính của hệ hành tinh--sao chủ.
+
+    \item \textbf{So sánh có hệ thống các mô hình hồi quy:} Nhóm đã huấn luyện và đánh giá
+          OLS full, OLS selected, Ridge và Lasso bằng train/test split cùng 5-fold
+          cross-validation để chọn siêu tham số. Trong lần chạy chính thức, Lasso là mô hình
+          tuyến tính tốt nhất trên test set với $R^2=0.748403$, RMSE $=0.056872$ và
+          MAE $=0.037895$ trên thang log target. Khi biến đổi ngược về đơn vị bán kính Trái Đất,
+          Lasso đạt $R^2=0.712850$, RMSE $=0.130278$, MAE $=0.085171$ và MAPE $=7.032\%$.
+
+    \item \textbf{Giải thích kết quả mô hình thay vì chỉ báo cáo số liệu:} Sự khác biệt giữa
+          Lasso, OLS full và Ridge rất nhỏ vì log-transform, Winsorization và VIF filtering đã
+          xử lý phần lớn lệch phân phối và đa cộng tuyến trước khi mô hình học. Với
+          $\lambda^*_{\mathrm{Lasso}}=0.1$, Lasso không triệt tiêu feature nào ($0/11$ hệ số
+          bằng 0), cho thấy regularization chủ yếu đóng vai trò co nhẹ hệ số hơn là chọn biến
+          thưa trong bộ dữ liệu sau tiền xử lý.
+
+    \item \textbf{Hoàn thành đánh giá chẩn đoán và thảo luận giới hạn:} Báo cáo đã bổ sung
+          residual plots, Shapiro-Wilk, Breusch-Pagan, Cook's Distance, phân tích các điểm
+          influential và thảo luận selection bias của \texttt{log\_sy\_dist}. Nhóm không xóa
+          các điểm influential một cách cơ học vì đây là dữ liệu quan trắc thiên văn thật; thay
+          vào đó, nhóm ghi nhận chúng như một giới hạn thực nghiệm của mô hình tuyến tính.
+
+    \item \textbf{Thử nghiệm kỹ thuật nâng cao có kiểm soát phạm vi:} Kernel Ridge Regression
+          với RBF kernel được triển khai như phần mở rộng. Do chi phí ma trận Gram tăng nhanh,
+          thử nghiệm chỉ dùng tối đa 200 mẫu train; vì vậy kết quả Kernel Ridge được diễn giải
+          như một kiểm chứng bổ sung, không phải kết luận tổng quát rằng phương pháp kernel kém
+          hơn OLS/Ridge/Lasso trên toàn bộ bài toán.
 \end{itemize}
 
 \subsection{Bài học rút ra}
-Quá trình thực hiện đồ án không chỉ là việc hiện thực hóa các công thức toán học lên ngôn ngữ lập trình, mà còn là một hành trình giúp nhóm thay đổi tư duy về khoa học tính toán:
+
+Quá trình thực hiện đồ án giúp nhóm rút ra một số bài học quan trọng về xây dựng mô hình hồi quy
+trên dữ liệu thực:
 
 \begin{itemize}[itemsep=0.15cm]
-    \item \textbf{Sự khác biệt giữa Toán học lý thuyết và Tính toán số học:} Nhóm nhận ra rằng một thuật toán đúng trên giấy chưa chắc đã chạy đúng trên máy tính. Việc hiểu về cấu trúc lưu trữ số thực \textit{double precision} là chìa khóa để giải thích tại sao $0.1 + 0.2$ không bao giờ bằng $0.3$ tuyệt đối trong RAM.
-    \item \textbf{Tư duy phản biện qua dữ liệu:} Thay vì chấp nhận sai số, nhóm đã học được cách đặt câu hỏi ``Tại sao?''. Việc quan sát đường sai số bám sát ngưỡng $10^{-16}$ đã giúp nhóm tin tưởng vào thuật toán của mình hơn là việc chỉ nhìn vào kết quả nghiệm cuối cùng.
-    \item \textbf{Kỹ năng tối ưu hóa quy trình làm việc:} Nhóm đã làm quen với việc tự động hóa (Automation) thông qua \textit{latexmk} và các script \textit{benchmark}. Bài học về việc ``lười biếng một cách thông minh'' -- viết script để máy tính tự đo đạc hàng ngàn phép tính -- đã giúp nhóm tiết kiệm rất nhiều thời gian.
-    \item \textbf{Giá trị của việc chuẩn hóa (Standardization):} Việc thống nhất sử dụng \texttt{config.py} và quy chuẩn \texttt{list[list[float]]} ngay từ đầu là bài học xương máu về quản lý dự án, giúp việc ghép code giữa các thành viên diễn ra trơn tru mà không bị xung đột kiểu dữ liệu.
+    \item \textbf{Mô hình tốt bắt đầu từ dữ liệu đúng:} Với dữ liệu ngoại hành tinh, việc chọn
+          đúng miền vật lý quan trọng không kém thuật toán. Nếu trộn hành tinh khí khổng lồ với
+          hành tinh đá, mô hình tuyến tính phải học nhiều cơ chế vật lý khác nhau và dễ sinh sai
+          lệch phương sai.
+
+    \item \textbf{Tiền xử lý phải được fit đúng quy trình:} Log-transform, Winsorization, MICE,
+          VIF và standardization đều cần tách rõ train/test. Chỉ một bước fit nhầm trên toàn bộ
+          dữ liệu cũng có thể làm test set mất ý nghĩa đánh giá độc lập.
+
+    \item \textbf{Regularization không phải lúc nào cũng tạo cải thiện lớn:} Ridge và Lasso phát
+          huy mạnh khi dữ liệu còn đa cộng tuyến hoặc nhiều biến nhiễu. Sau khi đã lọc VIF và
+          loại các biến rò rỉ/dẫn xuất, lợi thế của regularization giảm đi, nên kết quả gần OLS
+          là hợp lý.
+
+    \item \textbf{Chỉ số đánh giá cần đi kèm diễn giải ngữ cảnh:} $R^2_{\mathrm{test}}\approx
+          0.748$ cho thấy mô hình giải thích được phần lớn phương sai trên thang log, nhưng vẫn
+          còn khoảng 25\% phương sai chưa giải thích được. Phần còn lại có thể đến từ quan hệ
+          phi tuyến, sai số quan trắc, selection bias và các biến vật lý chưa có trong dữ liệu.
+
+    \item \textbf{Không xử lý ngoại lai một cách máy móc:} Cook's Distance giúp phát hiện điểm có
+          ảnh hưởng lớn, nhưng trong dữ liệu khoa học thật, điểm lạ không nhất thiết là lỗi. Vì
+          vậy nhóm ưu tiên giảm ảnh hưởng bằng log-transform/Winsorization và thảo luận minh bạch
+          thay vì xóa dữ liệu tùy tiện.
 \end{itemize}
 
-\subsection{Khó khăn chuyên môn và các nghịch lý Toán học tính toán}
+\subsection{Khó khăn và hướng mở rộng}
 
-Trong suốt quá trình thực hiện đồ án, rào cản lớn nhất của nhóm không nằm ở cú pháp lập trình, mà nằm ở sự sai khác giữa Toán học lý thuyết (trên giấy) và Giải tích số (trên máy tính). Dưới đây là bốn khó khăn cốt lõi và bài học nhận thức nhóm đã rút ra.
+Khó khăn lớn nhất của đồ án nằm ở việc cân bằng giữa yêu cầu toán học của mô hình tuyến tính và
+bản chất phức tạp của dữ liệu thiên văn. Dữ liệu có nhiều missing values, nhiều cột là metadata
+hoặc đại lượng dẫn xuất, đồng thời các biến vật lý thường liên hệ với nhau theo quy luật hàm mũ,
+hàm lũy thừa hoặc cơ chế quan trắc không đồng đều. Vì vậy, nhóm phải kết hợp kiến thức miền với
+các công cụ thống kê như VIF, residual analysis và cross-validation để đưa ra quyết định có căn cứ.
 
-\subsubsection*{1. Giới hạn của chuẩn IEEE 754}
-
-\textbf{Hiện tượng:} Trong giai đoạn kiểm thử ban đầu, nhóm kỳ vọng sai số phần dư sẽ bằng $0.0$ tuyệt đối. Tuy nhiên, khi giải các hệ phương trình chứa phân số (như $\frac{1}{3}$) hay số thập phân (như $0.1$), sai số phần dư luôn trôi nổi ở mức $10^{-16}$.
-
-\textbf{Bản chất Toán học:} Đây không phải là lỗi thuật toán, mà là giới hạn biểu diễn tất yếu của chuẩn dấu phẩy động IEEE 754 (Double Precision) \cite{ieee754}. Các phân số vô hạn tuần hoàn trong hệ cơ số 2 bị cắt cụt ở bit thứ 53, sinh ra nhiễu làm tròn (round-off error). Ranh giới này được gọi là \textit{Machine Epsilon}: $\varepsilon_{\text{machine}} \approx 2.22 \times 10^{-16}$.
-
-\textbf{Giải quyết:} Nhóm phải từ bỏ tư duy ''so sánh bằng 0'' (exact equality) của Toán học. Thay vào đó, hằng số \texttt{EPSILON = 1e-12} được thiết lập tập trung trong \texttt{config.py} làm ngưỡng dung sai (tolerance), cho phép các thuật toán phân rã SVD và Jacobi hội tụ một cách an toàn mà không bị ảnh hưởng bởi nhiễu máy tính.
-
-\subsubsection*{2. Sai số phần dư trên ma trận Hilbert}
-
-\textbf{Hiện tượng:} Khi đưa ma trận Hilbert $H_n$ (với $n \geq 50$) vào thuật toán Gauss, máy tính trả về vector nghiệm $\hat{x}$ sai lệch hoàn toàn so với nghiệm lý thuyết. Điều kỳ lạ là khi kiểm tra lại bằng sai số phần dư $\|A\hat{x} - b\|_2$, kết quả vẫn cực kỳ nhỏ (cỡ $10^{-15}$) -- máy tính báo ``đúng'' nhưng nghiệm thực tế lại ``sai hoàn toàn''.
-
-\textbf{Bản chất Toán học:} Nhóm đã vấp phải nghịch lý kinh điển của hệ điều kiện kém (ill-conditioned system). Ma trận Hilbert có số điều kiện $\kappa_2(A)$ khổng lồ, lên tới $10^{20}$. Theo Định lý sai số \cite{trefethen}:
-\begin{equation*}
-    \frac{\|\Delta x\|}{\|x\|} \leq \kappa_2(A) \cdot \frac{\|\Delta b\|}{\|b\|}
-\end{equation*}
-Chỉ cần một hạt nhiễu $\varepsilon_{\text{machine}}$ tất yếu trong vế phải $b$, sai số thực tế (forward error) của nghiệm sẽ bị khuếch đại lên $\kappa_2(A)$ lần. Sai số phần dư nhỏ chỉ là một ảo ảnh toán học do không gian bị kéo dãn quá mức -- đây là ``bẫy'' đặc trưng của hệ ill-conditioned mà bất kỳ nhà giải tích số nào cũng phải cảnh giác.
-
-\textbf{Giải quyết:} Sự kiện này buộc nhóm phải nhìn nhận lại giá trị thực sự của thuật toán SVD. Nhờ khả năng dùng nghịch đảo giả (pseudo-inverse) và cắt tỉa các giá trị suy biến tiệm cận $0$, SVD đã chứng minh được đây là công cụ duy nhất ``miễn nhiễm'' một phần với sự bùng nổ sai số trên hệ điều kiện kém.
-
-\subsubsection*{3. Bức tường của hằng số $\mathcal{O}(n^3)$ và nút thắt hiệu năng Python}
-
-\textbf{Hiện tượng:} Trong lý thuyết, cả Khử Gauss và SVD đều có độ phức tạp $\mathcal{O}(n^3)$. Tuy nhiên, khi nhóm chạy benchmark bằng Python thuần ở $n = 500, 1000$, chương trình bị treo (Timeout $> 60$~s). Trong khi đó, \texttt{np.linalg.solve} của NumPy giải quyết $n = 1000$ chỉ trong $0.036$~giây.
-
-\textbf{Bản chất Toán học và Kiến trúc:} Độ phức tạp $\mathcal{O}(n^3)$ chỉ mô tả tốc độ tăng trưởng -- nó che giấu một hằng số thực thi $C$ rất lớn. Thuật toán SVD (Jacobi/QR) đòi hỏi nhiều vòng quét, phép tính lượng giác và căn bậc hai hơn hẳn Gauss, khiến $C_{\text{SVD}} \gg C_{\text{Gauss}}$. Bên cạnh đó, rào cản của trình thông dịch Python (interpreted) khiến phần cứng không thể song song hóa các phép nhân ma trận để phát huy tối đa khả năng của CPU.
-
-\textbf{Giải quyết:} Dưới sự cho phép của giảng viên, nhóm đã linh hoạt chuyển sang sử dụng backend BLAS/LAPACK thông qua NumPy cho các kích thước $n$ lớn. Quyết định này đảm bảo thu thập đủ số liệu để vẽ đồ thị Log-Log chuẩn xác và minh chứng được sự song song giữa đường thực nghiệm với đường tiệm cận $\mathcal{O}(n^3)$ lý thuyết.
-
-\subsubsection*{4. Ranh giới hội tụ khắt khe của phương pháp lặp Gauss-Seidel}
-
-\textbf{Hiện tượng:} Ban đầu, khi thử nghiệm Gauss-Seidel trên các ma trận SPD ngẫu nhiên, thuật toán liên tục báo \texttt{ERR} (vượt quá số vòng lặp tối đa mà không hội tụ), mặc dù lý thuyết khẳng định Gauss-Seidel chắc chắn hội tụ trên ma trận SPD.
-
-\textbf{Bản chất Toán học:} Định lý chỉ khẳng định ma trận SPD \textit{sẽ} hội tụ, nhưng không hứa hẹn tốc độ hội tụ. Nếu bán kính phổ (spectral radius) của ma trận lặp $\rho(G)$ nằm quá sát $1$, phương pháp lặp tiến triển cực kỳ chậm và cạn kiệt giới hạn vòng lặp cho phép trước khi đạt được ngưỡng hội tụ.
-
-\textbf{Giải quyết:} Nhóm đã can thiệp vào khâu sinh dữ liệu (\texttt{data\_gen.py}), bắt buộc mọi ma trận SPD phải được cộng thêm biên độ vào đường chéo chính để thỏa mãn điều kiện \textbf{chéo trội nghiêm ngặt} (Strictly Diagonally Dominant):
-\begin{equation*}
-    |a_{ii}| > \sum_{j \neq i} |a_{ij}|, \quad \forall i = 1, \ldots, n
-\end{equation*}
-Chỉ khi ép chặt điều kiện này, bán kính phổ $\rho(G)$ mới thực sự nhỏ hơn $1$ đủ nhiều, giúp Gauss-Seidel hội tụ ổn định và phát huy sức mạnh tốc độ $\mathcal{O}(n^2)$ đặc trưng của phương pháp lặp.
+Trong các hướng mở rộng tiếp theo, nhóm có thể thử các mô hình phi tuyến trên toàn bộ tập train
+với chiến lược tối ưu bộ nhớ tốt hơn, chẳng hạn Kernel Ridge theo mini-batch/approximate kernel,
+Gaussian Process xấp xỉ hoặc các mô hình cây tăng cường. Ngoài ra, có thể tách riêng các nhóm
+hành tinh theo miền vật lý nhỏ hơn, bổ sung uncertainty-aware modeling cho sai số đo lường, và
+kiểm tra độ ổn định của kết quả qua nhiều seed train/test split.

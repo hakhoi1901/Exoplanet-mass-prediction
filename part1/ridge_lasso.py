@@ -4,16 +4,12 @@ import os
 import sys
 
 import matplotlib.pyplot as plt
+PART1_OUTPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "output"))
 
 # Import utils từ Project 1
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from utils import transpose, matmul, matvec, dot_product, solve_system
 from config import EPSILON, RANDOM_STATE
-
-
-# ---------------------------------------------------------------------------
-# Utilities nội bộ - chuẩn hóa (manual, không dùng numpy)
-# ---------------------------------------------------------------------------
 
 def _col_mean(X: list[list[float]]) -> list[float]:
     """Tính mean từng cột của X."""
@@ -38,6 +34,17 @@ def _standardize(X: list[list[float]], mean: list[float], std: list[float]) -> l
 def _add_bias(X: list[list[float]]) -> list[list[float]]:
     """Thêm cột 1 vào đầu ma trận X (intercept)."""
     return [[1.0] + row for row in X]
+
+
+def _to_original_scale(beta_scaled: list[float], mean: list[float], std: list[float]) -> list[float]:
+    coefs = [beta_scaled[j + 1] / std[j] for j in range(len(mean))]
+    intercept = beta_scaled[0] - sum(coefs[j] * mean[j] for j in range(len(mean)))
+    return [intercept] + coefs
+
+
+def _predict_original(X: list[list[float]], beta_hat: list[float]) -> list[float]:
+    p = len(beta_hat) - 1
+    return [beta_hat[0] + sum(row[j] * beta_hat[j + 1] for j in range(p)) for row in X]
 
 
 # ---------------------------------------------------------------------------
@@ -92,37 +99,45 @@ def ridge_fit(
     rhs = [dot_product(Xt[i], y) for i in range(p + 1)]
 
     # Giải hệ (XᵀX + λI*)β = Xᵀy
-    beta_hat = solve_system(A, rhs)     # utils.py
-    y_hat    = matvec(X_b, beta_hat)    # utils.py
+    beta_scaled = solve_system(A, rhs)     # utils.py
+    beta_hat = _to_original_scale(beta_scaled, mean_X, std_X)
+    y_hat = _predict_original(X, beta_hat)
 
     residuals = [y[i] - y_hat[i] for i in range(n)]
 
     return {
-        "beta_hat":  beta_hat,
-        "y_hat":     y_hat,
-        "residuals": residuals,
-        "mean_X":    mean_X,
-        "std_X":     std_X,
+        "beta_hat":              beta_hat,
+        "beta_hat_standardized": beta_scaled,
+        "y_hat":                 y_hat,
+        "residuals":             residuals,
+        "mean_X":                mean_X,
+        "std_X":                 std_X,
     }
 
 
 def ridge_predict(
     X: list[list[float]],
     beta_hat: list[float],
-    mean_X: list[float],
-    std_X: list[float],
+    mean_X: list[float] | None = None,
+    std_X: list[float] | None = None,
+    *,
+    standardized: bool = False,
 ) -> list[float]:
     """Dự đoán y cho X mới dùng beta_hat từ ridge_fit."""
-    X_sc = _standardize(X, mean_X, std_X)
-    X_b  = _add_bias(X_sc)
-    return matvec(X_b, beta_hat)        # utils.py
+    if standardized:
+        if mean_X is None or std_X is None:
+            raise ValueError("mean_X and std_X are required for standardized coefficients")
+        X_sc = _standardize(X, mean_X, std_X)
+        X_b = _add_bias(X_sc)
+        return matvec(X_b, beta_hat)
+    return _predict_original(X, beta_hat)
 
 
 def ridge_trace(
     X: list[list[float]],
     y: list[float],
     lambdas: list[float] | None = None,
-    save_dir: str = "output",
+    save_dir: str = PART1_OUTPUT_DIR,
     show_plot: bool = False,
 ) -> dict:
     """
@@ -249,36 +264,43 @@ def lasso_fit(
             break
 
     # Tạo output
-    beta_hat = [intercept] + beta
-    X_b = _add_bias(X_sc)
-    y_hat = matvec(X_b, beta_hat)   # utils.py
+    beta_scaled = [intercept] + beta
+    beta_hat = _to_original_scale(beta_scaled, mean_X, std_X)
+    y_hat = _predict_original(X, beta_hat)
 
     return {
-        "beta_hat": beta_hat,
-        "y_hat":    y_hat,
-        "n_iter":   n_iter,
-        "mean_X":   mean_X,
-        "std_X":    std_X,
+        "beta_hat":              beta_hat,
+        "beta_hat_standardized": beta_scaled,
+        "y_hat":                 y_hat,
+        "n_iter":                n_iter,
+        "mean_X":                mean_X,
+        "std_X":                 std_X,
     }
 
 
 def lasso_predict(
     X: list[list[float]],
     beta_hat: list[float],
-    mean_X: list[float],
-    std_X: list[float],
+    mean_X: list[float] | None = None,
+    std_X: list[float] | None = None,
+    *,
+    standardized: bool = False,
 ) -> list[float]:
     """Dự đoán y cho X mới dùng beta_hat từ lasso_fit."""
-    X_sc = _standardize(X, mean_X, std_X)
-    X_b  = _add_bias(X_sc)
-    return matvec(X_b, beta_hat)        # utils.py
+    if standardized:
+        if mean_X is None or std_X is None:
+            raise ValueError("mean_X and std_X are required for standardized coefficients")
+        X_sc = _standardize(X, mean_X, std_X)
+        X_b = _add_bias(X_sc)
+        return matvec(X_b, beta_hat)
+    return _predict_original(X, beta_hat)
 
 
 def lasso_trace(
     X: list[list[float]],
     y: list[float],
     lambdas: list[float] | None = None,
-    save_dir: str = "output",
+    save_dir: str = PART1_OUTPUT_DIR,
     show_plot: bool = False,
 ) -> dict:
     """
@@ -324,122 +346,201 @@ def lasso_trace(
 
 
 # ---------------------------------------------------------------------------
-# Unit Tests - F6 & F7  (≥ 4 test mỗi hàm)
+# Unit Tests - F6 & F7
 # ---------------------------------------------------------------------------
-if __name__ == "__main__":
-    if hasattr(sys.stdout, 'reconfigure'):
-        sys.stdout.reconfigure(encoding='utf-8')
-        
-    from test_utils import TestLogger, assert_true, assert_equal, assert_close
-    import numpy as np
 
-    print("=" * 55)
-    print("  UNIT TESTS - ridge_lasso.py")
-    print("=" * 55)
 
-    passed = 0
-    total = 0
+def _test_mse(y_true: list[float], y_pred: list[float]) -> float:
+    return sum((a - b) ** 2 for a, b in zip(y_true, y_pred)) / len(y_true)
 
-    def run(result: bool):
-        global passed, total
-        total += 1
-        passed += int(result)
 
-    def _mse(y_true: list[float], y_pred: list[float]) -> float:
-        return sum((a - b) ** 2 for a, b in zip(y_true, y_pred)) / len(y_true)
+def _test_randn_matrix(n: int, p: int, seed: int) -> list[list[float]]:
+    import random
 
-    TestLogger.print_suite_header("F6 - Ridge Regression")
+    rng = random.Random(seed)
+    return [[rng.gauss(0.0, 1.0) for _ in range(p)] for _ in range(n)]
 
-    # test_ridge_output_shape
-    X = [[1.0, 2.0], [2.0, 1.0], [3.0, 5.0], [4.0, 3.0]]
-    y = [5.0, 4.0, 10.0, 8.0]
+
+def _small_regression_data() -> tuple[list[list[float]], list[float]]:
+    return [[1.0, 2.0], [2.0, 1.0], [3.0, 5.0], [4.0, 3.0]], [5.0, 4.0, 10.0, 8.0]
+
+
+def test_ridge_output_shape() -> bool:
+    from test_utils import assert_equal
+
+    X, y = _small_regression_data()
     res = ridge_fit(X, y, lam=1.0)
-    run(assert_equal(len(res["beta_hat"]), 3, label="ridge_fit beta_hat length matches p+1"))
-    run(assert_equal(len(res["y_hat"]), 4, label="ridge_fit y_hat length matches n"))
+    checks = [
+        assert_equal(len(res["beta_hat"]), 3, label="ridge_fit beta_hat length matches p+1"),
+        assert_equal(len(res["y_hat"]), 4, label="ridge_fit y_hat length matches n"),
+    ]
+    return all(checks)
 
-    # test_ridge_lam0_close_to_ols
-    np.random.seed(RANDOM_STATE)
-    X_np = np.random.randn(50, 3).tolist()
+
+def test_ridge_lam0_close_to_ols() -> bool:
+    from test_utils import assert_true
+
+    X = _test_randn_matrix(50, 3, RANDOM_STATE)
     beta_true = [1.0, -2.0, 0.5]
-    y_np = [sum(beta_true[j] * X_np[i][j] for j in range(3)) for i in range(50)]
-    res2 = ridge_fit(X_np, y_np, lam=1e-6)
-    mse2 = _mse(y_np, res2["y_hat"])
-    run(assert_true(mse2 < 0.01, label=f"ridge_fit with λ=0 closely matches OLS (MSE={mse2:.4f})"))
+    y = [sum(beta_true[j] * X[i][j] for j in range(3)) for i in range(50)]
+    res = ridge_fit(X, y, lam=1e-6)
+    mse = _test_mse(y, res["y_hat"])
+    return assert_true(mse < 0.01, label=f"ridge_fit with lambda near 0 matches OLS (MSE={mse:.4f})")
 
-    # test_ridge_large_lam_shrinks_coefs
+
+def test_ridge_large_lam_shrinks_coefs() -> bool:
+    from test_utils import assert_true
+
+    X, y = _small_regression_data()
     res_small = ridge_fit(X, y, lam=1e-4)
     res_large = ridge_fit(X, y, lam=1e6)
     norm_small = sum(b ** 2 for b in res_small["beta_hat"][1:]) ** 0.5
     norm_large = sum(b ** 2 for b in res_large["beta_hat"][1:]) ** 0.5
-    run(assert_true(norm_large < norm_small, label="ridge_fit with large λ shrinks coefficients towards 0"))
+    return assert_true(norm_large < norm_small, label="large ridge lambda shrinks coefficients")
 
-    # test_ridge_predict_consistent
-    res3 = ridge_fit(X, y, lam=0.5)
-    pred3 = ridge_predict(X, res3["beta_hat"], res3["mean_X"], res3["std_X"])
-    run(assert_close(res3["y_hat"], pred3, label="ridge_predict outputs exactly match training y_hat", rtol=1e-8))
 
-    # test_ridge_vs_sklearn
+def test_ridge_predict_consistent() -> bool:
+    from test_utils import assert_close
+
+    X, y = _small_regression_data()
+    res = ridge_fit(X, y, lam=0.5)
+    pred = ridge_predict(X, res["beta_hat"], res["mean_X"], res["std_X"])
+    return assert_close(res["y_hat"], pred, label="ridge_predict matches training fitted values", rtol=1e-8)
+
+
+def test_ridge_vs_sklearn_optional() -> bool:
+    from test_utils import TestLogger, assert_true
+
     try:
         from sklearn.linear_model import Ridge
-        from sklearn.preprocessing import StandardScaler
         from sklearn.pipeline import Pipeline
-        np.random.seed(RANDOM_STATE)
-        X_sk = np.random.randn(30, 2)
-        y_sk = X_sk @ np.array([2.0, -1.0]) + 0.5
-        X4 = X_sk.tolist(); y4 = y_sk.tolist()
-        res4 = ridge_fit(X4, y4, lam=1.0)
-        mse_ours = _mse(y4, res4["y_hat"])
-        # Dùng Pipeline(StandardScaler + Ridge) để khớp với cách chúng ta standardize X bên trong
-        pipe = Pipeline([("sc", StandardScaler()), ("ridge", Ridge(alpha=1.0, fit_intercept=True))])
-        pipe.fit(X_sk, y_sk)
-        mse_sk = float(np.mean((y_sk - pipe.predict(X_sk)) ** 2))
-        diff_ratio = abs(mse_ours - mse_sk) / (mse_sk + 1e-12)
-        run(assert_true(diff_ratio < 0.10, label=f"ridge_fit performance matches sklearn Pipeline(StandardScaler+Ridge) (diff={diff_ratio:.1%})"))
+        from sklearn.preprocessing import StandardScaler
     except ImportError:
-        TestLogger.print_warn("Bỏ qua test_ridge_vs_sklearn vì không có thư viện sklearn")
+        TestLogger.print_warn("Skip ridge sklearn verification because sklearn is not installed")
+        return True
+
+    X = _test_randn_matrix(30, 2, RANDOM_STATE)
+    y = [2.0 * row[0] - 1.0 * row[1] + 0.5 for row in X]
+    ours = ridge_fit(X, y, lam=1.0)
+    mse_ours = _test_mse(y, ours["y_hat"])
+    pipe = Pipeline([("sc", StandardScaler()), ("ridge", Ridge(alpha=1.0, fit_intercept=True))])
+    pipe.fit(X, y)
+    mse_sk = _test_mse(y, list(pipe.predict(X)))
+    diff_ratio = abs(mse_ours - mse_sk) / (mse_sk + 1e-12)
+    return assert_true(diff_ratio < 0.10, label=f"ridge_fit matches sklearn pipeline (diff={diff_ratio:.1%})")
 
 
-    TestLogger.print_suite_header("F7 - Lasso Regression")
+def test_lasso_output_shape() -> bool:
+    from test_utils import assert_equal
 
-    # test_lasso_output_shape
-    res5 = lasso_fit(X, y, lam=0.1)
-    run(assert_equal(len(res5["beta_hat"]), 3, label="lasso_fit beta_hat length matches p+1"))
-    run(assert_equal(len(res5["y_hat"]), 4, label="lasso_fit y_hat length matches n"))
+    X, y = _small_regression_data()
+    res = lasso_fit(X, y, lam=0.1)
+    checks = [
+        assert_equal(len(res["beta_hat"]), 3, label="lasso_fit beta_hat length matches p+1"),
+        assert_equal(len(res["y_hat"]), 4, label="lasso_fit y_hat length matches n"),
+    ]
+    return all(checks)
 
-    # test_lasso_sparsity
-    np.random.seed(RANDOM_STATE)
-    X_ls = np.random.randn(60, 5).tolist()
-    y_ls = [2 * X_ls[i][0] - 1.5 * X_ls[i][1] + 0.05 * np.random.randn() for i in range(60)]
-    res6 = lasso_fit(X_ls, y_ls, lam=2.0)
-    zeros = sum(1 for b in res6["beta_hat"][1:] if abs(b) < 1e-6)
-    run(assert_true(zeros >= 1, label=f"lasso_fit induces sparsity (forces coefficients to exactly 0)"))
 
-    # test_lasso_predict_consistent
-    res7 = lasso_fit(X, y, lam=0.1)
-    pred7 = lasso_predict(X, res7["beta_hat"], res7["mean_X"], res7["std_X"])
-    run(assert_close(res7["y_hat"], pred7, label="lasso_predict outputs exactly match training y_hat", rtol=1e-6))
+def test_lasso_sparsity() -> bool:
+    import random
+    from test_utils import assert_true
 
-    # test_lasso_lam0_close_to_ols
-    np.random.seed(RANDOM_STATE)
-    X_l0 = np.random.randn(40, 2).tolist()
-    y_l0 = [2.0 * X_l0[i][0] - 1.0 * X_l0[i][1] for i in range(40)]
-    res8 = lasso_fit(X_l0, y_l0, lam=1e-6)
-    mse8 = _mse(y_l0, res8["y_hat"])
-    run(assert_true(mse8 < 0.01, label=f"lasso_fit with λ=0 closely matches OLS (MSE={mse8:.4f})"))
+    rng = random.Random(RANDOM_STATE + 1)
+    X = _test_randn_matrix(60, 5, RANDOM_STATE)
+    y = [2 * X[i][0] - 1.5 * X[i][1] + 0.05 * rng.gauss(0.0, 1.0) for i in range(60)]
+    res = lasso_fit(X, y, lam=2.0)
+    zeros = sum(1 for b in res["beta_hat"][1:] if abs(b) < 1e-6)
+    return assert_true(zeros >= 1, label="lasso_fit induces coefficient sparsity")
 
-    # test_lasso_vs_sklearn
+
+def test_lasso_predict_consistent() -> bool:
+    from test_utils import assert_close
+
+    X, y = _small_regression_data()
+    res = lasso_fit(X, y, lam=0.1)
+    pred = lasso_predict(X, res["beta_hat"], res["mean_X"], res["std_X"])
+    return assert_close(res["y_hat"], pred, label="lasso_predict matches training fitted values", rtol=1e-6)
+
+
+def test_lasso_lam0_close_to_ols() -> bool:
+    from test_utils import assert_true
+
+    X = _test_randn_matrix(40, 2, RANDOM_STATE)
+    y = [2.0 * X[i][0] - 1.0 * X[i][1] for i in range(40)]
+    res = lasso_fit(X, y, lam=1e-6)
+    mse = _test_mse(y, res["y_hat"])
+    return assert_true(mse < 0.01, label=f"lasso_fit with lambda near 0 matches OLS (MSE={mse:.4f})")
+
+
+def test_lasso_vs_sklearn_optional() -> bool:
+    import random
+    from test_utils import TestLogger, assert_true
+
     try:
         from sklearn.linear_model import Lasso
-        np.random.seed(RANDOM_STATE)
-        X_sk2 = np.random.randn(50, 3)
-        y_sk2 = X_sk2 @ np.array([1.0, 0.0, -2.0]) + np.random.randn(50) * 0.3
-        X9 = X_sk2.tolist(); y9 = y_sk2.tolist()
-        res9 = lasso_fit(X9, y9, lam=0.5, max_iter=5000)
-        mse_ours_ls = _mse(y9, res9["y_hat"])
-        sk_ls = Lasso(alpha=0.5, max_iter=10000).fit(X_sk2, y_sk2)
-        mse_sk_ls = float(np.mean((y_sk2 - sk_ls.predict(X_sk2)) ** 2))
-        run(assert_true(mse_ours_ls < 2.0 and mse_sk_ls < 2.0, label=f"lasso_fit performance matches sklearn.linear_model.Lasso"))
     except ImportError:
-        TestLogger.print_warn("Bỏ qua test_lasso_vs_sklearn vì không có thư viện sklearn")
+        TestLogger.print_warn("Skip lasso sklearn verification because sklearn is not installed")
+        return True
 
+    rng = random.Random(RANDOM_STATE + 2)
+    X = _test_randn_matrix(50, 3, RANDOM_STATE)
+    y = [row[0] - 2.0 * row[2] + 0.3 * rng.gauss(0.0, 1.0) for row in X]
+    ours = lasso_fit(X, y, lam=0.5, max_iter=5000)
+    mse_ours = _test_mse(y, ours["y_hat"])
+    sk = Lasso(alpha=0.5, max_iter=10000).fit(X, y)
+    mse_sk = _test_mse(y, list(sk.predict(X)))
+    return assert_true(mse_ours < 2.0 and mse_sk < 2.0, label="lasso_fit performance matches sklearn Lasso")
+
+
+def _run_test_group(tests: list, suite_name: str) -> tuple[int, int]:
+    from test_utils import TestLogger
+
+    TestLogger.print_suite_header(suite_name)
+    passed = sum(int(test()) for test in tests)
+    return passed, len(tests)
+
+
+def run_tests() -> tuple[int, int]:
+    groups = [
+        (
+            "F6 - Ridge Regression",
+            [
+                test_ridge_output_shape,
+                test_ridge_lam0_close_to_ols,
+                test_ridge_large_lam_shrinks_coefs,
+                test_ridge_predict_consistent,
+                test_ridge_vs_sklearn_optional,
+            ],
+        ),
+        (
+            "F7 - Lasso Regression",
+            [
+                test_lasso_output_shape,
+                test_lasso_sparsity,
+                test_lasso_predict_consistent,
+                test_lasso_lam0_close_to_ols,
+                test_lasso_vs_sklearn_optional,
+            ],
+        ),
+    ]
+    total_passed = 0
+    total_tests = 0
+    for suite_name, tests in groups:
+        passed, total = _run_test_group(tests, suite_name)
+        total_passed += passed
+        total_tests += total
+    return total_passed, total_tests
+
+
+if __name__ == "__main__":
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
+    from test_utils import TestLogger
+
+    print("=" * 55)
+    print("  UNIT TESTS - ridge_lasso.py")
+    print("=" * 55)
+    passed, total = run_tests()
     TestLogger.print_summary(passed, total)

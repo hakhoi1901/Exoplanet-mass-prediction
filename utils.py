@@ -428,26 +428,39 @@ def build_null_vector(X_bias: list[list[float]]) -> list[float]:
     # Lấy các cột của X_bias
     cols = [[X_bias[i][j] for i in range(n)] for j in range(p1)]
 
-    # Tạo vector ngẫu nhiên (dùng LCG cho reproducible)
+    # Build an orthonormal basis for Col(X_bias), then project a
+    # deterministic pseudo-random vector onto the orthogonal complement.
+    basis: list[list[float]] = []
+    for col in cols:
+        w = [float(x) for x in col]
+        for b in basis:
+            coeff = dot_product(w, b)
+            w = [w[i] - coeff * b[i] for i in range(n)]
+        norm_w = math.sqrt(sum(wi * wi for wi in w))
+        if norm_w > EPSILON:
+            basis.append([wi / norm_w for wi in w])
+
+    if len(basis) >= n:
+        raise ValueError("Null space tam thuong, khong the xay dung vector khac 0")
+
     v = [0.0] * n
     state = 12345
     for i in range(n):
         state = (state * 1103515245 + 12345) & 0x7FFFFFFF
         v[i] = (state / 0x7FFFFFFF) * 2.0 - 1.0
 
-    # Chiếu v ra khỏi không gian cột của X_bias (Gram-Schmidt)
-    for col in cols:
-        dot_vc = dot_product(v, col)
-        dot_cc = dot_product(col, col)
-        if abs(dot_cc) > EPSILON:
-            coeff = dot_vc / dot_cc
-            v = [v[i] - coeff * col[i] for i in range(n)]
+    for b in basis:
+        coeff = dot_product(v, b)
+        v = [v[i] - coeff * b[i] for i in range(n)]
 
-    # Chuẩn hóa
     norm_v = math.sqrt(sum(vi * vi for vi in v))
     if norm_v < EPSILON:
-        raise ValueError("Không thể xây dựng null vector")
+        raise ValueError("Khong the xay dung null vector")
     v = [vi / norm_v for vi in v]
+
+    max_dot = max(abs(dot_product(col, v)) for col in cols)
+    if max_dot > 1e-8:
+        raise ValueError("Khong the xay dung null vector du chinh xac")
 
     return v
 

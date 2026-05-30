@@ -5,6 +5,7 @@ import os
 from typing import Any
 
 import matplotlib.pyplot as plt
+PART1_OUTPUT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "output"))
 
 # Import utils và F1 ols_fit
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -163,7 +164,7 @@ def plot_beta_histograms(
     beta_alt: list[list[float]],
     true_beta: list[float],
     bins: int = 30,
-    save_dir: str = "output",
+    save_dir: str = PART1_OUTPUT_DIR,
 ):
     """
     Vẽ histogram phân bố β̂ cho mỗi hệ số với đường dọc tại true_beta.
@@ -175,11 +176,6 @@ def plot_beta_histograms(
         bins:      int - Số bins histogram.
         save_dir:  str - Thư mục lưu ảnh.
     """
-    import numpy as np
-
-    beta_ols_arr = np.array(beta_ols)
-    beta_alt_arr = np.array(beta_alt)
-    true_arr = np.array(true_beta)
     n_coef = len(true_beta)
 
     fig, axes = plt.subplots(1, n_coef, figsize=(5 * n_coef, 4))
@@ -188,9 +184,11 @@ def plot_beta_histograms(
 
     coef_names = ["intercept"] + [f"x{i}" for i in range(1, n_coef)]
     for j, ax in enumerate(axes):
-        ax.hist(beta_alt_arr[:, j], bins=bins, alpha=0.6, color="orange", edgecolor="black", label="Alt")
-        ax.hist(beta_ols_arr[:, j], bins=bins, alpha=0.6, color="blue", edgecolor="black", label="OLS")
-        ax.axvline(true_arr[j], color="red", linestyle="--", linewidth=2, label="true β")
+        beta_alt_col = [row[j] for row in beta_alt]
+        beta_ols_col = [row[j] for row in beta_ols]
+        ax.hist(beta_alt_col, bins=bins, alpha=0.6, color="orange", edgecolor="black", label="Alt")
+        ax.hist(beta_ols_col, bins=bins, alpha=0.6, color="blue", edgecolor="black", label="OLS")
+        ax.axvline(true_beta[j], color="red", linestyle="--", linewidth=2, label="true β")
         ax.set_title(f"Distribution of {coef_names[j]}")
         ax.set_xlabel("Estimated value")
         ax.set_ylabel("Frequency")
@@ -203,48 +201,114 @@ def plot_beta_histograms(
     plt.close()
     return fig, axes
 
+
+def _nested_allclose(a: list[list[float]], b: list[list[float]], tol: float = 1e-10) -> bool:
+    if len(a) != len(b):
+        return False
+    for row_a, row_b in zip(a, b):
+        if len(row_a) != len(row_b):
+            return False
+        for x, y in zip(row_a, row_b):
+            if abs(x - y) > tol:
+                return False
+    return True
+
+
 # ---------------------------------------------------------------------------
 # Unit Tests - F10
 # ---------------------------------------------------------------------------
+
+
+def test_monte_carlo_returns_expected_keys() -> bool:
+    from test_utils import assert_true
+
+    res = monte_carlo_gauss_markov(n_sim=200, n_obs=30, random_state=RANDOM_STATE)
+    return assert_true(
+        "ols_bias" in res and "beta_ols_all" in res and "beta_alt_all" in res,
+        label="monte_carlo_gauss_markov returns expected result keys",
+    )
+
+
+def test_monte_carlo_beta_shapes() -> bool:
+    from test_utils import assert_shape
+
+    res = monte_carlo_gauss_markov(n_sim=200, n_obs=80, random_state=RANDOM_STATE)
+    checks = [
+        assert_shape(res["beta_ols_all"], (200, 3), label="beta_ols_all shape is n_sim by p+1"),
+        assert_shape(res["beta_alt_all"], (200, 3), label="beta_alt_all shape is n_sim by p+1"),
+    ]
+    return all(checks)
+
+
+def test_monte_carlo_summary_lengths() -> bool:
+    from test_utils import assert_equal
+
+    res = monte_carlo_gauss_markov(n_sim=200, n_obs=80, random_state=RANDOM_STATE)
+    checks = [
+        assert_equal(len(res["ols_mean"]), 3, label="ols_mean length matches p+1"),
+        assert_equal(len(res["alt_var"]), 3, label="alt_var length matches p+1"),
+    ]
+    return all(checks)
+
+
+def test_monte_carlo_ols_nearly_unbiased() -> bool:
+    from test_utils import assert_true
+
+    true_beta = (2.0, -1.5, 0.8)
+    res = monte_carlo_gauss_markov(
+        n_sim=800,
+        n_obs=100,
+        true_beta=true_beta,
+        true_sigma=1.0,
+        random_state=123,
+    )
+    ok = all(abs(estimated - truth) < 0.12 for estimated, truth in zip(res["ols_mean"], true_beta))
+    return assert_true(ok, label="OLS estimates are nearly unbiased in Monte Carlo")
+
+
+def test_monte_carlo_ols_variance_not_larger_than_alt() -> bool:
+    from test_utils import assert_true
+
+    res = monte_carlo_gauss_markov(n_sim=600, n_obs=90, alt_scale=0.4, random_state=99)
+    ok = all(ols_var <= alt_var + 1e-12 for ols_var, alt_var in zip(res["ols_var"], res["alt_var"]))
+    return assert_true(ok, label="OLS variance is not larger than alternative estimator")
+
+
+def test_monte_carlo_reproducible() -> bool:
+    from test_utils import assert_true
+
+    res1 = monte_carlo_gauss_markov(n_sim=5, n_obs=10, random_state=1)
+    res2 = monte_carlo_gauss_markov(n_sim=5, n_obs=10, random_state=1)
+    return assert_true(
+        _nested_allclose(res1["beta_ols_all"], res2["beta_ols_all"]),
+        label="simulation is reproducible given random_state",
+    )
+
+
+def run_tests() -> tuple[int, int]:
+    from test_utils import TestLogger
+
+    TestLogger.print_suite_header("F10 - Gauss Markov Demo")
+    tests = [
+        test_monte_carlo_returns_expected_keys,
+        test_monte_carlo_beta_shapes,
+        test_monte_carlo_summary_lengths,
+        test_monte_carlo_ols_nearly_unbiased,
+        test_monte_carlo_ols_variance_not_larger_than_alt,
+        test_monte_carlo_reproducible,
+    ]
+    passed = sum(int(test()) for test in tests)
+    return passed, len(tests)
+
+
 if __name__ == "__main__":
-    import os
-    import sys
-    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-    if hasattr(sys.stdout, 'reconfigure'):
-        sys.stdout.reconfigure(encoding='utf-8')
-        
-    from test_utils import TestLogger, assert_shape, assert_true, assert_in_range, assert_equal
-    import numpy as np
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
+    from test_utils import TestLogger
 
     print("=" * 55)
     print("  UNIT TESTS - gauss_markov_demo.py")
     print("=" * 55)
-
-    passed = 0
-    total = 0
-
-    def run(result: bool):
-        global passed, total
-        total += 1
-        passed += int(result)
-
-    TestLogger.print_suite_header("F10 - Gauss Markov Demo")
-
-    # Run simulation with small n_sim for testing
-    res = monte_carlo_gauss_markov(n_sim=200, n_obs=30, random_state=RANDOM_STATE)
-
-    run(assert_true("ols_bias" in res and "beta_ols_all" in res, label="returns expected dictionary keys"))
-    
-    run(assert_shape(res["beta_ols_all"], (200, 3), label="beta_ols_arr has shape (n_sim, p+1)"))
-    run(assert_shape(res["beta_alt_all"], (200, 3), label="beta_alt_arr has shape (n_sim, p+1)"))
-
-    # Bias should be small, but with 50 sims it might have variance. Just check it runs.
-    run(assert_true(len(res["ols_bias"]) > 0, label="results contain ols_bias array"))
-
-    # Test reproducible
-    res2 = monte_carlo_gauss_markov(n_sim=5, n_obs=10, random_state=1)
-    res3 = monte_carlo_gauss_markov(n_sim=5, n_obs=10, random_state=1)
-    run(assert_true(np.allclose(res2["beta_ols_all"], res3["beta_ols_all"]), label="simulation is reproducible given random_state"))
-
+    passed, total = run_tests()
     TestLogger.print_summary(passed, total)
-

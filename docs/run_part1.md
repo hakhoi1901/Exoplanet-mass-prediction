@@ -30,7 +30,7 @@ from part1.residual_analysis import residual_plots
 
 X, y = make_linear_data(n=200, beta=[2.0, 3.0, -1.5], sigma=1.0)
 res = ols_fit(X, y)
-residual_plots(y, res["y_hat"], X=X, save_dir="part1/output")
+residual_plots(X, y, res["beta_hat"], save_dir="part1/output")
 ```
 
 ### 3. Ridge Trace & Lasso Path (Đường đi của hệ số hồi quy)
